@@ -973,7 +973,7 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
                           type="button"
                           variant="ghost"
                           size="sm"
-                          onClick={() => window.open(doc.url, '_blank')}
+                          onClick={() => window.open(`/api/documents/${doc.id}/view`, '_blank')}
                           className="text-blue-600 hover:text-blue-800"
                           title="Visualizar documento"
                         >
@@ -983,12 +983,7 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
                           type="button"
                           variant="ghost"
                           size="sm"
-                          onClick={() => {
-                            const link = document.createElement('a');
-                            link.href = doc.url;
-                            link.download = doc.name;
-                            link.click();
-                          }}
+                          onClick={() => window.open(`/api/documents/${doc.id}/download`, '_blank')}
                           className="text-green-600 hover:text-green-800"
                           title="Baixar documento"
                         >

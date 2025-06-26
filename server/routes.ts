@@ -194,6 +194,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para servir documentos via proxy (mascarar Supabase URL)
+  app.get("/api/documents/:id/view", isAuthenticated, async (req: any, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      const userId = parseInt(req.session.user.id);
+      
+      // Buscar o documento
+      const document = await storage.getDocument(documentId);
+      if (!document) {
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+      
+      // Verificar se o usuário é dono da propriedade
+      const property = await storage.getProperty(document.propertyId);
+      if (!property || property.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      // Fazer proxy do arquivo do Supabase
+      const fetch = require('node-fetch');
+      const response = await fetch(document.url);
+      
+      if (!response.ok) {
+        return res.status(404).json({ message: "Arquivo não encontrado" });
+      }
+
+      // Definir headers apropriados
+      res.set({
+        'Content-Type': document.type || 'application/octet-stream',
+        'Content-Disposition': `inline; filename="${document.name}"`,
+        'Cache-Control': 'private, max-age=3600'
+      });
+
+      // Fazer stream do arquivo
+      response.body.pipe(res);
+      
+    } catch (error: any) {
+      console.error("Error serving document:", error);
+      res.status(500).json({ message: "Erro ao servir documento" });
+    }
+  });
+
+  // Rota para download de documentos
+  app.get("/api/documents/:id/download", isAuthenticated, async (req: any, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      const userId = parseInt(req.session.user.id);
+      
+      // Mesma validação...
+      const document = await storage.getDocument(documentId);
+      if (!document) {
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+      
+      const property = await storage.getProperty(document.propertyId);
+      if (!property || property.userId !== userId) {
+        return res.status(403).json({ message: "Acesso negado" });
+      }
+
+      const fetch = require('node-fetch');
+      const response = await fetch(document.url);
+      
+      if (!response.ok) {
+        return res.status(404).json({ message: "Arquivo não encontrado" });
+      }
+
+      // Headers para forçar download
+      res.set({
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': `attachment; filename="${document.name}"`,
+        'Cache-Control': 'private, max-age=3600'
+      });
+
+      response.body.pipe(res);
+      
+    } catch (error: any) {
+      console.error("Error downloading document:", error);
+      res.status(500).json({ message: "Erro ao baixar documento" });
+    }
+  });
+
   // Proposal routes
   app.get("/api/properties/:id/proposals", isAuthenticated, async (req: any, res) => {
     try {
