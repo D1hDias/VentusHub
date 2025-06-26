@@ -1,4 +1,3 @@
-import { DocumentsPendingModal } from "@/components/DocumentsPendingModal";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,9 +6,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, Filter, X, Circle, Clock, CheckCircle, FileText, Pen, FileCheck, Award, Eye, Edit, MoreHorizontal, Share} from "lucide-react";
+import { 
+  Plus, Search, Filter, X, 
+  Circle, Clock, CheckCircle, FileText, Pen, FileCheck, Award,
+  Eye, Edit, MoreHorizontal, Share
+} from "lucide-react";
 import { PropertyModal } from "@/components/PropertyModal";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuSeparator,} from "@/components/ui/dropdown-menu";
+import { DocumentsPendingModal } from "@/components/DocumentsPendingModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 interface Property {
   id?: string;                 
@@ -154,7 +165,6 @@ const DocumentationProgress = ({ property }: DocumentationProgressProps) => {
           </div>
         )}
       </div>
-
       {/* Modal de Documentos Pendentes */}
       <DocumentsPendingModal
         open={showPendingModal}
@@ -347,248 +357,261 @@ export default function PropertyCapture() {
                           filters.city.length > 0 || filters.priceRange !== "all";
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Captação de Imóveis</h1>
-          <p className="text-muted-foreground">
-            Gerencie e acompanhe o processo de captação dos seus imóveis
-          </p>
+    <div className="min-h-screen">
+      {/* Container principal com padding balanceado */}
+      <div className="mx-auto px-6 py-4 space-y-6">
+        
+        {/* Header com espaçamento balanceado */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Captação de Imóveis</h1>
+            <p className="text-base text-gray-600">
+              Gerencie e acompanhe o processo de captação dos seus imóveis
+            </p>
+          </div>
+          <Button 
+            onClick={() => setShowPropertyModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Captação
+          </Button>
         </div>
-        <Button onClick={() => setShowPropertyModal(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Captação
-        </Button>
-      </div>
 
-      {/* Search and Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Buscar por endereço, proprietário ou tipo..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+        {/* Search and Filters com padding balanceado */}
+        <Card className="shadow-sm border-gray-200">
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Buscar por endereço, proprietário ou tipo..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="border-gray-300 hover:bg-gray-50"
+                    >
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filtros
+                      {hasActiveFilters && (
+                        <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
+                          {filters.status.length + filters.type.length + filters.city.length + 
+                           (filters.priceRange !== "all" ? 1 : 0)}
+                        </Badge>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-80">
+                    <div className="p-4 space-y-4">
+                      {/* Status Filter */}
+                      <div>
+                        <h4 className="font-medium mb-2 text-gray-900">Status</h4>
+                        <div className="space-y-2">
+                          {uniqueStatuses.map((status) => (
+                            <div key={status} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`status-${status}`}
+                                checked={filters.status.includes(status)}
+                                onChange={(e) => handleFilterChange('status', status, e.target.checked)}
+                                className="rounded border-gray-300 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor={`status-${status}`} className="text-sm text-gray-700">
+                                {status === 'captacao' ? 'Em Captação' : 
+                                 status === 'diligence' ? 'Due Diligence' :
+                                 status === 'mercado' ? 'No Mercado' :
+                                 status === 'proposta' ? 'Com Proposta' :
+                                 status === 'contrato' ? 'Em Contrato' :
+                                 status === 'instrumento' ? 'Instrumento' :
+                                 status === 'concluido' ? 'Concluído' : status}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Type Filter */}
+                      <div>
+                        <h4 className="font-medium mb-2 text-gray-900">Tipo</h4>
+                        <div className="space-y-2">
+                          {uniqueTypes.map((type) => (
+                            <div key={type} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`type-${type}`}
+                                checked={filters.type.includes(type)}
+                                onChange={(e) => handleFilterChange('type', type, e.target.checked)}
+                                className="rounded border-gray-300 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor={`type-${type}`} className="text-sm text-gray-700">{type}</label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* City Filter */}
+                      <div>
+                        <h4 className="font-medium mb-2 text-gray-900">Cidade</h4>
+                        <div className="space-y-2">
+                          {uniqueCities.map((city) => (
+                            <div key={city} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`city-${city}`}
+                                checked={filters.city.includes(city)}
+                                onChange={(e) => handleFilterChange('city', city, e.target.checked)}
+                                className="rounded border-gray-300 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor={`city-${city}`} className="text-sm text-gray-700">{city}</label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Price Range Filter */}
+                      <div>
+                        <h4 className="font-medium mb-2 text-gray-900">Faixa de Preço</h4>
+                        <select
+                          value={filters.priceRange}
+                          onChange={(e) => setFilters(prev => ({ ...prev, priceRange: e.target.value }))}
+                          className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value="all">Todas as faixas</option>
+                          <option value="0-300k">Até R$ 300.000</option>
+                          <option value="300k-500k">R$ 300.000 - R$ 500.000</option>
+                          <option value="500k-1m">R$ 500.000 - R$ 1.000.000</option>
+                          <option value="1m+">Acima de R$ 1.000.000</option>
+                        </select>
+                      </div>
+
+                      {hasActiveFilters && (
+                        <Button 
+                          variant="outline" 
+                          onClick={clearFilters}
+                          className="w-full"
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Limpar Filtros
+                        </Button>
+                      )}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
-            
-            <div className="flex gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filtros
-                    {hasActiveFilters && (
-                      <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0 text-xs">
-                        {filters.status.length + filters.type.length + filters.city.length + 
-                         (filters.priceRange !== "all" ? 1 : 0)}
-                      </Badge>
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-80">
-                  <div className="p-4 space-y-4">
-                    {/* Status Filter */}
-                    <div>
-                      <h4 className="font-medium mb-2">Status</h4>
-                      <div className="space-y-2">
-                        {uniqueStatuses.map((status) => (
-                          <div key={status} className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id={`status-${status}`}
-                              checked={filters.status.includes(status)}
-                              onChange={(e) => handleFilterChange('status', status, e.target.checked)}
-                              className="rounded border-gray-300"
-                            />
-                            <label htmlFor={`status-${status}`} className="text-sm">
-                              {status === 'captacao' ? 'Em Captação' : 
-                               status === 'diligence' ? 'Due Diligence' :
-                               status === 'mercado' ? 'No Mercado' :
-                               status === 'proposta' ? 'Com Proposta' :
-                               status === 'contrato' ? 'Em Contrato' :
-                               status === 'instrumento' ? 'Instrumento' :
-                               status === 'concluido' ? 'Concluído' : status}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+          </CardContent>
+        </Card>
 
-                    {/* Type Filter */}
-                    <div>
-                      <h4 className="font-medium mb-2">Tipo</h4>
-                      <div className="space-y-2">
-                        {uniqueTypes.map((type) => (
-                          <div key={type} className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id={`type-${type}`}
-                              checked={filters.type.includes(type)}
-                              onChange={(e) => handleFilterChange('type', type, e.target.checked)}
-                              className="rounded border-gray-300"
-                            />
-                            <label htmlFor={`type-${type}`} className="text-sm">{type}</label>
-                          </div>
-                        ))}
-                      </div>
+        {/* Properties Table com espaçamento melhorado */}
+        <Card className="shadow-sm border-gray-200">
+          <CardHeader className="px-6 py-4 border-b border-gray-200">
+            <CardTitle className="text-xl font-semibold text-gray-900">
+              Imóveis em Captação ({filteredProperties.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="space-y-4 p-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-center space-x-4">
+                    <Skeleton className="h-12 w-12 rounded" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-[200px]" />
+                      <Skeleton className="h-4 w-[150px]" />
                     </div>
-
-                    {/* City Filter */}
-                    <div>
-                      <h4 className="font-medium mb-2">Cidade</h4>
-                      <div className="space-y-2">
-                        {uniqueCities.map((city) => (
-                          <div key={city} className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id={`city-${city}`}
-                              checked={filters.city.includes(city)}
-                              onChange={(e) => handleFilterChange('city', city, e.target.checked)}
-                              className="rounded border-gray-300"
-                            />
-                            <label htmlFor={`city-${city}`} className="text-sm">{city}</label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Price Range Filter */}
-                    <div>
-                      <h4 className="font-medium mb-2">Faixa de Preço</h4>
-                      <select
-                        value={filters.priceRange}
-                        onChange={(e) => setFilters(prev => ({ ...prev, priceRange: e.target.value }))}
-                        className="w-full p-2 border rounded-md"
-                      >
-                        <option value="all">Todas as faixas</option>
-                        <option value="0-300k">Até R$ 300.000</option>
-                        <option value="300k-500k">R$ 300.000 - R$ 500.000</option>
-                        <option value="500k-1m">R$ 500.000 - R$ 1.000.000</option>
-                        <option value="1m+">Acima de R$ 1.000.000</option>
-                      </select>
-                    </div>
-
-                    {hasActiveFilters && (
-                      <Button 
-                        variant="outline" 
-                        onClick={clearFilters}
-                        className="w-full"
-                      >
-                        <X className="h-4 w-4 mr-2" />
-                        Limpar Filtros
-                      </Button>
-                    )}
                   </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Properties Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Imóveis em Captação ({filteredProperties.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center space-x-4">
-                  <Skeleton className="h-12 w-12 rounded" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-[200px]" />
-                    <Skeleton className="h-4 w-[150px]" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Imóvel</TableHead>
-                  <TableHead>Proprietário</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Documentação</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProperties.map((property: Property) => (
-                  <TableRow key={property.id || Math.random()}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">
-                          {property.type} - {property.street}, {property.number}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {property.neighborhood} • {property.city}
-                        </div>
-                        <div className="text-sm font-medium text-green-600">
-                        {new Intl.NumberFormat('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL'
-                        }).format(typeof property.value === 'string' 
-                          ? parseFloat(property.value.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0
-                          : property.value || 0)}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">
-                          {property.owners?.[0]?.fullName || 'Não informado'}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {property.owners?.[0]?.phone || 'Telefone não informado'}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(property)}
-                    </TableCell>
-                    <TableCell>
-                      <DocumentationProgress property={property} />
-                    </TableCell>
-                    <TableCell>
-                      <PropertyActions 
-                        property={property} 
-                        onEdit={(prop) => {
-                          setSelectedProperty(prop);
-                          setShowPropertyModal(true);
-                        }} 
-                      />
-                    </TableCell>
-                  </TableRow>
                 ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-gray-200">
+                      <TableHead className="px-4 py-3 text-gray-900 font-medium">Imóvel</TableHead>
+                      <TableHead className="px-4 py-3 text-gray-900 font-medium">Proprietário</TableHead>
+                      <TableHead className="px-4 py-3 text-gray-900 font-medium">Status</TableHead>
+                      <TableHead className="px-4 py-3 text-gray-900 font-medium">Documentação</TableHead>
+                      <TableHead className="px-4 py-3 text-gray-900 font-medium">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProperties.map((property: Property) => (
+                      <TableRow key={property.id || Math.random()} className="border-gray-200 hover:bg-gray-50/50">
+                        <TableCell className="px-4 py-3">
+                          <div className="space-y-1">
+                            <div className="font-medium text-gray-900">
+                              {property.type} - {property.street}, {property.number}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {property.neighborhood} • {property.city}
+                            </div>
+                            <div className="text-sm font-medium text-green-600">
+                            {new Intl.NumberFormat('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL'
+                            }).format(typeof property.value === 'string' 
+                              ? parseFloat(property.value.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0
+                              : property.value || 0)}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
+                          <div className="space-y-1">
+                            <div className="font-medium text-gray-900">
+                              {property.owners?.[0]?.fullName || 'Não informado'}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {property.owners?.[0]?.phone || 'Telefone não informado'}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
+                          {getStatusBadge(property)}
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
+                          <DocumentationProgress property={property} />
+                        </TableCell>
+                        <TableCell className="px-4 py-3">
+                          <PropertyActions 
+                            property={property} 
+                            onEdit={(prop) => {
+                              setSelectedProperty(prop);
+                              setShowPropertyModal(true);
+                            }} 
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Property Modal */}
-      <PropertyModal
-        open={showPropertyModal}
-        onOpenChange={(open) => {
-          setShowPropertyModal(open);
-          if (!open) {
-            setSelectedProperty(null);
-          }
-        }}
-        property={selectedProperty}
-      />
+        {/* Property Modal */}
+        <PropertyModal
+          open={showPropertyModal}
+          onOpenChange={(open) => {
+            setShowPropertyModal(open);
+            if (!open) {
+              setSelectedProperty(null);
+            }
+          }}
+          property={selectedProperty}
+        />
+        
+      </div>
     </div>
   );
 }
