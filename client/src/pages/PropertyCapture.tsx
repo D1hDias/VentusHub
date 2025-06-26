@@ -1,3 +1,5 @@
+import { useLocation } from "wouter";
+import { Plus, Search, Filter, X, Circle, Clock, CheckCircle, FileText, Pen, FileCheck, Award, ArrowRight, Eye, Edit, MoreHorizontal, Share} from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -6,11 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
-  Plus, Search, Filter, X, 
-  Circle, Clock, CheckCircle, FileText, Pen, FileCheck, Award,
-  Eye, Edit, MoreHorizontal, Share
-} from "lucide-react";
 import { PropertyModal } from "@/components/PropertyModal";
 import { DocumentsPendingModal } from "@/components/DocumentsPendingModal";
 import {
@@ -177,20 +174,59 @@ const DocumentationProgress = ({ property }: DocumentationProgressProps) => {
 };
 
 const PropertyActions = ({ property, onEdit }: PropertyActionsProps) => {
+  const [, setLocation] = useLocation(); // Correção: usar destructuring correto
+  
   const handleViewDetails = () => {
     onEdit(property);
   };
 
+  const handleAdvanceToDueDiligence = async (property: Property) => {
+    try {
+      // Atualizar currentStage para 2 (Due Diligence)
+      const response = await fetch(`/api/properties/${property.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentStage: 2,
+          status: 'diligence'
+        }),
+      });
+
+      if (response.ok) {
+        // Navegar para a página de Due Diligence
+        setLocation('/due-diligence');
+      }
+    } catch (error) {
+      console.error('Erro ao avançar para Due Diligence:', error);
+    }
+  };
+
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleViewDetails}
-      className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-    >
-      <Eye className="h-4 w-4 mr-1" />
-      Ver Detalhes
-    </Button>
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleViewDetails}
+        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+      >
+        <Eye className="h-4 w-4 mr-1" />
+        Ver Detalhes
+      </Button>
+      
+      {property.currentStage === 1 && (
+        <Button
+          variant="default"
+          size="sm"
+          onClick={() => handleAdvanceToDueDiligence(property)}
+          className="bg-orange-500 hover:bg-orange-600 text-white"
+        >
+          <ArrowRight className="h-4 w-4 mr-1" />
+          Avançar para Due Diligence
+        </Button>
+      )}
+    </div>
   );
 };
 
