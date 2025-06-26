@@ -179,7 +179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
     } catch (error: any) {
       console.error("Error deleting document:", error);
-      res.status(500).json({ message: "Erro ao deletar documento" });
+      res.status(500).json({ message: "Erro ao deletar documento", error: error.message });
     }
   });
 
