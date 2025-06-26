@@ -435,6 +435,24 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
       }
     };
 
+  // Adicione esta função antes do return
+  const fetchPropertyDocuments = async (propertyId: string) => {
+    setLoadingDocuments(true);
+    console.log("=== FETCH DOCUMENTS DEBUG ===");
+    console.log("Fetching documents for property:", propertyId);
+    
+    try {
+      const response = await apiRequest('GET', `/api/properties/${propertyId}/documents`);
+      const documents = await response.json();
+      console.log("Documents fetched:", documents);
+      setPropertyDocuments(documents);
+    } catch (error) {
+      console.error("Erro ao buscar documentos:", error);
+    } finally {
+      setLoadingDocuments(false);
+    }
+  };    
+
   const handleDocumentUpload = async () => {
     if (!property?.id || files.length === 0) {
       toast({
@@ -469,24 +487,6 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
     }
   };
 
-  // Adicione esta função antes do return
-  const fetchPropertyDocuments = async (propertyId: string) => {
-    setLoadingDocuments(true);
-    console.log("=== FETCH DOCUMENTS DEBUG ===");
-    console.log("Fetching documents for property:", propertyId);
-    
-    try {
-      const response = await apiRequest('GET', `/api/properties/${propertyId}/documents`);
-      const documents = await response.json();
-      console.log("Documents fetched:", documents);
-      setPropertyDocuments(documents);
-    } catch (error) {
-      console.error("Erro ao buscar documentos:", error);
-    } finally {
-      setLoadingDocuments(false);
-    }
-  };
-
   // Buscar documentos quando abrir modal de edição
   useEffect(() => {
     if (open && property?.id) {
@@ -500,31 +500,27 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
       return;
     }
 
-    console.log("=== DELETE DEBUG ===");
-    console.log("Document ID:", documentId);
-    console.log("Document Name:", documentName);
-    console.log("Property ID:", property?.id);
-    console.log("===================");
-
     try {
-      const response = await apiRequest('DELETE', `/api/property-documents/${documentId}`);
-      console.log("Delete response:", response);
+      await apiRequest('DELETE', `/api/property-documents/${documentId}`);
       
-      // Forçar atualização da lista removendo o item localmente primeiro
+      // REMOVER DA LISTA IMEDIATAMENTE (sem esperar o servidor)
       setPropertyDocuments(prev => prev.filter(doc => doc.id !== documentId));
-      
-      // Recarregar lista de documentos para confirmar
-      if (property?.id) {
-        await fetchPropertyDocuments(property.id.toString());
-      }
       
       toast({
         title: "Documento deletado!",
         description: `${documentName} foi removido com sucesso.`,
       });
       
+      // Não precisamos recarregar - já removemos da lista!
+      
     } catch (error: any) {
       console.error("Error deleting document:", error);
+      
+      // Se der erro, recarregar para restaurar o estado correto
+      if (property?.id) {
+        await fetchPropertyDocuments(property.id.toString());
+      }
+      
       toast({
         title: "Erro ao deletar",
         description: "Não foi possível deletar o documento.",
