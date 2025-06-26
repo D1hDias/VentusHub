@@ -248,31 +248,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Adicione esta route no server/routes.ts
-  app.post("/api/property-documents", isAuthenticated, async (req: any, res) => {
-    try {
-      const { propertyId, fileName, fileUrl, fileType, fileSize } = req.body;
-      
-      // Verificar se o usuário é dono da propriedade
-      const property = await storage.getProperty(propertyId);
-      if (!property || property.userId !== parseInt(req.session.user.id)) {
-        return res.status(403).json({ message: "Access denied" });
-      }
+app.post("/api/property-documents", isAuthenticated, async (req: any, res) => {
+  try {
+    console.log("=== PROPERTY-DOCUMENTS REQUEST ===");
+    console.log("Body:", JSON.stringify(req.body, null, 2));
+    console.log("User:", req.session.user);
+    console.log("===================================");
 
-      // Salvar metadata do arquivo
-      const document = await db.insert(propertyDocuments).values({
-        propertyId: propertyId,
-        fileName: fileName,
-        fileUrl: fileUrl,
-        fileType: fileType,
-        fileSize: fileSize    
-      }).returning();
-
-      res.json(document[0]);
-    } catch (error) {
-      console.error("Error saving document metadata:", error);
-      res.status(500).json({ message: "Failed to save document" });
+    const { propertyId, fileName, fileUrl, fileType, fileSize } = req.body;
+    
+    // Validar campos obrigatórios
+    if (!propertyId || !fileName || !fileUrl) {
+      return res.status(400).json({ 
+        message: "Campos obrigatórios: propertyId, fileName, fileUrl" 
+      });
     }
-  });
+
+    // Converter propertyId para número
+    const propertyIdNumber = parseInt(propertyId);
+    if (isNaN(propertyIdNumber)) {
+      return res.status(400).json({ 
+        message: "propertyId deve ser um número válido" 
+      });
+    }
+    
+    // Verificar se a propriedade existe e se o usuário é o dono
+    const property = await storage.getProperty(propertyIdNumber);
+    if (!property) {
+      return res.status(404).json({ message: "Propriedade não encontrada" });
+    }
+    
+    if (property.userId !== parseInt(req.session.user.id)) {
+      return res.status(403).json({ message: "Acesso negado" });
+    }
+
+    // Salvar metadata do arquivo
+    const document = await db.insert(propertyDocuments).values({
+      propertyId: propertyIdNumber,
+      fileName: fileName,
+      fileUrl: fileUrl,
+      fileType: fileType || 'application/octet-stream',
+      fileSize: fileSize || 0
+    }).returning();
+
+    console.log("Documento salvo:", document[0]);
+    res.json(document[0]);
+    
+  } catch (error) {
+    console.error("Error saving document metadata:", error);
+    res.status(500).json({ 
+      message: "Failed to save document",
+      error: error.message 
+    });
+  }
+});
 
   const httpServer = createServer(app);
   return httpServer;

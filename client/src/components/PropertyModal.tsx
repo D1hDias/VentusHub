@@ -355,6 +355,11 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
     setUploading(true);
     const uploadedUrls: string[] = [];
 
+    console.log("=== UPLOAD DEBUG ===");
+    console.log("PropertyId:", propertyId);
+    console.log("Files:", files);
+    console.log("==================");
+
     try {
       for (const file of files) {
         const fileName = `${Date.now()}-${file.name}`;
@@ -365,6 +370,7 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
           .upload(filePath, file);
 
         if (error) {
+          console.error("Supabase error:", error);
           throw error;
         }
 
@@ -375,14 +381,20 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
 
         uploadedUrls.push(publicUrl);
 
-        // Salvar metadata no banco via API
-        await apiRequest('POST', '/api/property-documents', {
-          propertyId: propertyId,
+        // Preparar dados para API
+        const documentData = {
+          propertyId: parseInt(propertyId),
           fileName: file.name,
           fileUrl: publicUrl,
           fileType: file.type,
           fileSize: file.size
-        });
+        };
+
+        console.log("Enviando para API:", documentData);
+
+        // Salvar metadata no banco via API
+        const response = await apiRequest('POST', '/api/property-documents', documentData);
+        console.log("Resposta da API:", response);
       }
 
       setUploadedFiles(uploadedUrls);
@@ -391,11 +403,13 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
         description: `${files.length} arquivo(s) enviado(s) com sucesso.`,
       });
     } catch (error: any) {
+      console.error("Upload error:", error);
       toast({
         title: "Erro no upload",
         description: error.message || "Erro ao enviar arquivos.",
         variant: "destructive",
       });
+      throw error;
     } finally {
       setUploading(false);
     }
@@ -421,9 +435,35 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = event.target.files;
-    if (selectedFiles) {
-      setFiles(Array.from(selectedFiles));
+      const selectedFiles = event.target.files;
+      if (selectedFiles) {
+        setFiles(Array.from(selectedFiles));
+      }
+    };
+
+    const handleDocumentUpload = async () => {
+    if (!property?.id || files.length === 0) {
+      toast({
+        title: "Erro",
+        description: "Selecione arquivos para fazer upload.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await uploadFilesToSupabase(property.id);
+      setFiles([]); // Limpa os arquivos após upload
+      toast({
+        title: "Documentos atualizados!",
+        description: "Os documentos foram enviados com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro no upload",
+        description: "Erro ao enviar documentos.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -847,6 +887,19 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
+              
+              {/* Botão para upload independente de documentos */}
+              {files.length > 0 && isEditing && (
+                <Button 
+                  type="button"
+                  onClick={handleDocumentUpload}
+                  disabled={uploading}
+                  className="mr-2"
+                >
+                  {uploading ? "Enviando..." : "Atualizar Documentos"}
+                </Button>
+              )}
+              
               <Button 
                 type="submit" 
                 disabled={createPropertyMutation.isPending || uploading}

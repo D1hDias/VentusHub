@@ -64,7 +64,7 @@ export default function Login() {
     <div 
       className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat relative"
       style={{
-        backgroundImage: `url('/src/assets/fundo_bg.jpg')`
+        backgroundImage: `url('https://i.ibb.co/MDH82jQG/the-deal-was-successfully-done-hose-agent-and-cus-2025-01-10-05-36-33-utc.jpg')`
       }}
     >
       {/* Overlay para melhorar legibilidade */}
