@@ -103,10 +103,10 @@ export const propertyOwners = pgTable("property_owners", {
 export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),
   propertyId: integer("property_id").notNull().references(() => properties.id),
-  fileName: varchar("file_name").notNull(),     // ← Verificar se é assim
-  fileUrl: text("file_url").notNull(),          // ← Verificar se é assim
-  fileType: varchar("file_type"),               // ← Verificar se é assim
-  fileSize: integer("file_size"),               // ← Verificar se é assim
+  name: varchar("name").notNull(),          // ← Corrigido
+  type: varchar("type").notNull(),          // ← Corrigido  
+  url: text("url").notNull(),               // ← Corrigido
+  status: varchar("status").notNull().default("pending"),  // ← Campo existente
   uploadedAt: timestamp("uploaded_at").defaultNow(),
 });
 

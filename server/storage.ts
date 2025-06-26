@@ -143,7 +143,9 @@ export const storage = {
   },
 
   async deleteDocument(id: number) {
+    console.log("Storage: Deleting document with ID:", id);
     await db.delete(documents).where(eq(documents.id, id));
+    console.log("Storage: Document deleted");
   },
 
   // PROPOSAL METHODS

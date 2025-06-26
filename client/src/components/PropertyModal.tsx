@@ -31,7 +31,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { supabase } from "@/lib/supabase";
-import { CloudUpload, Plus, Trash2, X, Upload, CheckCircle } from "lucide-react";
+import { Upload, X, CloudUpload, CheckCircle, Eye, Download, Plus, Trash2 } from "lucide-react";
 
 const BRAZILIAN_STATES = [
   { value: "AC", label: "AC" },
@@ -140,6 +140,8 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [propertyDocuments, setPropertyDocuments] = useState<any[]>([]);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isEditing = !!property;
@@ -384,10 +386,9 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
         // Preparar dados para API
         const documentData = {
           propertyId: parseInt(propertyId),
-          fileName: file.name,
-          fileUrl: publicUrl,
-          fileType: file.type,
-          fileSize: file.size
+          fileName: file.name,       // ← Voltar para 'fileName'
+          fileUrl: publicUrl,        // ← Voltar para 'fileUrl'  
+          fileType: file.type,       // ← Voltar para 'fileType'
         };
 
         console.log("Enviando para API:", documentData);
@@ -398,18 +399,11 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
       }
 
       setUploadedFiles(uploadedUrls);
-      toast({
-        title: "Arquivos enviados!",
-        description: `${files.length} arquivo(s) enviado(s) com sucesso.`,
-      });
+      // REMOVER o toast daqui - será mostrado em handleDocumentUpload
+      
     } catch (error: any) {
       console.error("Upload error:", error);
-      toast({
-        title: "Erro no upload",
-        description: error.message || "Erro ao enviar arquivos.",
-        variant: "destructive",
-      });
-      throw error;
+      throw error; // Re-throw para ser capturado por handleDocumentUpload
     } finally {
       setUploading(false);
     }
@@ -441,7 +435,7 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
       }
     };
 
-    const handleDocumentUpload = async () => {
+  const handleDocumentUpload = async () => {
     if (!property?.id || files.length === 0) {
       toast({
         title: "Erro",
@@ -453,15 +447,87 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
 
     try {
       await uploadFilesToSupabase(property.id);
-      setFiles([]); // Limpa os arquivos após upload
+      setFiles([]);
+      setUploadedFiles([]);
+      
+      // Recarregar lista de documentos
+      await fetchPropertyDocuments(property.id.toString());
+      
       toast({
         title: "Documentos atualizados!",
         description: "Os documentos foram enviados com sucesso.",
       });
+      
+      onOpenChange(false);
+      
     } catch (error) {
       toast({
         title: "Erro no upload",
         description: "Erro ao enviar documentos.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Adicione esta função antes do return
+  const fetchPropertyDocuments = async (propertyId: string) => {
+    setLoadingDocuments(true);
+    console.log("=== FETCH DOCUMENTS DEBUG ===");
+    console.log("Fetching documents for property:", propertyId);
+    
+    try {
+      const response = await apiRequest('GET', `/api/properties/${propertyId}/documents`);
+      const documents = await response.json();
+      console.log("Documents fetched:", documents);
+      setPropertyDocuments(documents);
+    } catch (error) {
+      console.error("Erro ao buscar documentos:", error);
+    } finally {
+      setLoadingDocuments(false);
+    }
+  };
+
+  // Buscar documentos quando abrir modal de edição
+  useEffect(() => {
+    if (open && property?.id) {
+      fetchPropertyDocuments(property.id.toString());
+    }
+  }, [open, property?.id]);
+
+  // Adicione esta função antes do return
+  const deleteDocument = async (documentId: number, documentName: string) => {
+    if (!confirm(`Tem certeza que deseja deletar o documento "${documentName}"?`)) {
+      return;
+    }
+
+    console.log("=== DELETE DEBUG ===");
+    console.log("Document ID:", documentId);
+    console.log("Document Name:", documentName);
+    console.log("Property ID:", property?.id);
+    console.log("===================");
+
+    try {
+      const response = await apiRequest('DELETE', `/api/property-documents/${documentId}`);
+      console.log("Delete response:", response);
+      
+      // Forçar atualização da lista removendo o item localmente primeiro
+      setPropertyDocuments(prev => prev.filter(doc => doc.id !== documentId));
+      
+      // Recarregar lista de documentos para confirmar
+      if (property?.id) {
+        await fetchPropertyDocuments(property.id.toString());
+      }
+      
+      toast({
+        title: "Documento deletado!",
+        description: `${documentName} foi removido com sucesso.`,
+      });
+      
+    } catch (error: any) {
+      console.error("Error deleting document:", error);
+      toast({
+        title: "Erro ao deletar",
+        description: "Não foi possível deletar o documento.",
         variant: "destructive",
       });
     }
@@ -882,6 +948,73 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
                 )}
               </div>
             </div>
+
+            {/* Documentos Enviados */}
+            {(propertyDocuments.length > 0 || loadingDocuments) && (
+              <div className="space-y-4 border-t pt-4">
+                <h4 className="font-medium">Documentos Enviados</h4>
+                
+                {loadingDocuments ? (
+                  <div className="flex items-center space-x-2 text-blue-600">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span className="text-sm">Carregando documentos...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {propertyDocuments.map((doc, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
+                      <div className="flex items-center space-x-3">
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <div>
+                          <span className="text-sm font-medium text-green-700">{doc.name}</span>
+                          <div className="text-xs text-green-600">
+                            Enviado em {new Date(doc.uploadedAt).toLocaleDateString('pt-BR')}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex space-x-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.open(doc.url, '_blank')}
+                          className="text-blue-600 hover:text-blue-800"
+                          title="Visualizar documento"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = doc.url;
+                            link.download = doc.name;
+                            link.click();
+                          }}
+                          className="text-green-600 hover:text-green-800"
+                          title="Baixar documento"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteDocument(doc.id, doc.name)}
+                          className="text-red-600 hover:text-red-800"
+                          title="Deletar documento"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
