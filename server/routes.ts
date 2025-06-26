@@ -133,17 +133,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const propertyId = parseInt(req.params.id);
       const userId = parseInt(req.session.user.id);
       
-      // Verificar se o usuário é dono da propriedade
+      console.log("=== GET DOCUMENTS API ===");
+      console.log("Property ID:", propertyId);
+      console.log("User ID:", userId);
+      
+      // Check ownership
       const property = await storage.getProperty(propertyId);
       if (!property || property.userId !== userId) {
-        return res.status(404).json({ message: "Propriedade não encontrada" });
+        return res.status(404).json({ message: "Property not found" });
       }
 
       const documents = await storage.getPropertyDocuments(propertyId);
+      console.log("Documents from DB:", documents);
       res.json(documents);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching documents:", error);
-      res.status(500).json({ message: "Erro ao buscar documentos" });
+      res.status(500).json({ message: "Failed to fetch documents" });
     }
   });
 
@@ -171,9 +176,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
+      // CONFIRMAR ANTES DE DELETAR
+      console.log("ANTES DE DELETAR - Documentos da propriedade:", await storage.getPropertyDocuments(document.propertyId));
+
       // Deletar do banco de dados
       await storage.deleteDocument(documentId);
       console.log("Document deleted successfully");
+      
+      // CONFIRMAR DEPOIS DE DELETAR
+      console.log("DEPOIS DE DELETAR - Documentos da propriedade:", await storage.getPropertyDocuments(document.propertyId));
       
       res.json({ message: "Documento deletado com sucesso" });
       
