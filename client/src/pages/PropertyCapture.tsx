@@ -1,153 +1,314 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Filter, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { 
+  Plus, Search, Filter, X, 
+  Circle, Clock, CheckCircle, FileText, Pen, FileCheck, Award,
+  Eye, Edit, MoreHorizontal, Share
+} from "lucide-react";
+import { PropertyModal } from "@/components/PropertyModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { PropertyModal } from "@/components/PropertyModal";
-import { Skeleton } from "@/components/ui/skeleton";
 
-interface Filters {
-  status: string[];
-  type: string[];
-  priceRange: string;
-  city: string[];
+interface Property {
+  id: string;
+  type: string;
+  street: string;
+  number: string;
+  neighborhood: string;
+  city: string;
+  value: number;
+  currentStage: number;
+  status: string;
+  owners?: Array<{
+    fullName: string;
+    phone: string;
+  }>;
 }
+
+interface DocumentationProgressProps {
+  property: Property;
+}
+
+const DocumentationProgress = ({ property }: DocumentationProgressProps) => {
+  const [docData, setDocData] = useState({ progress: 0, uploadedCount: 0, totalRequired: 6 });
+  
+  useEffect(() => {
+    const getDocumentationProgress = async (prop: Property) => {
+      // Lista de documentos obrigatórios baseada na documentação
+      const requiredDocuments = [
+        'IPTU', 'Inscrição do Imóvel', 'RG/CNH dos Proprietários', 
+        'Boleto Condomínio', 'Cópia RGI', 'Ônus Reais'
+      ];
+      
+      try {
+        // Buscar documentos enviados da propriedade
+        const response = await fetch(`/api/properties/${prop.id}/documents`);
+        const documents = await response.json();
+        
+        const uploadedCount = documents.length;
+        const totalRequired = requiredDocuments.length;
+        const progress = Math.min(Math.round((uploadedCount / totalRequired) * 100), 100);
+        
+        return { progress, uploadedCount, totalRequired };
+      } catch (error) {
+        // Fallback baseado no estágio
+        const progress = prop.currentStage === 1 ? 30 : 
+                        prop.currentStage === 2 ? 75 : 100;
+        return { progress, uploadedCount: 0, totalRequired: requiredDocuments.length };
+      }
+    };
+
+    getDocumentationProgress(property).then(setDocData);
+  }, [property.id]);
+  
+  const getProgressColor = (progress: number) => {
+    if (progress >= 100) return "bg-green-500";
+    if (progress >= 75) return "bg-blue-500";
+    if (progress >= 50) return "bg-yellow-500";
+    return "bg-red-500";
+  };
+  
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">
+          {docData.uploadedCount}/{docData.totalRequired} documentos
+        </span>
+        <span className="font-medium">{docData.progress}%</span>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <div 
+          className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(docData.progress)}`}
+          style={{ width: `${docData.progress}%` }}
+        />
+      </div>
+      <div className="text-xs text-muted-foreground">
+        {docData.progress === 100 ? "Completo" : 
+         docData.progress >= 75 ? "Quase completo" :
+         docData.progress >= 50 ? "Em andamento" : "Pendente"}
+      </div>
+    </div>
+  );
+};
+
+interface PropertyActionsProps {
+  property: Property;
+  onEdit: (property: Property) => void;
+}
+
+const PropertyActions = ({ property, onEdit }: PropertyActionsProps) => {
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => onEdit(property)}
+        className="text-blue-600 hover:text-blue-800"
+      >
+        <Eye className="h-4 w-4 mr-1" />
+        Ver Detalhes
+      </Button>
+      
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => onEdit(property)}>
+            <Edit className="h-4 w-4 mr-2" />
+            Editar
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <FileText className="h-4 w-4 mr-2" />
+            Relatório
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <Share className="h-4 w-4 mr-2" />
+            Compartilhar
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};
 
 export default function PropertyCapture() {
   const [showPropertyModal, setShowPropertyModal] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<Filters>({
-    status: [],
-    type: [],
-    priceRange: "all",
-    city: [],
+  const [filters, setFilters] = useState({
+    status: [] as string[],
+    type: [] as string[],
+    city: [] as string[],
+    priceRange: "all"
   });
 
-  const { data: properties, isLoading } = useQuery({
+  const { data: properties = [], isLoading } = useQuery({
     queryKey: ["/api/properties"],
+    queryFn: async () => {
+      const response = await fetch("/api/properties");
+      if (!response.ok) throw new Error("Failed to fetch properties");
+      return response.json();
+    },
   });
 
-  // Aplicar filtros
-  const filteredProperties = properties?.filter((property: any) => {
-    // Busca por texto
-    const address = `${property.street || ''} ${property.number || ''} ${property.neighborhood || ''}`;
-    const ownerName = property.owners && property.owners.length > 0 ? property.owners[0].fullName || '' : '';
-    const type = property.type || '';
+  const getStatusBadge = (property: Property) => {
+    const status = property.status || 'captacao';
     
-    const matchesSearch = address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      type.toLowerCase().includes(searchTerm.toLowerCase());
-
-    if (!matchesSearch) return false;
-
-    // Filtro por status
-    if (filters.status.length > 0) {
-      const currentStage = property.currentStage || 1;
-      const status = currentStage === 1 ? 'captacao' : currentStage === 2 ? 'analise' : 'concluido';
-      if (!filters.status.includes(status)) return false;
+    switch (status) {
+      case 'captacao':
+        return (
+          <Badge variant="outline" className="text-orange-600 border-orange-600">
+            <Circle className="h-3 w-3 mr-1 fill-orange-600" />
+            Em Captação
+          </Badge>
+        );
+      case 'diligence':
+        return (
+          <Badge variant="outline" className="text-blue-600 border-blue-600">
+            <Clock className="h-3 w-3 mr-1" />
+            Due Diligence
+          </Badge>
+        );
+      case 'mercado':
+        return (
+          <Badge variant="outline" className="text-green-600 border-green-600">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            No Mercado
+          </Badge>
+        );
+      case 'proposta':
+        return (
+          <Badge variant="outline" className="text-purple-600 border-purple-600">
+            <FileText className="h-3 w-3 mr-1" />
+            Com Proposta
+          </Badge>
+        );
+      case 'contrato':
+        return (
+          <Badge variant="outline" className="text-indigo-600 border-indigo-600">
+            <Pen className="h-3 w-3 mr-1" />
+            Em Contrato
+          </Badge>
+        );
+      case 'instrumento':
+        return (
+          <Badge variant="outline" className="text-teal-600 border-teal-600">
+            <FileCheck className="h-3 w-3 mr-1" />
+            Instrumento
+          </Badge>
+        );
+      case 'concluido':
+        return (
+          <Badge className="bg-green-600 text-white">
+            <Award className="h-3 w-3 mr-1" />
+            Concluído
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="secondary">
+            Em Andamento
+          </Badge>
+        );
     }
+  };
 
-    // Filtro por tipo
-    if (filters.type.length > 0) {
-      if (!filters.type.includes(property.type)) return false;
-    }
+  const filteredProperties = properties.filter((property: Property) => {
+    const matchesSearch = searchTerm === "" || 
+      property.street.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.neighborhood.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.owners?.[0]?.fullName?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    // Filtro por cidade
-    if (filters.city.length > 0) {
-      if (!property.city || !filters.city.includes(property.city)) return false;
-    }
+    const matchesStatus = filters.status.length === 0 || 
+      filters.status.includes(property.status || 'captacao');
 
-    // Filtro por faixa de preço
+    const matchesType = filters.type.length === 0 || 
+      filters.type.includes(property.type);
+
+    const matchesCity = filters.city.length === 0 || 
+      filters.city.includes(property.city);
+
+    let matchesPrice = true;
     if (filters.priceRange !== "all") {
       const value = Number(property.value);
       switch (filters.priceRange) {
         case "0-300k":
-          if (value > 300000) return false;
+          matchesPrice = value <= 300000;
           break;
         case "300k-500k":
-          if (value < 300000 || value > 500000) return false;
+          matchesPrice = value > 300000 && value <= 500000;
           break;
         case "500k-1m":
-          if (value < 500000 || value > 1000000) return false;
+          matchesPrice = value > 500000 && value <= 1000000;
           break;
         case "1m+":
-          if (value < 1000000) return false;
+          matchesPrice = value > 1000000;
           break;
       }
     }
 
-    return true;
-  }) || [];
+    return matchesSearch && matchesStatus && matchesType && matchesCity && matchesPrice;
+  });
 
-  // Obter valores únicos para filtros
-  const uniqueTypes = [...new Set(properties?.map((p: any) => p.type).filter(Boolean) || [])];
-  const uniqueCities = [...new Set(properties?.map((p: any) => p.city).filter(Boolean) || [])];
-
-  const handleFilterChange = (filterType: keyof Filters, value: string) => {
+  const handleFilterChange = (filterType: string, value: string) => {
     setFilters(prev => {
-      if (filterType === 'priceRange') {
-        return { ...prev, [filterType]: value };
-      } else {
-        const currentValues = prev[filterType] as string[];
-        const newValues = currentValues.includes(value)
-          ? currentValues.filter(v => v !== value)
-          : [...currentValues, value];
-        return { ...prev, [filterType]: newValues };
+      if (filterType === "priceRange") {
+        return { ...prev, priceRange: value };
       }
+      
+      const currentFilter = prev[filterType as keyof typeof prev] as string[];
+      const isSelected = currentFilter.includes(value);
+      
+      return {
+        ...prev,
+        [filterType]: isSelected 
+          ? currentFilter.filter(item => item !== value)
+          : [...currentFilter, value]
+      };
     });
   };
 
-  const clearFilters = () => {
+  const clearAllFilters = () => {
     setFilters({
       status: [],
       type: [],
-      priceRange: "all",
       city: [],
+      priceRange: "all"
     });
   };
 
+  const hasActiveFilters = () => {
+    return filters.status.length > 0 || 
+           filters.type.length > 0 || 
+           filters.city.length > 0 || 
+           filters.priceRange !== "all";
+  };
+
+  const getUniqueValues = (key: string) => {
+    return [...new Set(properties.map((p: Property) => 
+      key === 'status' ? (p.status || 'captacao') : p[key as keyof Property]
+    ))];
+  };
+
   const getActiveFiltersCount = () => {
-    return filters.status.length + 
-           filters.type.length + 
-           filters.city.length + 
+    return filters.status.length + filters.type.length + filters.city.length + 
            (filters.priceRange !== "all" ? 1 : 0);
-  };
-
-  const getStatusBadge = (currentStage: number) => {
-    switch (currentStage) {
-      case 1:
-        return <Badge variant="outline">Em Captação</Badge>;
-      case 2:
-        return <Badge variant="secondary">Em Análise</Badge>;
-      default:
-        return <Badge>Concluído</Badge>;
-    }
-  };
-
-  const getDocumentationProgress = (currentStage: number) => {
-    // Simplified progress calculation based on stage
-    return currentStage === 1 ? 60 : currentStage === 2 ? 85 : 100;
   };
 
   if (isLoading) {
@@ -168,7 +329,10 @@ export default function PropertyCapture() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Captação de Imóveis</h1>
-        <Button onClick={() => setShowPropertyModal(true)}>
+        <Button onClick={() => {
+          setSelectedProperty(null);
+          setShowPropertyModal(true);
+        }}>
           <Plus className="h-4 w-4 mr-2" />
           Nova Captação
         </Button>
@@ -194,52 +358,33 @@ export default function PropertyCapture() {
                   <Button variant="outline" className="relative">
                     <Filter className="h-4 w-4 mr-2" />
                     Filtros
-                    <ChevronDown className="h-4 w-4 ml-2" />
                     {getActiveFiltersCount() > 0 && (
-                      <Badge variant="secondary" className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center">
+                      <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
                         {getActiveFiltersCount()}
                       </Badge>
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-80">
-                  <DropdownMenuLabel className="flex items-center justify-between">
-                    Filtros
-                    {getActiveFiltersCount() > 0 && (
-                      <Button variant="ghost" size="sm" onClick={clearFilters}>
-                        <X className="h-4 w-4 mr-1" />
-                        Limpar
-                      </Button>
-                    )}
-                  </DropdownMenuLabel>
+                <DropdownMenuContent className="w-56" align="end">
+                  <div className="px-2 py-1.5 text-sm font-semibold">Status</div>
+                  {['captacao', 'diligence', 'mercado', 'proposta', 'contrato', 'instrumento', 'concluido'].map((status) => (
+                    <DropdownMenuCheckboxItem
+                      key={status}
+                      checked={filters.status.includes(status)}
+                      onCheckedChange={() => handleFilterChange("status", status)}
+                    >
+                      {status === 'captacao' ? 'Em Captação' : 
+                       status === 'diligence' ? 'Due Diligence' :
+                       status === 'mercado' ? 'No Mercado' :
+                       status === 'proposta' ? 'Com Proposta' :
+                       status === 'contrato' ? 'Em Contrato' :
+                       status === 'instrumento' ? 'Instrumento' : 'Concluído'}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                  
                   <DropdownMenuSeparator />
-
-                  {/* Status Filter */}
-                  <DropdownMenuLabel>Status</DropdownMenuLabel>
-                  <DropdownMenuCheckboxItem
-                    checked={filters.status.includes("captacao")}
-                    onCheckedChange={() => handleFilterChange("status", "captacao")}
-                  >
-                    Em Captação
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filters.status.includes("analise")}
-                    onCheckedChange={() => handleFilterChange("status", "analise")}
-                  >
-                    Em Análise
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={filters.status.includes("concluido")}
-                    onCheckedChange={() => handleFilterChange("status", "concluido")}
-                  >
-                    Concluído
-                  </DropdownMenuCheckboxItem>
-
-                  <DropdownMenuSeparator />
-
-                  {/* Type Filter */}
-                  <DropdownMenuLabel>Tipo de Imóvel</DropdownMenuLabel>
-                  {uniqueTypes.map((type) => (
+                  <div className="px-2 py-1.5 text-sm font-semibold">Tipo</div>
+                  {getUniqueValues('type').map((type) => (
                     <DropdownMenuCheckboxItem
                       key={type}
                       checked={filters.type.includes(type)}
@@ -248,47 +393,10 @@ export default function PropertyCapture() {
                       {type.charAt(0).toUpperCase() + type.slice(1)}
                     </DropdownMenuCheckboxItem>
                   ))}
-
+                  
                   <DropdownMenuSeparator />
-
-                  {/* Price Range Filter */}
-                  <DropdownMenuLabel>Faixa de Preço</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => handleFilterChange("priceRange", "all")}>
-                    <div className="flex items-center">
-                      <div className={`w-2 h-2 rounded-full mr-2 ${filters.priceRange === "all" ? "bg-primary" : "bg-transparent border border-border"}`} />
-                      Todos os valores
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleFilterChange("priceRange", "0-300k")}>
-                    <div className="flex items-center">
-                      <div className={`w-2 h-2 rounded-full mr-2 ${filters.priceRange === "0-300k" ? "bg-primary" : "bg-transparent border border-border"}`} />
-                      Até R$ 300.000
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleFilterChange("priceRange", "300k-500k")}>
-                    <div className="flex items-center">
-                      <div className={`w-2 h-2 rounded-full mr-2 ${filters.priceRange === "300k-500k" ? "bg-primary" : "bg-transparent border border-border"}`} />
-                      R$ 300.000 - R$ 500.000
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleFilterChange("priceRange", "500k-1m")}>
-                    <div className="flex items-center">
-                      <div className={`w-2 h-2 rounded-full mr-2 ${filters.priceRange === "500k-1m" ? "bg-primary" : "bg-transparent border border-border"}`} />
-                      R$ 500.000 - R$ 1.000.000
-                    </div>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleFilterChange("priceRange", "1m+")}>
-                    <div className="flex items-center">
-                      <div className={`w-2 h-2 rounded-full mr-2 ${filters.priceRange === "1m+" ? "bg-primary" : "bg-transparent border border-border"}`} />
-                      Acima de R$ 1.000.000
-                    </div>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuSeparator />
-
-                  {/* City Filter */}
-                  <DropdownMenuLabel>Cidade</DropdownMenuLabel>
-                  {uniqueCities.map((city) => (
+                  <div className="px-2 py-1.5 text-sm font-semibold">Cidade</div>
+                  {getUniqueValues('city').map((city) => (
                     <DropdownMenuCheckboxItem
                       key={city}
                       checked={filters.city.includes(city)}
@@ -297,17 +405,50 @@ export default function PropertyCapture() {
                       {city}
                     </DropdownMenuCheckboxItem>
                   ))}
+
+                  <DropdownMenuSeparator />
+                  <div className="px-2 py-1.5 text-sm font-semibold">Faixa de Preço</div>
+                  {[
+                    { value: "all", label: "Todos" },
+                    { value: "0-300k", label: "Até R$ 300k" },
+                    { value: "300k-500k", label: "R$ 300k - R$ 500k" },
+                    { value: "500k-1m", label: "R$ 500k - R$ 1M" },
+                    { value: "1m+", label: "Acima de R$ 1M" }
+                  ].map((option) => (
+                    <DropdownMenuCheckboxItem
+                      key={option.value}
+                      checked={filters.priceRange === option.value}
+                      onCheckedChange={() => handleFilterChange("priceRange", option.value)}
+                    >
+                      {option.label}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+
+                  {hasActiveFilters() && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={clearAllFilters}>
+                        <X className="h-4 w-4 mr-2" />
+                        Limpar Filtros
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
 
-          {/* Active Filters Display */}
-          {getActiveFiltersCount() > 0 && (
+          {/* Active Filters */}
+          {hasActiveFilters() && (
             <div className="flex flex-wrap gap-2 mt-4">
               {filters.status.map((status) => (
                 <Badge key={status} variant="secondary" className="gap-1">
-                  Status: {status === 'captacao' ? 'Em Captação' : status === 'analise' ? 'Em Análise' : 'Concluído'}
+                  Status: {status === 'captacao' ? 'Em Captação' : 
+                          status === 'diligence' ? 'Due Diligence' :
+                          status === 'mercado' ? 'No Mercado' :
+                          status === 'proposta' ? 'Com Proposta' :
+                          status === 'contrato' ? 'Em Contrato' :
+                          status === 'instrumento' ? 'Instrumento' : 'Concluído'}
                   <X className="h-3 w-3 cursor-pointer" onClick={() => handleFilterChange("status", status)} />
                 </Badge>
               ))}
@@ -354,7 +495,10 @@ export default function PropertyCapture() {
                 </p>
               </div>
               {!searchTerm && (
-                <Button onClick={() => setShowPropertyModal(true)}>
+                <Button onClick={() => {
+                  setSelectedProperty(null);
+                  setShowPropertyModal(true);
+                }}>
                   <Plus className="h-4 w-4 mr-2" />
                   Cadastrar Primeiro Imóvel
                 </Button>
@@ -372,7 +516,7 @@ export default function PropertyCapture() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProperties.map((property: any) => (
+                {filteredProperties.map((property: Property) => (
                   <TableRow key={property.id}>
                     <TableCell>
                       <div>
@@ -387,24 +531,25 @@ export default function PropertyCapture() {
                     <TableCell>
                       <div>
                         <div className="font-medium">{property.owners?.[0]?.fullName || 'Não informado'}</div>
-                        <div className="text-sm text-muted-foreground">{property.owners?.[0]?.phone || 'Não informado'}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(property.currentStage)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-2">
-                        <Progress value={getDocumentationProgress(property.currentStage)} className="h-2" />
                         <div className="text-sm text-muted-foreground">
-                          {getDocumentationProgress(property.currentStage)}% completo
+                          {property.owners?.[0]?.phone || 'Telefone não informado'}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm">
-                        Ver Detalhes
-                      </Button>
+                      {getStatusBadge(property)}
+                    </TableCell>
+                    <TableCell>
+                      <DocumentationProgress property={property} />
+                    </TableCell>
+                    <TableCell>
+                      <PropertyActions 
+                        property={property} 
+                        onEdit={(prop) => {
+                          setSelectedProperty(prop);
+                          setShowPropertyModal(true);
+                        }} 
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -414,9 +559,16 @@ export default function PropertyCapture() {
         </CardContent>
       </Card>
 
-      <PropertyModal 
-        open={showPropertyModal} 
-        onOpenChange={setShowPropertyModal} 
+      {/* Property Modal */}
+      <PropertyModal
+        open={showPropertyModal}
+        onOpenChange={(open) => {
+          setShowPropertyModal(open);
+          if (!open) {
+            setSelectedProperty(null);
+          }
+        }}
+        property={selectedProperty}
       />
     </div>
   );

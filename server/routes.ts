@@ -194,14 +194,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Rota para servir documentos via proxy (mascarar Supabase URL)
+  // Rota para servir documentos via proxy (URL mascarada)
   app.get("/api/documents/:id/view", isAuthenticated, async (req: any, res) => {
     try {
+      console.log("=== SERVE DOCUMENT DEBUG ===");
+      console.log("Document ID:", req.params.id);
+      
       const documentId = parseInt(req.params.id);
       const userId = parseInt(req.session.user.id);
       
       // Buscar o documento
       const document = await storage.getDocument(documentId);
+      console.log("Document found:", document?.name);
+      
       if (!document) {
         return res.status(404).json({ message: "Documento não encontrado" });
       }
@@ -212,27 +217,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Acesso negado" });
       }
 
-      // Fazer proxy do arquivo do Supabase
-      const fetch = require('node-fetch');
-      const response = await fetch(document.url);
+      console.log("Proxying document from Supabase...");
+
+      // Fazer fetch do Supabase
+      const supabaseResponse = await fetch(document.url);
       
-      if (!response.ok) {
-        return res.status(404).json({ message: "Arquivo não encontrado" });
+      if (!supabaseResponse.ok) {
+        console.log("Supabase error:", supabaseResponse.status);
+        return res.status(404).json({ message: "Arquivo não encontrado no storage" });
       }
 
-      // Definir headers apropriados
+      // Obter o conteúdo como ArrayBuffer
+      const arrayBuffer = await supabaseResponse.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      console.log("File size:", buffer.length, "bytes");
+
+      // Definir headers corretos
+      const contentType = document.type || 'application/pdf';
+      
       res.set({
-        'Content-Type': document.type || 'application/octet-stream',
+        'Content-Type': contentType,
+        'Content-Length': buffer.length.toString(),
         'Content-Disposition': `inline; filename="${document.name}"`,
-        'Cache-Control': 'private, max-age=3600'
+        'Cache-Control': 'private, max-age=300', // Cache por 5 minutos
+        'X-Content-Type-Options': 'nosniff'
       });
 
-      // Fazer stream do arquivo
-      response.body.pipe(res);
+      // Enviar o buffer diretamente
+      res.end(buffer);
       
     } catch (error: any) {
       console.error("Error serving document:", error);
-      res.status(500).json({ message: "Erro ao servir documento" });
+      res.status(500).json({ 
+        message: "Erro ao servir documento", 
+        details: error.message 
+      });
     }
   });
 
