@@ -17,6 +17,7 @@ import Proposals from "./pages/Proposals";
 import Contracts from "./pages/Contracts";
 import DefinitiveInstrument from "./pages/FinalInstrument";
 import Timeline from "./pages/Timeline";
+import PropertyDetails from "./pages/PropertyDetails";
 
 // Components
 import Layout from "./components/Layout.tsx";
@@ -125,6 +126,12 @@ function AppRoutes() {
       <Route path="/timeline">
         <ProtectedRoute>
           <Timeline />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/property/:id">
+        <ProtectedRoute>
+          <PropertyDetails />
         </ProtectedRoute>
       </Route>
 

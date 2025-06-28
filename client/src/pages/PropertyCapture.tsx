@@ -177,6 +177,10 @@ const PropertyActions = ({ property, onEdit }: PropertyActionsProps) => {
   const [, setLocation] = useLocation(); // Correção: usar destructuring correto
   
   const handleViewDetails = () => {
+    setLocation(`/property/${property.id}`);
+  };
+
+  const handleEdit = () => {
     onEdit(property);
   };
 
@@ -213,6 +217,16 @@ const PropertyActions = ({ property, onEdit }: PropertyActionsProps) => {
       >
         <Eye className="h-4 w-4 mr-1" />
         Ver Detalhes
+      </Button>
+      
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleEdit}
+        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+      >
+        <Edit className="h-4 w-4 mr-1" />
+        Editar
       </Button>
       
       {property.currentStage === 1 && (

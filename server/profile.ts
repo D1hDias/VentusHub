@@ -199,14 +199,11 @@ export function setupProfile(app: Express) {
         userId,
         type: 'success',
         title: 'Avatar atualizado',
-        message: 'Sua foto de perfil foi atualizada com sucesso.',
+        message: 'Seu avatar foi atualizado com sucesso.',
         category: 'system'
       });
 
-      res.json({
-        avatarUrl,
-        message: "Avatar atualizado com sucesso"
-      });
+      res.json({ avatarUrl });
 
     } catch (error) {
       console.error("Error uploading avatar:", error);
@@ -224,45 +221,18 @@ export function setupProfile(app: Express) {
       const userId = req.session.user.id;
       const settingsData = req.body;
 
-      // Verificar se já existem configurações
-      const [existingSettings] = await db
-        .select()
-        .from(userSettings)
-        .where(eq(userSettings.userId, userId));
+      const [updatedSettings] = await db
+        .update(userSettings)
+        .set({
+          ...settingsData,
+          updatedAt: new Date()
+        })
+        .where(eq(userSettings.userId, userId))
+        .returning();
 
-      let updatedSettings;
-
-      if (existingSettings) {
-        // Atualizar configurações existentes
-        [updatedSettings] = await db
-          .update(userSettings)
-          .set({
-            ...settingsData,
-            updatedAt: new Date()
-          })
-          .where(eq(userSettings.userId, userId))
-          .returning();
-      } else {
-        // Criar novas configurações
-        [updatedSettings] = await db
-          .insert(userSettings)
-          .values({
-            userId,
-            ...settingsData
-          })
-          .returning();
+      if (!updatedSettings) {
+        return res.status(404).json({ message: "Configurações não encontradas" });
       }
-
-      // Log da atividade
-      await db.insert(activityLogs).values({
-        userId,
-        action: 'updated',
-        entity: 'settings',
-        entityId: userId,
-        description: 'Configurações atualizadas',
-        ipAddress: req.ip,
-        userAgent: req.get('User-Agent')
-      });
 
       res.json(updatedSettings);
 

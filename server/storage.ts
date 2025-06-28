@@ -156,6 +156,8 @@ export const storage = {
     // Verificar se ainda existe depois de deletar
     const existsAfter = await db.select().from(documents).where(eq(documents.id, id));
     console.log("Documento existe depois do delete:", existsAfter);
+    
+    return result;
   },
 
   // PROPOSAL METHODS
