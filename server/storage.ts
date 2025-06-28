@@ -49,6 +49,25 @@ export const storage = {
     return propertiesWithOwners;
   },
 
+  async generateNextSequenceNumber(): Promise<string> {
+    // Buscar o maior sequenceNumber existente
+    const result = await db.select({ sequenceNumber: properties.sequenceNumber })
+      .from(properties)
+      .orderBy(desc(properties.sequenceNumber))
+      .limit(1);
+    
+    if (result.length === 0) {
+      return "#00001"; // Primeiro registro
+    }
+    
+    // Extrair o número do formato #00001
+    const lastNumber = result[0].sequenceNumber;
+    const numberPart = parseInt(lastNumber.replace('#', '')) || 0;
+    const nextNumber = numberPart + 1;
+    
+    return "#" + String(nextNumber).padStart(5, '0');
+  },
+
   async getProperty(id: number) {
     const [property] = await db.select().from(properties).where(eq(properties.id, id));
     
@@ -68,6 +87,7 @@ export const storage = {
     // Criar apenas os campos que existem na tabela properties
     const propertyData = {
       userId: data.userId,
+      sequenceNumber: data.sequenceNumber,
       type: data.type,
       street: data.street,
       number: data.number,
@@ -88,10 +108,14 @@ export const storage = {
   },
 
   async updateProperty(id: number, data: any) {
+    // Remove campos que não devem ser atualizados
+    const { id: dataId, sequenceNumber, userId, createdAt, ...updateData } = data;
+    
     const [property] = await db.update(properties).set({
-      ...data,
+      ...updateData,
       updatedAt: new Date()
     }).where(eq(properties.id, id)).returning();
+    
     return property;
   },
 
@@ -120,6 +144,10 @@ export const storage = {
 
   async deletePropertyOwner(id: number) {
     await db.delete(propertyOwners).where(eq(propertyOwners.id, id));
+  },
+
+  async deletePropertyOwners(propertyId: number) {
+    await db.delete(propertyOwners).where(eq(propertyOwners.propertyId, propertyId));
   },
 
   // DOCUMENT METHODS

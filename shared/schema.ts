@@ -48,6 +48,7 @@ export const users = pgTable("users", {
 export const properties = pgTable("properties", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
+  sequenceNumber: varchar("sequence_number").notNull(), // #00001, #00002, etc
   type: varchar("type").notNull(), // apartamento, casa, cobertura, terreno
   
   // Endereço separado
@@ -88,13 +89,13 @@ export const propertyOwners = pgTable("property_owners", {
   propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
   fullName: varchar("full_name").notNull(),
   cpf: varchar("cpf").notNull(),
-  rg: varchar("rg").notNull(),
-  birthDate: date("birth_date").notNull(),
-  maritalStatus: varchar("marital_status").notNull(),
-  fatherName: varchar("father_name").notNull(),
-  motherName: varchar("mother_name").notNull(),
+  rg: varchar("rg"),
+  birthDate: date("birth_date"),
+  maritalStatus: varchar("marital_status"),
+  fatherName: varchar("father_name"),
+  motherName: varchar("mother_name"),
   phone: varchar("phone").notNull(),
-  email: varchar("email").notNull(),
+  email: varchar("email"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

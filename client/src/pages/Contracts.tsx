@@ -36,6 +36,7 @@ export default function Contracts() {
   const mockContracts = [
     {
       id: 1,
+      sequenceNumber: "CTR-2024-001",
       propertyId: 1,
       property: "Apartamento Vila Madalena",
       buyer: "Ana Costa",
@@ -58,6 +59,7 @@ export default function Contracts() {
     },
     {
       id: 2,
+      sequenceNumber: "CTR-2024-002",
       propertyId: 2,
       property: "Casa Jardins",
       buyer: "Roberto Lima",
@@ -80,6 +82,7 @@ export default function Contracts() {
     },
     {
       id: 3,
+      sequenceNumber: "CTR-2024-003",
       propertyId: 1,
       property: "Cobertura Itaim",
       buyer: "Carlos Silva",
@@ -145,7 +148,8 @@ export default function Contracts() {
   const filteredContracts = mockContracts.filter((contract: any) =>
     contract.property.toLowerCase().includes(searchTerm.toLowerCase()) ||
     contract.buyer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contract.seller.toLowerCase().includes(searchTerm.toLowerCase())
+    contract.seller.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    contract.sequenceNumber.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const statsData = {
@@ -174,7 +178,6 @@ export default function Contracts() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Contratos</h1>
           <p className="text-muted-foreground">
             Gerencie contratos de compra e venda e acompanhe o processo de assinatura
           </p>
@@ -261,7 +264,7 @@ export default function Contracts() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por imóvel, comprador ou vendedor..."
+                placeholder="Buscar por número, imóvel, comprador ou vendedor..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -295,6 +298,7 @@ export default function Contracts() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Nº Contrato</TableHead>
                   <TableHead>Imóvel</TableHead>
                   <TableHead>Partes</TableHead>
                   <TableHead>Valor</TableHead>
@@ -307,6 +311,11 @@ export default function Contracts() {
               <TableBody>
                 {filteredContracts.map((contract: any) => (
                   <TableRow key={contract.id}>
+                    <TableCell>
+                      <div className="font-mono text-sm font-medium text-primary">
+                        {contract.sequenceNumber}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div>
                         <div className="font-medium">{contract.property}</div>
@@ -381,7 +390,9 @@ export default function Contracts() {
       <Dialog open={showContractModal} onOpenChange={setShowContractModal}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalhes do Contrato</DialogTitle>
+            <DialogTitle>
+              Detalhes do Contrato {selectedContract?.sequenceNumber}
+            </DialogTitle>
           </DialogHeader>
           
           {selectedContract && (
@@ -391,6 +402,7 @@ export default function Contracts() {
                 <div>
                   <h4 className="font-medium mb-3">Informações do Contrato</h4>
                   <div className="space-y-2 text-sm">
+                    <div><strong>Nº Contrato:</strong> <span className="font-mono">{selectedContract.sequenceNumber}</span></div>
                     <div><strong>Imóvel:</strong> {selectedContract.property}</div>
                     <div><strong>Valor:</strong> R$ {selectedContract.value.toLocaleString('pt-BR')}</div>
                     <div><strong>Pagamento:</strong> {selectedContract.paymentMethod}</div>

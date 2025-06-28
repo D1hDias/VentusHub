@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -64,16 +65,19 @@ const BRAZILIAN_STATES = [
 ];
 
 const ownerSchema = z.object({
-  id: z.string(),
+  id: z.union([z.string(), z.number()]).transform(val => String(val)),
   fullName: z.string().min(1, "Nome completo é obrigatório"),
-  cpf: z.string().min(11, "CPF é obrigatório"),
+  cpf: z.string().min(1, "CPF é obrigatório"),
   rg: z.string().optional(),
   birthDate: z.string().optional(),
   maritalStatus: z.string().optional(),
   fatherName: z.string().optional(),
   motherName: z.string().optional(),
-  phone: z.string().optional(),
-  email: z.string().optional(),
+  phone: z.string().min(1, "Telefone é obrigatório"),
+  email: z.string().refine((email) => {
+    if (email === '') return true; // Permite vazio
+    return /\S+@\S+\.\S+/.test(email); // Valida formato se não estiver vazio
+  }, "E-mail inválido"),
 });
 
 const propertySchema = z.object({
@@ -95,6 +99,7 @@ type PropertyFormData = z.infer<typeof propertySchema>;
 
 interface Property {
   id?: string;
+  sequenceNumber?: string;
   type: string;
   street: string;
   number: string;
@@ -151,6 +156,7 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isEditing = !!property;
+
 
   const [owners, setOwners] = useState([{
     id: crypto.randomUUID(),
@@ -313,38 +319,42 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
       email: ''
     };
     const currentOwners = form.getValues('owners');
-    form.setValue('owners', [...currentOwners, newOwner]);
-    setOwners([...owners, newOwner]);
+    const updatedOwners = [...currentOwners, newOwner];
+    form.setValue('owners', updatedOwners);
+    setOwners(updatedOwners);
   };
 
   const removeOwner = (ownerId: string) => {
-    if (owners.length > 1) {
-      const updatedOwners = owners.filter(owner => owner.id !== ownerId);
-      setOwners(updatedOwners);
+    const currentOwners = form.getValues('owners');
+    if (currentOwners.length > 1) {
+      const updatedOwners = currentOwners.filter(owner => owner.id !== ownerId);
       form.setValue('owners', updatedOwners);
+      setOwners(updatedOwners);
     }
   };
 
   const createPropertyMutation = useMutation({
     mutationFn: async (data: PropertyFormData) => {
-      const endpoint = isEditing ? `/api/properties/${property.id}` : "/api/properties";
+      const endpoint = isEditing ? `/api/properties/${property?.id}` : "/api/properties";
       const method = isEditing ? "PUT" : "POST";
       const response = await apiRequest(method, endpoint, data);
       return await response.json();
     },
-    onSuccess: async (createdProperty) => {
+    onSuccess: (createdProperty) => {
       // Upload arquivos se houver
       if (files.length > 0) {
-        await uploadFilesToSupabase(createdProperty.id || property?.id);
+        uploadFilesToSupabase(createdProperty.id || property?.id).catch(console.error);
       }
       
       queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/recent"] });
+      
       toast({
         title: isEditing ? "Imóvel atualizado!" : "Imóvel cadastrado!",
         description: isEditing ? "Os dados foram atualizados com sucesso." : "Nova captação registrada no sistema.",
       });
+      
       onOpenChange(false);
       form.reset();
       setFiles([]);
@@ -429,6 +439,7 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
       ...data,
       value: cleanValue,
     };
+    
     
     createPropertyMutation.mutate(propertyData);
   };
@@ -534,7 +545,18 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Imóvel' : 'Nova Captação'}</DialogTitle>
+          <DialogTitle>
+            {isEditing 
+              ? `Editar Imóvel #${property?.sequenceNumber || '00000'}` 
+              : 'Nova Captação'
+            }
+          </DialogTitle>
+          <DialogDescription>
+            {isEditing 
+              ? 'Edite as informações do imóvel e seus proprietários.' 
+              : 'Cadastre um novo imóvel e seus proprietários no sistema.'
+            }
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -738,10 +760,6 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium">Proprietários</h3>
-                <Button type="button" variant="outline" size="sm" onClick={addOwner}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Proprietário
-                </Button>
               </div>
 
               {form.watch('owners').map((owner, index) => (
@@ -753,7 +771,7 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
                         <span className="text-sm text-muted-foreground ml-2">(Principal)</span>
                       )}
                     </h4>
-                    {owners.length > 1 && (
+                    {form.watch('owners').length > 1 && (
                       <Button
                         type="button"
                         variant="ghost"
@@ -766,12 +784,12 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
                       name={`owners.${index}.fullName`}
                       render={({ field }) => (
-                        <FormItem className="md:col-span-2">
+                        <FormItem className="md:col-span-3">
                           <FormLabel>Nome Completo</FormLabel>
                           <FormControl>
                             <Input {...field} />
@@ -826,9 +844,38 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
                         </FormItem>
                       )}
                     />
+
+                    <FormField
+                      control={form.control}
+                      name={`owners.${index}.email`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>E-mail</FormLabel>
+                          <FormControl>
+                            <Input 
+                              type="email"
+                              placeholder="email@exemplo.com" 
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </div>
               ))}
+              
+              <div className="flex justify-end">
+                <button 
+                  type="button" 
+                  onClick={addOwner}
+                  className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium transition-colors duration-200 flex items-center cursor-pointer"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Proprietário
+                </button>
+              </div>
             </div>
 
             {/* Documentação */}
@@ -974,8 +1021,8 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
                   </div>
 
                   {/* RG/CNH - DINÂMICO BASEADO NA QUANTIDADE DE PROPRIETÁRIOS */}
-                  {owners.map((owner, ownerIndex) => (
-                    <div key={`rg-${ownerIndex}`} className="border rounded-lg p-4 space-y-3">
+                  {form.watch('owners').map((owner, ownerIndex) => (
+                    <div key={`rg-${owner.id}-${ownerIndex}`} className="border rounded-lg p-4 space-y-3">
                       <div className="flex items-center space-x-2">
                         <span className="text-lg">📄</span>
                         <h5 className="font-medium text-sm">

@@ -36,6 +36,7 @@ export default function FinalInstrument() {
   const mockInstruments = [
     {
       id: 1,
+      sequenceNumber: "00001",
       propertyId: 1,
       property: "Apartamento Vila Madalena",
       buyer: "Ana Costa",
@@ -66,6 +67,7 @@ export default function FinalInstrument() {
     },
     {
       id: 2,
+      sequenceNumber: "00002",
       propertyId: 2,
       property: "Casa Jardins",
       buyer: "Roberto Lima",
@@ -96,6 +98,7 @@ export default function FinalInstrument() {
     },
     {
       id: 3,
+      sequenceNumber: "00003",
       propertyId: 3,
       property: "Cobertura Itaim",
       buyer: "Fernanda Silva",
@@ -192,7 +195,6 @@ export default function FinalInstrument() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Instrumento Definitivo</h1>
           <p className="text-muted-foreground">
             Gerencie o processo de escrituração e registro em cartório
           </p>
@@ -313,6 +315,7 @@ export default function FinalInstrument() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Nº</TableHead>
                   <TableHead>Imóvel</TableHead>
                   <TableHead>Partes</TableHead>
                   <TableHead>Valor</TableHead>
@@ -325,6 +328,11 @@ export default function FinalInstrument() {
               <TableBody>
                 {filteredInstruments.map((instrument: any) => (
                   <TableRow key={instrument.id}>
+                    <TableCell>
+                      <div className="font-mono text-sm text-muted-foreground">
+                        {instrument.sequenceNumber}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div>
                         <div className="font-medium">{instrument.property}</div>
@@ -410,7 +418,9 @@ export default function FinalInstrument() {
       <Dialog open={showInstrumentModal} onOpenChange={setShowInstrumentModal}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalhes do Instrumento Definitivo</DialogTitle>
+            <DialogTitle>
+              Detalhes do Instrumento Definitivo - Imóvel #{selectedInstrument?.sequenceNumber}
+            </DialogTitle>
           </DialogHeader>
           
           {selectedInstrument && (
@@ -420,6 +430,7 @@ export default function FinalInstrument() {
                 <div>
                   <h4 className="font-medium mb-3">Informações da Transação</h4>
                   <div className="space-y-2 text-sm">
+                    <div><strong>Nº do Instrumento:</strong> {selectedInstrument.sequenceNumber}</div>
                     <div><strong>Imóvel:</strong> {selectedInstrument.property}</div>
                     <div><strong>Valor:</strong> R$ {selectedInstrument.value.toLocaleString('pt-BR')}</div>
                     <div><strong>Pagamento:</strong> {selectedInstrument.paymentMethod}</div>

@@ -37,7 +37,14 @@ export async function setupVite(app: Express, server: Server) {
     },
     server: {
       middlewareMode: true,
-      hmr: { server },
+      hmr: { 
+        server,
+        overlay: true,
+      },
+      watch: {
+        usePolling: true,
+        interval: 100,
+      },
     },
     appType: "custom",
   });

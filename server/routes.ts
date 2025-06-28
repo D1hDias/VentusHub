@@ -2,10 +2,11 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, setupAuthRoutes, isAuthenticated } from "./auth";
-import { insertPropertySchema, insertProposalSchema, insertContractSchema, insertTimelineEntrySchema } from "@shared/schema";
+import { insertPropertySchema, insertProposalSchema, insertContractSchema, insertTimelineEntrySchema, properties } from "@shared/schema";
 import { z } from "zod";
 import { db } from "./db";
 import { documents as propertyDocuments } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup auth middleware
@@ -56,9 +57,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = parseInt(req.session.user.id);
       
+      // Gerar próximo número sequencial
+      const sequenceNumber = await storage.generateNextSequenceNumber();
+      
       // Validar dados da propriedade
       const propertyData = {
         userId,
+        sequenceNumber,
         type: req.body.type,
         street: req.body.street,
         number: req.body.number,
@@ -84,13 +89,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             propertyId: property.id,
             fullName: owner.fullName,
             cpf: owner.cpf,
-            rg: owner.rg,
-            birthDate: owner.birthDate,
-            maritalStatus: owner.maritalStatus,
-            fatherName: owner.fatherName,
-            motherName: owner.motherName,
+            rg: owner.rg || null,
+            birthDate: owner.birthDate || null,
+            maritalStatus: owner.maritalStatus || null,
+            fatherName: owner.fatherName || null,
+            motherName: owner.motherName || null,
             phone: owner.phone,
-            email: owner.email,
+            email: owner.email || null,
           });
         }
       }
@@ -104,6 +109,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("======================");
       res.status(500).json({ message: "Failed to create property", error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  app.put("/api/properties/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const propertyId = parseInt(req.params.id);
+      const userId = parseInt(req.session.user.id);
+      
+      // Check ownership
+      const existingProperty = await storage.getProperty(propertyId);
+      if (!existingProperty || existingProperty.userId !== userId) {
+        return res.status(404).json({ message: "Property not found" });
+      }
+
+      // Prepare update data
+      const updateData = {
+        type: req.body.type,
+        street: req.body.street,
+        number: req.body.number,
+        complement: req.body.complement || null,
+        neighborhood: req.body.neighborhood,
+        city: req.body.city,
+        state: req.body.state,
+        cep: req.body.cep,
+        value: req.body.value,
+        registrationNumber: req.body.registrationNumber,
+        municipalRegistration: req.body.municipalRegistration,
+      };
+
+      // Update property
+      const updatedProperty = await storage.updateProperty(propertyId, updateData);
+      
+      // Update owners if provided
+      if (req.body.owners && req.body.owners.length > 0) {
+        // Delete existing owners
+        await storage.deletePropertyOwners(propertyId);
+        
+        // Create new owners
+        for (const owner of req.body.owners) {
+          await storage.createPropertyOwner({
+            propertyId: propertyId,
+            fullName: owner.fullName,
+            cpf: owner.cpf,
+            rg: owner.rg || null,
+            birthDate: owner.birthDate || null,
+            maritalStatus: owner.maritalStatus || null,
+            fatherName: owner.fatherName || null,
+            motherName: owner.motherName || null,
+            phone: owner.phone,
+            email: owner.email || null,
+          });
+        }
+      }
+
+      res.json(updatedProperty);
+    } catch (error) {
+      console.error("=== PUT UPDATE ERROR ===");
+      console.error("Error updating property:", error);
+      if (error instanceof Error) {
+        console.error("Stack:", error.stack);
+      }
+      console.error("========================");
+      res.status(500).json({ message: "Failed to update property", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -149,6 +217,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching documents:", error);
       res.status(500).json({ message: "Failed to fetch documents" });
+    }
+  });
+
+  // Rota para deletar propriedade
+  app.delete("/api/properties/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      console.log("=== DELETE PROPERTY API ===");
+      console.log("Property ID:", req.params.id);
+      console.log("User ID:", req.session.user.id);
+      
+      const propertyId = parseInt(req.params.id);
+      const userId = parseInt(req.session.user.id);
+      
+      // Verificar se a propriedade existe e pertence ao usuário
+      const property = await storage.getProperty(propertyId);
+      if (!property || property.userId !== userId) {
+        return res.status(404).json({ message: "Property not found or access denied" });
+      }
+      
+      // Deletar a propriedade (cascade deletará os relacionamentos)
+      await storage.deleteProperty(propertyId);
+      
+      console.log("Property deleted successfully");
+      res.json({ message: "Property deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting property:", error);
+      res.status(500).json({ message: "Failed to delete property", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -450,6 +545,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
           error: errorMessage
         });
       }
+  });
+
+  // Rota temporária para corrigir sequence numbers
+  app.get("/api/fix-sequence-numbers", isAuthenticated, async (req: any, res) => {
+    try {
+      console.log("=== FIXING SEQUENCE NUMBERS ===");
+      
+      const userId = parseInt(req.session.user.id);
+      
+      // Buscar todas as propriedades do usuário ordenadas por ID (ordem de criação)
+      const userProperties = await db.select().from(properties).where(eq(properties.userId, userId)).orderBy(properties.id);
+      console.log(`Encontradas ${userProperties.length} propriedades do usuário ${userId}`);
+      
+      // Atualizar cada propriedade com o número sequencial correto
+      for (let i = 0; i < userProperties.length; i++) {
+        const property = userProperties[i];
+        const newSequenceNumber = "#" + String(i + 1).padStart(5, '0');
+        
+        console.log(`Atualizando propriedade ID ${property.id}: ${property.sequenceNumber} -> ${newSequenceNumber}`);
+        
+        await db.update(properties)
+          .set({ sequenceNumber: newSequenceNumber })
+          .where(eq(properties.id, property.id));
+      }
+      
+      console.log("Correção concluída!");
+      
+      res.json({ 
+        message: "Sequence numbers corrigidos com sucesso",
+        updatedCount: userProperties.length,
+        properties: userProperties.map((p, i) => ({
+          id: p.id,
+          oldNumber: p.sequenceNumber,
+          newNumber: "#" + String(i + 1).padStart(5, '0')
+        }))
+      });
+      
+    } catch (error) {
+      console.error("Erro na correção dos sequence numbers:", error);
+      res.status(500).json({ message: "Erro ao corrigir sequence numbers", error: error.message });
+    }
   });
 
   const httpServer = createServer(app);

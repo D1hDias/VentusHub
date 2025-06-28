@@ -37,6 +37,7 @@ export default function Proposals() {
     {
       id: 1,
       propertyId: 1,
+      sequenceNumber: "00001",
       property: "Apartamento Vila Madalena",
       propertyValue: 850000,
       buyerName: "Carlos Silva",
@@ -52,6 +53,7 @@ export default function Proposals() {
     {
       id: 2,
       propertyId: 1,
+      sequenceNumber: "00001",
       property: "Apartamento Vila Madalena",
       propertyValue: 850000,
       buyerName: "Ana Costa",
@@ -67,6 +69,7 @@ export default function Proposals() {
     {
       id: 3,
       propertyId: 2,
+      sequenceNumber: "00002",
       property: "Casa Jardins",
       propertyValue: 1200000,
       buyerName: "Roberto Lima",
@@ -145,7 +148,6 @@ export default function Proposals() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Propostas</h1>
           <p className="text-muted-foreground">
             Gerencie propostas e conduza negociações com compradores interessados
           </p>
@@ -266,6 +268,7 @@ export default function Proposals() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-20">#</TableHead>
                   <TableHead>Imóvel</TableHead>
                   <TableHead>Comprador</TableHead>
                   <TableHead>Valor Proposto</TableHead>
@@ -278,6 +281,11 @@ export default function Proposals() {
               <TableBody>
                 {filteredProposals.map((proposal: any) => (
                   <TableRow key={proposal.id}>
+                    <TableCell>
+                      <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        #{proposal.sequenceNumber || String(proposal.propertyId).padStart(5, '0')}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       <div>
                         <div className="font-medium">{proposal.property}</div>
@@ -354,7 +362,9 @@ export default function Proposals() {
       <Dialog open={showProposalModal} onOpenChange={setShowProposalModal}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Detalhes da Proposta</DialogTitle>
+            <DialogTitle>
+              Detalhes da Proposta - Imóvel #{selectedProposal?.sequenceNumber || '00000'}
+            </DialogTitle>
           </DialogHeader>
           
           {selectedProposal && (

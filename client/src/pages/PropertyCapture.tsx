@@ -21,6 +21,7 @@ import {
 
 interface Property {
   id?: string;                 
+  sequenceNumber?: string;     
   type: string;
   street: string;
   number: string;
@@ -414,7 +415,6 @@ export default function PropertyCapture() {
         {/* Header com espaçamento balanceado */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Captação de Imóveis</h1>
             <p className="text-base text-gray-600">
               Gerencie e acompanhe o processo de captação dos seus imóveis
             </p>
@@ -587,6 +587,7 @@ export default function PropertyCapture() {
                 <Table>
                   <TableHeader>
                     <TableRow className="border-gray-200">
+                      <TableHead className="px-4 py-3 text-gray-900 font-medium w-20">#</TableHead>
                       <TableHead className="px-4 py-3 text-gray-900 font-medium">Imóvel</TableHead>
                       <TableHead className="px-4 py-3 text-gray-900 font-medium">Proprietário</TableHead>
                       <TableHead className="px-4 py-3 text-gray-900 font-medium">Status</TableHead>
@@ -595,8 +596,13 @@ export default function PropertyCapture() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredProperties.map((property: Property) => (
+                    {filteredProperties.map((property: Property, index: number) => (
                       <TableRow key={property.id || Math.random()} className="border-gray-200 hover:bg-gray-50/50">
+                        <TableCell className="px-4 py-3">
+                          <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            #{property.sequenceNumber || String(index + 1).padStart(5, '0')}
+                          </span>
+                        </TableCell>
                         <TableCell className="px-4 py-3">
                           <div className="space-y-1">
                             <div className="font-medium text-gray-900">
@@ -635,7 +641,10 @@ export default function PropertyCapture() {
                           <PropertyActions 
                             property={property} 
                             onEdit={(prop) => {
-                              setSelectedProperty(prop);
+                              setSelectedProperty({
+                                ...prop,
+                                sequenceNumber: prop.sequenceNumber || String(index + 1).padStart(5, '0')
+                              });
                               setShowPropertyModal(true);
                             }} 
                           />

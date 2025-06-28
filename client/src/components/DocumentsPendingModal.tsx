@@ -12,6 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { apiRequest } from "@/lib/queryClient";
 
+interface Property {
+  id?: string;
+  sequenceNumber?: string;
+  [key: string]: any;
+}
+
 interface DocumentsPendingModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -161,7 +167,7 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-amber-500" />
-            Documentos e Campos Pendentes
+            Documentos e Campos Pendentes - Imóvel #{property?.sequenceNumber || '00000'}
           </DialogTitle>
         </DialogHeader>
 

@@ -207,7 +207,6 @@ export default function Settings() {
     <div className="p-6 max-w-6xl mx-auto space-y-6 scroll-elegant">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Configurações</h1>
         <p className="text-muted-foreground">
           Gerencie suas preferências e configurações da conta
         </p>

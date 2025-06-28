@@ -19,6 +19,7 @@ export default function MarketListing() {
   const marketProperties = [
     {
       id: 1,
+      sequenceNumber: "00001",
       property: "Apartamento Vila Madalena",
       address: "Rua das Flores, 123 - Vila Madalena",
       value: 850000,
@@ -37,6 +38,7 @@ export default function MarketListing() {
     },
     {
       id: 2,
+      sequenceNumber: "00002",
       property: "Casa Jardins",
       address: "Rua dos Jardins, 456 - Jardins",
       value: 1200000,
@@ -73,7 +75,6 @@ export default function MarketListing() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Imóveis no Mercado</h1>
           <p className="text-muted-foreground">
             Gerencie seus imóveis ativos e acompanhe o desempenho das vendas
           </p>
@@ -165,7 +166,12 @@ export default function MarketListing() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-lg">{property.property}</CardTitle>
+                  <div className="flex items-center gap-3 mb-1">
+                    <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      #{property.sequenceNumber || String(property.id).padStart(5, '0')}
+                    </span>
+                    <CardTitle className="text-lg">{property.property}</CardTitle>
+                  </div>
                   <p className="text-sm text-muted-foreground">{property.address}</p>
                 </div>
                 {getStatusBadge(property.status)}

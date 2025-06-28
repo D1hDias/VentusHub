@@ -25,10 +25,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarContent, AvatarFallback } from "@/components/ui/avatar";
+import { PropertyModal } from "@/components/PropertyModal";
+import { DueDiligenceModal } from "@/components/DueDiligenceModal";
 
 interface Property {
   id?: string;
+  sequenceNumber?: string;
   type: string;
   street: string;
   number: string;
@@ -64,6 +66,9 @@ export default function PropertyDetails() {
   const [, setLocation] = useLocation();
   const [match, params] = useRoute("/property/:id");
   const propertyId = params?.id;
+  const [showPropertyModal, setShowPropertyModal] = useState(false);
+  const [showDueDiligenceModal, setShowDueDiligenceModal] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const { data: property, isLoading } = useQuery({
     queryKey: [`/api/properties/${propertyId}`],
@@ -74,6 +79,21 @@ export default function PropertyDetails() {
     },
     enabled: !!propertyId,
   });
+
+  // Buscar lista de propriedades para obter o sequenceNumber correto
+  const { data: properties } = useQuery({
+    queryKey: ["/api/properties"],
+    queryFn: async () => {
+      const response = await fetch("/api/properties");
+      if (!response.ok) throw new Error("Failed to fetch properties");
+      return response.json();
+    },
+  });
+
+  // Obter o sequenceNumber da propriedade
+  const getSequenceNumber = () => {
+    return property?.sequenceNumber || '00000';
+  };
 
   const getStageInfo = (currentStage: number): StageInfo[] => {
     const stages = [
@@ -142,6 +162,35 @@ export default function PropertyDetails() {
     return Math.min(((currentStage - 1) / 6) * 100, 100);
   };
 
+  const getDueDiligenceStatus = () => {
+    if (!property?.id) return 'pending';
+    
+    // refreshKey força reavaliação
+    const _ = refreshKey;
+    
+    const diligenceData = localStorage.getItem(`diligence_${property.id}`);
+    if (!diligenceData) return 'pending';
+    
+    try {
+      const data = JSON.parse(diligenceData);
+      const allItems = [
+        ...(data.propertyItems || []),
+        ...(data.personalItems || [])
+      ];
+      
+      if (allItems.length === 0) return 'pending';
+      
+      const completedItems = allItems.filter((item: any) => item.status === 'completed');
+      const requestedItems = allItems.filter((item: any) => item.status === 'requested' || item.status === 'completed');
+      
+      if (completedItems.length === allItems.length) return 'completed';
+      if (requestedItems.length > 0) return 'in_progress';
+      return 'pending';
+    } catch {
+      return 'pending';
+    }
+  };
+
   const formatCurrency = (value: string | number): string => {
     const numValue = typeof value === 'string' 
       ? parseFloat(value.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0
@@ -186,9 +235,9 @@ export default function PropertyDetails() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Imóvel não encontrado</h2>
           <p className="text-gray-600 mb-4">O imóvel solicitado não existe ou foi removido.</p>
-          <Button onClick={() => setLocation("/property-capture")}>
+          <Button onClick={() => window.history.back()}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar para Captação
+            Voltar
           </Button>
         </div>
       </div>
@@ -200,28 +249,36 @@ export default function PropertyDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="w-full px-6 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
             <Button
               variant="outline"
-              onClick={() => setLocation("/property-capture")}
+              onClick={() => window.history.back()}
               className="border-gray-300"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {property.type} - {property.street}, {property.number}
-              </h1>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="text-lg font-mono text-gray-500 bg-gray-100 px-3 py-1 rounded">
+                  #{getSequenceNumber()}
+                </span>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {property.type} - {property.street}, {property.number}
+                </h1>
+              </div>
               <p className="text-gray-600 mt-1">
                 {property.neighborhood}, {property.city}
               </p>
             </div>
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700"
+            onClick={() => setShowPropertyModal(true)}
+          >
             <Edit3 className="h-4 w-4 mr-2" />
             Editar Imóvel
           </Button>
@@ -232,9 +289,20 @@ export default function PropertyDetails() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl">Progresso do Processo</CardTitle>
-              <Badge variant="secondary" className="text-sm">
-                Etapa {property.currentStage || 1} de 7
-              </Badge>
+              <div className="flex items-center gap-3">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowDueDiligenceModal(true)}
+                  className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                >
+                  <FileCheck className="h-4 w-4 mr-2" />
+                  Due Diligence
+                </Button>
+                <Badge variant="secondary" className="text-sm">
+                  Etapa {property.currentStage || 1} de 7
+                </Badge>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -251,34 +319,54 @@ export default function PropertyDetails() {
                 {stages.map((stage, index) => {
                   const IconComponent = stage.icon;
                   const isActive = property.currentStage === stage.id;
+                  const dueDiligenceStatus = getDueDiligenceStatus();
+                  
+                  // Lógica especial para Due Diligence (stage 2)
+                  let stageStatus = 'pending';
+                  if (stage.id === 2) {
+                    stageStatus = dueDiligenceStatus;
+                  } else if (stage.completed) {
+                    stageStatus = 'completed';
+                  } else if (isActive) {
+                    stageStatus = 'active';
+                  }
                   
                   return (
                     <div
                       key={stage.id}
                       className={`text-center p-3 rounded-lg border-2 transition-all ${
-                        stage.completed
+                        stageStatus === 'completed'
                           ? 'border-green-200 bg-green-50'
-                          : isActive
+                          : stageStatus === 'in_progress'
+                          ? 'border-blue-200 bg-blue-50'
+                          : stageStatus === 'active'
                           ? 'border-blue-200 bg-blue-50'
                           : 'border-gray-200 bg-gray-50'
                       }`}
                     >
                       <div className={`w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center ${
-                        stage.completed
+                        stageStatus === 'completed'
                           ? 'bg-green-500 text-white'
-                          : isActive
+                          : stageStatus === 'in_progress'
+                          ? 'bg-blue-500 text-white'
+                          : stageStatus === 'active'
                           ? 'bg-blue-500 text-white'
                           : 'bg-gray-300 text-gray-600'
                       }`}>
                         <IconComponent className="h-5 w-5" />
                       </div>
                       <h3 className={`text-xs font-medium mb-1 ${
-                        stage.completed || isActive ? 'text-gray-900' : 'text-gray-500'
+                        stageStatus !== 'pending' ? 'text-gray-900' : 'text-gray-500'
                       }`}>
                         {stage.label}
                       </h3>
                       <p className="text-xs text-gray-500 leading-tight">
-                        {stage.description}
+                        {stage.id === 2 && stageStatus === 'in_progress' 
+                          ? 'Documentos em validação'
+                          : stage.id === 2 && stageStatus === 'completed'
+                          ? 'Todos documentos validados'
+                          : stage.description
+                        }
                       </p>
                     </div>
                   );
@@ -289,9 +377,9 @@ export default function PropertyDetails() {
         </Card>
 
         {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-3 space-y-6">
             {/* Property Information */}
             <Card>
               <CardHeader>
@@ -381,11 +469,6 @@ export default function PropertyDetails() {
                   <div className="space-y-4">
                     {property.owners.map((owner, index) => (
                       <div key={index} className="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg">
-                        <Avatar>
-                          <AvatarFallback>
-                            {owner.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
                         <div className="flex-1 space-y-2">
                           <h4 className="font-medium text-gray-900">{owner.fullName}</h4>
                           <div className="flex items-center space-x-4 text-sm text-gray-600">
@@ -513,6 +596,38 @@ export default function PropertyDetails() {
           </div>
         </div>
       </div>
+
+      {/* Property Edit Modal */}
+      <PropertyModal
+        open={showPropertyModal}
+        onOpenChange={setShowPropertyModal}
+        property={property ? {
+          ...property,
+          sequenceNumber: getSequenceNumber()
+        } : null}
+      />
+
+      {/* Due Diligence Modal */}
+      {property && (
+        <DueDiligenceModal
+          open={showDueDiligenceModal}
+          onOpenChange={(open) => {
+            setShowDueDiligenceModal(open);
+            if (!open) {
+              // Forçar atualização quando modal fechar
+              setRefreshKey(prev => prev + 1);
+            }
+          }}
+          property={{
+            id: property.id?.toString() || '',
+            sequenceNumber: getSequenceNumber(),
+            street: property.street,
+            number: property.number,
+            type: property.type,
+            owners: property.owners
+          }}
+        />
+      )}
     </div>
   );
 }

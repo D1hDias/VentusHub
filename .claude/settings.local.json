@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(npm run dev:*)",
+      "Bash(awk:*)",
+      "Bash(sed:*)",
+      "Bash(npm run:*)",
+      "Bash(timeout 10 bash -c 'echo -e \"\"\\033[B\\ny\"\" | npm run db:push')",
+      "Bash(true)",
+      "Bash(pkill:*)",
+      "Bash(timeout 30 npm run dev)",
+      "Bash(lsof:*)",
+      "Bash(node:*)",
+      "Bash(tsx:*)",
+      "Bash(npx tsx:*)",
+      "Bash(source .env)",
+      "Bash(rm:*)",
+      "Bash(kill:*)"
+    ],
+    "deny": []
+  }
+}

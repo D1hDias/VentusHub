@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { Home, Store, Handshake, File, Plus, TrendingUp, Search, Edit } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Home, Store, Handshake, File, Plus, TrendingUp, Search, Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import { PropertyModal } from "@/components/PropertyModal";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 // Garantir que crypto está disponível
 if (typeof crypto === 'undefined') {
@@ -58,20 +60,54 @@ export default function Dashboard() {
   const [editingProperty, setEditingProperty] = useState<Property | null>(null);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: stats, isLoading: statsLoading } = useQuery<Stats>({
-    queryKey: ["/api/dashboard/stats"],
+  // Buscar todas as propriedades para calcular estatísticas
+  const { data: allProperties = [], isLoading: propertiesLoading, error } = useQuery({
+    queryKey: ["/api/properties"],
+    enabled: !!user, // Só executar se usuário estiver logado
+    // Usar o queryFn padrão que já inclui credentials
   });
 
-  const { data: recentTransactions, isLoading: recentLoading } = useQuery<Property[]>({
-    queryKey: ["/api/dashboard/recent"],
-  });
+  // Calcular estatísticas baseadas no status das propriedades
+  const stats: Stats = {
+    captacao: allProperties.filter((p: any) => 
+      p.status === 'captacao' || p.currentStage === 1 || !p.status
+    ).length,
+    mercado: allProperties.filter((p: any) => 
+      p.status === 'mercado' || p.currentStage === 3
+    ).length,
+    propostas: allProperties.filter((p: any) => 
+      p.status === 'proposta' || p.currentStage === 4
+    ).length,
+    contratos: allProperties.filter((p: any) => 
+      p.status === 'contrato' || p.status === 'instrumento' || p.status === 'concluido' || p.currentStage >= 5
+    ).length,
+  };
+
+  // Calcular quantos estão em Due Diligence  
+  const dueDiligenceCount = allProperties.filter((p: any) => 
+    p.status === 'diligence' || p.currentStage === 2
+  ).length;
+
+  // Propriedades recentes (últimas 5)
+  const recentTransactions = allProperties
+    .sort((a: any, b: any) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime())
+    .slice(0, 5)
+    .map((prop: any) => ({
+      ...prop,
+      address: `${prop.street}, ${prop.number}${prop.complement ? ', ' + prop.complement : ''} - ${prop.neighborhood}, ${prop.city}${prop.state ? '/' + prop.state : ''}`
+    }));
 
   // Função para navegar para seções específicas
   const navigateToSection = (section: string) => {
     switch (section) {
       case 'captacao':
         setLocation('/captacao');
+        break;
+      case 'due-diligence':
+        setLocation('/due-diligence');
         break;
       case 'mercado':
         setLocation('/mercado');
@@ -87,8 +123,15 @@ export default function Dashboard() {
     }
   };
 
+  // Função para navegar para detalhes da propriedade
+  const handleViewProperty = (property: Property) => {
+    console.log('Navegando para propriedade:', property.id);
+    setLocation(`/property/${property.id}`);
+  };
+
   // Função para abrir modal de edição
-  const handleEditProperty = (property: Property) => {
+  const handleEditProperty = (property: Property, e: React.MouseEvent) => {
+    e.stopPropagation();
     setEditingProperty(property);
     setShowPropertyModal(true);
   };
@@ -99,7 +142,39 @@ export default function Dashboard() {
     setEditingProperty(null);
   };
 
-  if (statsLoading || recentLoading) {
+  // Mutation para deletar propriedade
+  const deletePropertyMutation = useMutation({
+    mutationFn: async (propertyId: string) => {
+      await apiRequest('DELETE', `/api/properties/${propertyId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
+      toast({
+        title: "Propriedade excluída",
+        description: "A propriedade foi removida com sucesso.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir a propriedade.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Função para deletar propriedade com confirmação
+  const handleDeleteProperty = (property: Property, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const propertyAddress = `${property.type} - ${property.street}, ${property.number}`;
+    
+    if (window.confirm(`Tem certeza que deseja excluir a propriedade:\n\n${propertyAddress}\n\nEsta ação não pode ser desfeita.`)) {
+      deletePropertyMutation.mutate(property.id!);
+    }
+  };
+
+  if (propertiesLoading) {
     return (
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
@@ -120,37 +195,37 @@ export default function Dashboard() {
   const kpiData = [
     {
       title: "Imóveis em Captação",
-      value: stats?.captacao || 0,
+      value: Math.max(stats.captacao, allProperties.length > 0 ? allProperties.length : 0),
       icon: Home,
       iconBgColor: "#001f3f",
-      progress: Math.min((stats?.captacao || 0) * 10, 100),
-      subtitle: `${stats?.captacao || 0} captações ativas`,
+      progress: Math.min(stats.captacao * 10, 100),
+      subtitle: `${stats.captacao} captações ativas`,
       onClick: () => navigateToSection('captacao')
     },
     {
       title: "Ativos no Mercado",
-      value: stats?.mercado || 0,
+      value: stats.mercado,
       icon: Store,
       iconBgColor: "hsl(159, 69%, 38%)",
-      progress: Math.min((stats?.mercado || 0) * 8, 100),
+      progress: Math.min(stats.mercado * 8, 100),
       subtitle: "Prontos para venda",
       onClick: () => navigateToSection('mercado')
     },
     {
       title: "Propostas Pendentes",
-      value: stats?.propostas || 0,
+      value: stats.propostas,
       icon: Handshake,
       iconBgColor: "hsl(32, 81%, 46%)",
-      progress: Math.min((stats?.propostas || 0) * 15, 100),
+      progress: Math.min(stats.propostas * 15, 100),
       subtitle: "Aguardando negociação",
       onClick: () => navigateToSection('propostas')
     },
     {
       title: "Contratos Ativos",
-      value: stats?.contratos || 0,
+      value: stats.contratos,
       icon: File,
       iconBgColor: "hsl(0, 72%, 51%)",
-      progress: Math.min((stats?.contratos || 0) * 12, 100),
+      progress: Math.min(stats.contratos * 12, 100),
       subtitle: "Em andamento",
       onClick: () => navigateToSection('contratos')
     }
@@ -214,52 +289,65 @@ export default function Dashboard() {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {recentTransactions.map((property, index) => (
-                    <div
-                      key={property.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 cursor-pointer transition-colors"
-                      onClick={() => handleEditProperty(property)}
-                    >
-                      <div className="flex items-center space-x-4">
-                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
-                          <span className="text-primary font-medium">{index + 1}</span>
+                <div className="space-y-4 hover:space-y-2 transition-all duration-300">
+                  {recentTransactions.map((property, index) => {
+                    const formattedValue = typeof property.value === 'number' 
+                      ? property.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                      : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseFloat(property.value) || 0);
+                      
+                    return (
+                      <div
+                        key={property.id}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 hover:shadow-md hover:border-primary/20 hover:scale-[1.02] cursor-pointer transition-all duration-300 ease-in-out"
+                        onClick={() => handleViewProperty(property)}
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
+                            <span className="text-primary font-medium">#{property.sequenceNumber || '00000'}</span>
+                          </div>
+                          <div>
+                            <div className="font-medium">
+                              {property.type.charAt(0).toUpperCase() + property.type.slice(1)} - {formattedValue}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {property.address}
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <div className="font-medium">
-                            {property.type.charAt(0).toUpperCase() + property.type.slice(1)} - R$ {Number(property.value).toLocaleString('pt-BR')}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {property.address}
-                          </div>
+                        <div className="flex items-center space-x-2">
+                          <Badge
+                            variant={
+                              property.currentStage >= 5 ? "default" :
+                              property.currentStage >= 3 ? "secondary" : "outline"
+                            }
+                          >
+                            {property.currentStage === 1 ? "Captação" :
+                             property.currentStage === 2 ? "Due Diligence" :
+                             property.currentStage === 3 ? "Mercado" :
+                             property.currentStage === 4 ? "Proposta" :
+                             property.currentStage >= 5 ? "Contrato" : "Pendente"}
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => handleEditProperty(property, e)}
+                            className="hover:bg-blue-50 hover:text-blue-600"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => handleDeleteProperty(property, e)}
+                            className="hover:bg-red-50 hover:text-red-600"
+                            disabled={deletePropertyMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge
-                          variant={
-                            property.currentStage >= 5 ? "default" :
-                            property.currentStage >= 3 ? "secondary" : "outline"
-                          }
-                        >
-                          {property.currentStage === 1 ? "Captação" :
-                           property.currentStage === 2 ? "Due Diligence" :
-                           property.currentStage === 3 ? "Mercado" :
-                           property.currentStage === 4 ? "Proposta" :
-                           property.currentStage >= 5 ? "Contrato" : "Pendente"}
-                        </Badge>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditProperty(property);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
@@ -277,25 +365,35 @@ export default function Dashboard() {
                 <TrendingUp className="h-4 w-4" />
                 <AlertDescription>
                   <strong>Performance do mês:</strong><br />
-                  {stats?.captacao || 0} novas captações
+                  {stats.captacao} novas captações
                 </AlertDescription>
               </Alert>
+
+              {dueDiligenceCount > 0 && (
+                <Alert className="cursor-pointer hover:bg-accent/50" onClick={() => navigateToSection('due-diligence')}>
+                  <File className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>{dueDiligenceCount} imóveis em Due Diligence</strong><br />
+                    Verificar documentação pendente
+                  </AlertDescription>
+                </Alert>
+              )}
               
-              {(stats?.propostas || 0) > 0 && (
+              {stats.propostas > 0 && (
                 <Alert className="cursor-pointer hover:bg-accent/50" onClick={() => navigateToSection('propostas')}>
                   <Handshake className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>{stats?.propostas} propostas pendentes</strong><br />
+                    <strong>{stats.propostas} propostas pendentes</strong><br />
                     Revisar negociações em andamento
                   </AlertDescription>
                 </Alert>
               )}
 
-              {(stats?.contratos || 0) > 0 && (
+              {stats.contratos > 0 && (
                 <Alert className="cursor-pointer hover:bg-accent/50" onClick={() => navigateToSection('contratos')}>
                   <File className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>{stats?.contratos} contratos ativos</strong><br />
+                    <strong>{stats.contratos} contratos ativos</strong><br />
                     Acompanhar prazos e documentação
                   </AlertDescription>
                 </Alert>

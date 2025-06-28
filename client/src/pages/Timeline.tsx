@@ -28,6 +28,7 @@ export default function Timeline() {
   const mockTimelines = [
     {
       id: 1,
+      sequenceNumber: "00001",
       property: "Apartamento Vila Madalena",
       totalStages: 7,
       currentStage: 3,
@@ -108,6 +109,7 @@ export default function Timeline() {
     },
     {
       id: 2,
+      sequenceNumber: "00002",
       property: "Casa Jardins",
       totalStages: 7,
       currentStage: 5,
@@ -265,7 +267,6 @@ export default function Timeline() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Acompanhamento</h1>
           <p className="text-muted-foreground">
             Visualize o progresso completo de todas as transações em uma linha do tempo
           </p>
@@ -387,7 +388,12 @@ export default function Timeline() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-lg">{timeline.property}</CardTitle>
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        #{timeline.sequenceNumber || String(timeline.id).padStart(5, '0')}
+                      </span>
+                      <CardTitle className="text-lg">{timeline.property}</CardTitle>
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       Etapa {timeline.currentStage} de {timeline.totalStages} - 
                       {Math.round((timeline.currentStage / timeline.totalStages) * 100)}% concluído
