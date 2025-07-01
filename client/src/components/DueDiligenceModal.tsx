@@ -488,7 +488,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-blue-600" />
-            Due Diligence - Imóvel #{property.sequenceNumber || '00000'}
+            Due Diligence - Imóvel {property.sequenceNumber || '00000'}
           </DialogTitle>
           <div className="text-sm text-muted-foreground">
             {property.type} - {property.street}, {property.number}

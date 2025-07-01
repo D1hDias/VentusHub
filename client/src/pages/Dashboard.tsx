@@ -303,7 +303,7 @@ export default function Dashboard() {
                       >
                         <div className="flex items-center space-x-4">
                           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
-                            <span className="text-primary font-medium">#{property.sequenceNumber || '00000'}</span>
+                            <span className="text-primary font-medium">{property.sequenceNumber || '00000'}</span>
                           </div>
                           <div>
                             <div className="font-medium">
@@ -316,16 +316,24 @@ export default function Dashboard() {
                         </div>
                         <div className="flex items-center space-x-2">
                           <Badge
-                            variant={
-                              property.currentStage >= 5 ? "default" :
-                              property.currentStage >= 3 ? "secondary" : "outline"
+                            className={
+                              property.currentStage === 1 ? "bg-orange-100 text-orange-600 border-orange-200" :
+                              property.currentStage === 2 ? "bg-blue-100 text-blue-600 border-blue-200" :
+                              property.currentStage === 3 ? "bg-green-100 text-green-600 border-green-200" :
+                              property.currentStage === 4 ? "bg-purple-100 text-purple-600 border-purple-200" :
+                              property.currentStage === 5 ? "bg-indigo-100 text-indigo-600 border-indigo-200" :
+                              property.currentStage === 6 ? "bg-teal-100 text-teal-600 border-teal-200" :
+                              property.currentStage >= 7 ? "bg-green-100 text-green-600 border-green-200" : 
+                              "bg-gray-100 text-gray-600 border-gray-200"
                             }
                           >
                             {property.currentStage === 1 ? "Captação" :
                              property.currentStage === 2 ? "Due Diligence" :
                              property.currentStage === 3 ? "Mercado" :
                              property.currentStage === 4 ? "Proposta" :
-                             property.currentStage >= 5 ? "Contrato" : "Pendente"}
+                             property.currentStage === 5 ? "Contrato" :
+                             property.currentStage === 6 ? "Instrumento" :
+                             property.currentStage >= 7 ? "Concluído" : "Pendente"}
                           </Badge>
                           <Button
                             variant="ghost"

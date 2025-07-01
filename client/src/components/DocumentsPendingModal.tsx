@@ -167,7 +167,7 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-amber-500" />
-            Documentos e Campos Pendentes - Imóvel #{property?.sequenceNumber || '00000'}
+            Documentos e Campos Pendentes - Imóvel {property?.sequenceNumber || '00000'}
           </DialogTitle>
         </DialogHeader>
 

@@ -390,7 +390,7 @@ export default function DueDiligence() {
                           <div className="space-y-1">
                             <div className="flex items-center gap-3">
                               <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                #{property.sequenceNumber}
+                                {property.sequenceNumber}
                               </span>
                               <h3 className="text-lg font-semibold text-gray-900">
                                 {property.type} - {property.street}, {property.number}

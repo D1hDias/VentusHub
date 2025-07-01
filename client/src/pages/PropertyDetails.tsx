@@ -264,7 +264,7 @@ export default function PropertyDetails() {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-lg font-mono text-gray-500 bg-gray-100 px-3 py-1 rounded">
-                  #{getSequenceNumber()}
+                  {getSequenceNumber()}
                 </span>
                 <h1 className="text-3xl font-bold text-gray-900">
                   {property.type} - {property.street}, {property.number}

@@ -50,20 +50,21 @@ export const storage = {
   },
 
   async generateNextSequenceNumber(): Promise<string> {
-    // Buscar o maior sequenceNumber existente
+    // Buscar todos os sequenceNumbers e encontrar o maior numericamente
     const result = await db.select({ sequenceNumber: properties.sequenceNumber })
-      .from(properties)
-      .orderBy(desc(properties.sequenceNumber))
-      .limit(1);
+      .from(properties);
     
     if (result.length === 0) {
       return "#00001"; // Primeiro registro
     }
     
-    // Extrair o número do formato #00001
-    const lastNumber = result[0].sequenceNumber;
-    const numberPart = parseInt(lastNumber.replace('#', '')) || 0;
-    const nextNumber = numberPart + 1;
+    // Extrair todos os números e encontrar o maior
+    const numbers = result
+      .map(r => parseInt(r.sequenceNumber.replace('#', '')) || 0)
+      .filter(n => n > 0); // Filtrar números válidos
+    
+    const maxNumber = numbers.length > 0 ? Math.max(...numbers) : 0;
+    const nextNumber = maxNumber + 1;
     
     return "#" + String(nextNumber).padStart(5, '0');
   },

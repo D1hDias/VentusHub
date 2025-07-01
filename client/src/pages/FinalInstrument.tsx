@@ -419,7 +419,7 @@ export default function FinalInstrument() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Detalhes do Instrumento Definitivo - Imóvel #{selectedInstrument?.sequenceNumber}
+              Detalhes do Instrumento Definitivo - Imóvel {selectedInstrument?.sequenceNumber}
             </DialogTitle>
           </DialogHeader>
           

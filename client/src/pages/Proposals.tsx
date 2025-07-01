@@ -283,7 +283,7 @@ export default function Proposals() {
                   <TableRow key={proposal.id}>
                     <TableCell>
                       <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        #{proposal.sequenceNumber || String(proposal.propertyId).padStart(5, '0')}
+                        {proposal.sequenceNumber || String(proposal.propertyId).padStart(5, '0')}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -363,7 +363,7 @@ export default function Proposals() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              Detalhes da Proposta - Imóvel #{selectedProposal?.sequenceNumber || '00000'}
+              Detalhes da Proposta - Imóvel {selectedProposal?.sequenceNumber || '00000'}
             </DialogTitle>
           </DialogHeader>
           

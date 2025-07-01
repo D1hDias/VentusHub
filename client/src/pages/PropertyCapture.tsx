@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { Plus, Search, Filter, X, Circle, Clock, CheckCircle, FileText, Pen, FileCheck, Award, ArrowRight, Eye, Edit, MoreHorizontal, Share} from "lucide-react";
+import { Plus, Search, Filter, X, Circle, Clock, CheckCircle, FileText, Pen, FileCheck, Award, ArrowRight, ArrowLeft, Eye, Edit, MoreHorizontal, Share} from "lucide-react";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -185,27 +185,93 @@ const PropertyActions = ({ property, onEdit }: PropertyActionsProps) => {
     onEdit(property);
   };
 
-  const handleAdvanceToDueDiligence = async (property: Property) => {
+  const handleAdvanceStage = async (property: Property, newStage: number) => {
     try {
-      // Atualizar currentStage para 2 (Due Diligence)
+      const stageStatusMap: { [key: number]: string } = {
+        1: 'captacao',
+        2: 'diligence', 
+        3: 'mercado',
+        4: 'proposta',
+        5: 'contrato',
+        6: 'instrumento',
+        7: 'concluido'
+      };
+
       const response = await fetch(`/api/properties/${property.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          currentStage: 2,
-          status: 'diligence'
+          currentStage: newStage,
+          status: stageStatusMap[newStage]
         }),
       });
 
       if (response.ok) {
-        // Navegar para a página de Due Diligence
-        setLocation('/due-diligence');
+        // Recarregar a página para mostrar as mudanças
+        window.location.reload();
       }
     } catch (error) {
-      console.error('Erro ao avançar para Due Diligence:', error);
+      console.error('Erro ao alterar estágio:', error);
     }
+  };
+
+  const getStageButtons = (property: Property) => {
+    const currentStage = property.currentStage || 1;
+    const buttons = [];
+
+    // Botão de retroceder (se não estiver no primeiro estágio)
+    if (currentStage > 1) {
+      const prevStageLabels: { [key: number]: string } = {
+        2: 'Captação',
+        3: 'Due Diligence', 
+        4: 'Mercado',
+        5: 'Propostas',
+        6: 'Contratos',
+        7: 'Instrumento'
+      };
+      
+      buttons.push(
+        <Button
+          key="prev"
+          variant="outline"
+          size="sm"
+          onClick={() => handleAdvanceStage(property, currentStage - 1)}
+          className="text-gray-600 hover:text-gray-800 hover:bg-gray-50 border-gray-300"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Retornar para {prevStageLabels[currentStage]}
+        </Button>
+      );
+    }
+
+    // Botão de avançar (se não estiver no último estágio)
+    if (currentStage < 7) {
+      const nextStageLabels: { [key: number]: string } = {
+        1: 'Due Diligence',
+        2: 'Mercado',
+        3: 'Propostas', 
+        4: 'Contratos',
+        5: 'Instrumento',
+        6: 'Concluído'
+      };
+      
+      buttons.push(
+        <Button
+          key="next"
+          variant="default"
+          size="sm"
+          onClick={() => handleAdvanceStage(property, currentStage + 1)}
+          className="bg-orange-500 hover:bg-orange-600 text-white"
+        >
+          <ArrowRight className="h-4 w-4 mr-1" />
+          Avançar para {nextStageLabels[currentStage]}
+        </Button>
+      );
+    }
+
+    return buttons;
   };
 
   return (
@@ -230,17 +296,7 @@ const PropertyActions = ({ property, onEdit }: PropertyActionsProps) => {
         Editar
       </Button>
       
-      {property.currentStage === 1 && (
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => handleAdvanceToDueDiligence(property)}
-          className="bg-orange-500 hover:bg-orange-600 text-white"
-        >
-          <ArrowRight className="h-4 w-4 mr-1" />
-          Avançar para Due Diligence
-        </Button>
-      )}
+      {getStageButtons(property)}
     </div>
   );
 };
@@ -600,7 +656,7 @@ export default function PropertyCapture() {
                       <TableRow key={property.id || Math.random()} className="border-gray-200 hover:bg-gray-50/50">
                         <TableCell className="px-4 py-3">
                           <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                            #{property.sequenceNumber || String(index + 1).padStart(5, '0')}
+                            {property.sequenceNumber || String(index + 1).padStart(5, '0')}
                           </span>
                         </TableCell>
                         <TableCell className="px-4 py-3">

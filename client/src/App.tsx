@@ -18,6 +18,10 @@ import Contracts from "./pages/Contracts";
 import DefinitiveInstrument from "./pages/FinalInstrument";
 import Timeline from "./pages/Timeline";
 import PropertyDetails from "./pages/PropertyDetails";
+import SimuladorValorRegistro from "./pages/SimuladorValorRegistro";
+import SimuladorFinanciamento from "./pages/SimuladorFinanciamento";
+import SimuladorMetroQuadrado from "./pages/SimuladorMetroQuadrado";
+import SimuladorValorImovel from "./pages/SimuladorValorImovel";
 
 // Components
 import Layout from "./components/Layout.tsx";
@@ -132,6 +136,31 @@ function AppRoutes() {
       <Route path="/property/:id">
         <ProtectedRoute>
           <PropertyDetails />
+        </ProtectedRoute>
+      </Route>
+
+      {/* Rotas dos Simuladores */}
+      <Route path="/simulador-valor-registro">
+        <ProtectedRoute>
+          <SimuladorValorRegistro />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/simulador-financiamento">
+        <ProtectedRoute>
+          <SimuladorFinanciamento />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/simulador-metro-quadrado">
+        <ProtectedRoute>
+          <SimuladorMetroQuadrado />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/simulador-valor-imovel">
+        <ProtectedRoute>
+          <SimuladorValorImovel />
         </ProtectedRoute>
       </Route>
 

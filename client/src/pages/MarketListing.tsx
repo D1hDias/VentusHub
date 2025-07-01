@@ -168,7 +168,7 @@ export default function MarketListing() {
                 <div>
                   <div className="flex items-center gap-3 mb-1">
                     <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                      #{property.sequenceNumber || String(property.id).padStart(5, '0')}
+                      {property.sequenceNumber || String(property.id).padStart(5, '0')}
                     </span>
                     <CardTitle className="text-lg">{property.property}</CardTitle>
                   </div>

@@ -390,7 +390,7 @@ export default function Timeline() {
                   <div>
                     <div className="flex items-center gap-3 mb-1">
                       <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        #{timeline.sequenceNumber || String(timeline.id).padStart(5, '0')}
+                        {timeline.sequenceNumber || String(timeline.id).padStart(5, '0')}
                       </span>
                       <CardTitle className="text-lg">{timeline.property}</CardTitle>
                     </div>
