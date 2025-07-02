@@ -21,7 +21,11 @@
       "Bash(chmod:*)",
       "Bash(dos2unix:*)",
       "Bash(./deploy-hostinger-oneclick.sh:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git stash push:*)",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
+      "Bash(git restore:*)"
     ],
     "deny": []
   }
