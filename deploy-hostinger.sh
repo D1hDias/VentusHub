@@ -90,12 +90,38 @@ fi
 print_status "Executando build..."
 npm run build
 
+# Verificar conflitos de porta
+print_status "Verificando conflitos de porta..."
+if systemctl is-active --quiet apache2; then
+    print_warning "Apache2 detectado. Parando para evitar conflitos com OpenLiteSpeed..."
+    systemctl stop apache2
+    systemctl disable apache2
+fi
+
+if systemctl is-active --quiet nginx; then
+    print_warning "Nginx detectado. Parando para evitar conflitos com OpenLiteSpeed..."
+    systemctl stop nginx
+    systemctl disable nginx
+fi
+
+# Verificar se porta 5000 está livre
+if netstat -tlnp | grep -q :5000; then
+    print_warning "Porta 5000 já está em uso:"
+    netstat -tlnp | grep :5000
+    print_warning "Parando processo na porta 5000..."
+    fuser -k 5000/tcp 2>/dev/null || true
+fi
+
 # Configurar variáveis de ambiente
 print_status "Configurando variáveis de ambiente..."
 if [ ! -f ".env" ]; then
     cp .env.production .env
     print_warning "Configure as variáveis de ambiente em $APP_DIR/.env"
 fi
+
+# Firewall já configurado - verificar status
+print_status "Verificando firewall..."
+ufw status | grep -E "(22|80|443|7080)" || print_warning "Verifique se as portas estão abertas no firewall"
 
 # Criar diretórios necessários
 print_status "Criando diretórios necessários..."

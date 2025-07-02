@@ -11,11 +11,12 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit push",
-    "docker:build": "docker build -t ventushub .",
-    "docker:run": "docker run -p 5000:5000 --env-file .env.production ventushub",
     "deploy:hostinger": "chmod +x deploy-hostinger.sh && ./deploy-hostinger.sh",
     "ssl:setup": "chmod +x ssl-setup.sh && ./ssl-setup.sh",
     "package:upload": "zip -r ventushub-deploy.zip . -x 'node_modules/*' '.git/*' 'dist/*' '*.log'",
+    "connect": "chmod +x quick-connect.sh && ./quick-connect.sh",
+    "upload": "npm run package:upload && ./quick-connect.sh upload ventushub-deploy.zip",
+    "port-check": "chmod +x port-check.sh && ./quick-connect.sh upload port-check.sh && ssh root@31.97.245.82 'cd /tmp && chmod +x port-check.sh && ./port-check.sh'",
     "sync": "git add . && git commit -m \"Auto update\" && git push"
   },
   "dependencies": {

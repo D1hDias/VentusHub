@@ -25,17 +25,20 @@ zip -r ventushub.zip . -x "node_modules/*" ".git/*" "dist/*"
 ### 2. Upload para VPS
 
 ```bash
-# Via SCP (substitua SEU_IP pelo IP do VPS)
-scp ventushub.zip root@SEU_IP:/tmp/
+# Via SCP
+scp ventushub-deploy.zip root@31.97.245.82:/tmp/
 
 # Ou use FileZilla/WinSCP para upload manual
+# Host: 31.97.245.82
+# User: root
+# Port: 22
 ```
 
 ### 3. Configurar no VPS
 
 ```bash
 # Conectar via SSH
-ssh root@SEU_IP
+ssh root@31.97.245.82
 
 # Extrair aplicação
 cd /var/www
@@ -53,7 +56,7 @@ chmod +x deploy-hostinger.sh
 
 #### 4.1 Acessar Painel Admin
 ```
-https://SEU_IP:7080
+https://31.97.245.82:7080
 ```
 
 #### 4.2 Criar Virtual Host
