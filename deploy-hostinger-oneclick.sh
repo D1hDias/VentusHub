@@ -111,7 +111,7 @@ fi
 # Iniciar aplicação com PM2
 print_status "Iniciando aplicação com PM2..."
 cd $APP_DIR
-pm2 start ecosystem.config.js --env production
+PORT=80 pm2 start ecosystem.config.js --env production
 
 # Salvar configuração PM2
 pm2 save
