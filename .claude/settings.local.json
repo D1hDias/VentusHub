@@ -29,7 +29,8 @@
       "Bash(sudo:*)",
       "Bash(curl:*)",
       "Bash(pm2 status:*)",
-      "Bash(pm2 logs:*)"
+      "Bash(pm2 logs:*)",
+      "Bash(systemctl:*)"
     ],
     "deny": []
   }
