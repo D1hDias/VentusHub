@@ -17,7 +17,8 @@
       "Bash(npx tsx:*)",
       "Bash(source .env)",
       "Bash(rm:*)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "Bash(chmod:*)"
     ],
     "deny": []
   }
