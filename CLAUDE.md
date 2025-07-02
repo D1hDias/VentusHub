@@ -153,7 +153,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Port Configuration
 
-The application runs exclusively on port 5000 for both development and production, serving the integrated frontend and backend together.
+The application runs on port 5000 for development and port 80 for production (with HTTPS on 443), serving the integrated frontend and backend together.
 
 ## Outras informações relevantes
 

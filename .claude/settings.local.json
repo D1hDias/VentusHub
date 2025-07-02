@@ -18,7 +18,10 @@
       "Bash(source .env)",
       "Bash(rm:*)",
       "Bash(kill:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(dos2unix:*)",
+      "Bash(./deploy-hostinger-oneclick.sh:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
