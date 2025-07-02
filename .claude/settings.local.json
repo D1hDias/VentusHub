@@ -25,7 +25,11 @@
       "Bash(git stash push:*)",
       "Bash(git checkout:*)",
       "Bash(git stash:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(sudo:*)",
+      "Bash(curl:*)",
+      "Bash(pm2 status:*)",
+      "Bash(pm2 logs:*)"
     ],
     "deny": []
   }
