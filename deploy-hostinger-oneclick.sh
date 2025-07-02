@@ -136,19 +136,19 @@ index  {
 
 context / {
   type                    proxy
-  uri                     http://127.0.0.1:5000/
+  uri                     http://127.0.0.1:80/
   extraHeaders            Host \$host
 }
 
 context /api/ {
   type                    proxy
-  uri                     http://127.0.0.1:5000/api/
+  uri                     http://127.0.0.1:80/api/
   extraHeaders            Host \$host
 }
 
 context /uploads/ {
   type                    proxy
-  uri                     http://127.0.0.1:5000/uploads/
+  uri                     http://127.0.0.1:80/uploads/
   extraHeaders            Host \$host
 }
 EOF
@@ -171,6 +171,6 @@ echo "2. Configure o Virtual Host para $DOMAIN"
 echo "3. Configure SSL com Let's Encrypt"
 echo "4. Configure DNS para apontar www.$DOMAIN para 31.97.245.82"
 echo ""
-echo "Aplicação rodando em: http://31.97.245.82:5000"
+echo "Aplicação rodando em: http://31.97.245.82"
 echo "Site sample: http://31.97.245.82/"
 echo "Logs: pm2 logs $APP_NAME"
