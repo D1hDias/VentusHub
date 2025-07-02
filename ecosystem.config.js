@@ -2,7 +2,7 @@ module.exports = {
   apps: [{
     name: 'ventushub',
     script: 'dist/index.js',
-    cwd: '/var/www/ventushub.com.br',
+    cwd: '/usr/local/lsws/Example/html/ventushub.com.br',
     instances: 1,
     autorestart: true,
     watch: false,

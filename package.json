@@ -11,7 +11,7 @@
     "check": "tsc",
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit push",
-    "deploy:hostinger": "chmod +x deploy-hostinger.sh && ./deploy-hostinger.sh",
+    "deploy:hostinger": "chmod +x deploy-hostinger-oneclick.sh && ./deploy-hostinger-oneclick.sh",
     "ssl:setup": "chmod +x ssl-setup.sh && ./ssl-setup.sh",
     "package:upload": "zip -r ventushub-deploy.zip . -x 'node_modules/*' '.git/*' 'dist/*' '*.log'",
     "connect": "chmod +x quick-connect.sh && ./quick-connect.sh",
