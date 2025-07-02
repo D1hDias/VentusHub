@@ -13,6 +13,9 @@
     "db:migrate": "drizzle-kit push",
     "docker:build": "docker build -t ventushub .",
     "docker:run": "docker run -p 5000:5000 --env-file .env.production ventushub",
+    "deploy:hostinger": "chmod +x deploy-hostinger.sh && ./deploy-hostinger.sh",
+    "ssl:setup": "chmod +x ssl-setup.sh && ./ssl-setup.sh",
+    "package:upload": "zip -r ventushub-deploy.zip . -x 'node_modules/*' '.git/*' 'dist/*' '*.log'",
     "sync": "git add . && git commit -m \"Auto update\" && git push"
   },
   "dependencies": {
