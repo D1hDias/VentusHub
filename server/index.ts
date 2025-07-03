@@ -57,8 +57,8 @@ app.use((req, res, next) => {
   }
 
   // Configure port based on environment
-  // Development: 5000, Production: 80 (HTTP) or 443 (HTTPS)
-  const port = process.env.PORT || (process.env.NODE_ENV === "production" ? 80 : 5000);
+  // Development: 5000, Production: 5000 (or PORT env var)
+  const port = process.env.PORT || 5000;
   const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1";
   
   server.listen(port, host, () => {

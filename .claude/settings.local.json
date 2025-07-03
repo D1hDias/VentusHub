@@ -30,7 +30,8 @@
       "Bash(curl:*)",
       "Bash(pm2 status:*)",
       "Bash(pm2 logs:*)",
-      "Bash(systemctl:*)"
+      "Bash(systemctl:*)",
+      "Bash(ss:*)"
     ],
     "deny": []
   }
