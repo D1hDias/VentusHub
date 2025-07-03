@@ -73,7 +73,7 @@ export function Sidebar({ className }: SidebarProps) {
             isExpanded ? "opacity-100" : "opacity-0 lg:opacity-0"
           )}>
             <img 
-              src="/src/assets/logo.png" 
+              src="https://i.ibb.co/jPmggGSj/4-1.png" 
               alt="Ventus Hub" 
               className="w-[120px] h-auto"
             />

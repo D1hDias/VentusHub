@@ -76,7 +76,7 @@ export default function Login() {
           <CardHeader className="space-y-1 text-center">
             <div className="flex items-center justify-center mb-4">
               <img 
-                src="/src/assets/logo2.png" 
+                src="https://i.ibb.co/jPmggGSj/4-1.png" 
                 alt="Ventus Hub" 
                 className="w-[120px] h-auto"
               />
