@@ -31,7 +31,10 @@
       "Bash(pm2 status:*)",
       "Bash(pm2 logs:*)",
       "Bash(systemctl:*)",
-      "Bash(ss:*)"
+      "Bash(ss:*)",
+      "Bash(bash:*)",
+      "Bash(cat:*)",
+      "Bash(cd:*)"
     ],
     "deny": []
   }

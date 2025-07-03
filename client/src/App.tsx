@@ -27,20 +27,7 @@ import SimuladorValorImovel from "./pages/SimuladorValorImovel";
 import Layout from "./components/Layout.tsx";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Login />;
-  }
-
+  // Teste: removendo autenticação - vai direto para o layout
   return <Layout>{children}</Layout>;
 }
 
@@ -164,11 +151,11 @@ function AppRoutes() {
         </ProtectedRoute>
       </Route>
 
-      {/* Rota padrão */}
+      {/* Rota padrão - redirecionando direto para dashboard */}
       <Route path="/">
-        <ProtectedRoute>
+        <Layout>
           <Dashboard />
-        </ProtectedRoute>
+        </Layout>
       </Route>
     </Switch>
   );
