@@ -15,6 +15,7 @@ import DueDiligence from "./pages/DueDiligence";
 import PropertiesMarket from "./pages/MarketListing";
 import Proposals from "./pages/Proposals";
 import Contracts from "./pages/Contracts";
+import { Financiamento } from "./pages/Financiamento";
 import DefinitiveInstrument from "./pages/FinalInstrument";
 import Timeline from "./pages/Timeline";
 import PropertyDetails from "./pages/PropertyDetails";
@@ -27,7 +28,20 @@ import SimuladorValorImovel from "./pages/SimuladorValorImovel";
 import Layout from "./components/Layout.tsx";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  // Teste: removendo autenticação - vai direto para o layout
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login />;
+  }
+
   return <Layout>{children}</Layout>;
 }
 
@@ -108,6 +122,12 @@ function AppRoutes() {
         </ProtectedRoute>
       </Route>
 
+      <Route path="/financiamento">
+        <ProtectedRoute>
+          <Financiamento />
+        </ProtectedRoute>
+      </Route>
+
       <Route path="/instrumento">
         <ProtectedRoute>
           <DefinitiveInstrument />
@@ -151,11 +171,11 @@ function AppRoutes() {
         </ProtectedRoute>
       </Route>
 
-      {/* Rota padrão - redirecionando direto para dashboard */}
+      {/* Rota padrão - redirecionando para dashboard com autenticação */}
       <Route path="/">
-        <Layout>
+        <ProtectedRoute>
           <Dashboard />
-        </Layout>
+        </ProtectedRoute>
       </Route>
     </Switch>
   );

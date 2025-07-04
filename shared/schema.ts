@@ -77,8 +77,8 @@ export const properties = pgTable("properties", {
   ownerPhone: varchar("owner_phone"), // DEPRECATED
   iptuNumber: varchar("iptu_number"), // DEPRECATED
   
-  status: varchar("status").notNull().default("captacao"), // captacao, diligence, mercado, proposta, contrato, instrumento, concluido
-  currentStage: integer("current_stage").notNull().default(1), // 1-7
+  status: varchar("status").notNull().default("captacao"), // captacao, diligence, mercado, proposta, contrato, financiamento, instrumento, concluido
+  currentStage: integer("current_stage").notNull().default(1), // 1-8
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -143,7 +143,7 @@ export const contracts = pgTable("contracts", {
 export const timelineEntries = pgTable("timeline_entries", {
   id: serial("id").primaryKey(),
   propertyId: integer("property_id").notNull().references(() => properties.id),
-  stage: integer("stage").notNull(), // 1-7
+  stage: integer("stage").notNull(), // 1-8
   title: varchar("title").notNull(),
   description: text("description"),
   status: varchar("status").notNull(), // pending, active, completed

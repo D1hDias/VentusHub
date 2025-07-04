@@ -75,8 +75,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         value: req.body.value,
         registrationNumber: req.body.registrationNumber,
         municipalRegistration: req.body.municipalRegistration,
-        status: "captacao",
-        currentStage: 1,
+        status: req.body.status || "captacao",
+        currentStage: req.body.currentStage || 1,
       };
 
       // Criar propriedade
@@ -136,6 +136,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         value: req.body.value,
         registrationNumber: req.body.registrationNumber,
         municipalRegistration: req.body.municipalRegistration,
+        status: req.body.status,
+        currentStage: req.body.currentStage,
       };
 
       // Update property

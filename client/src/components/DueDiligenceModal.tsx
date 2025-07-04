@@ -264,7 +264,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
         setPropertyItems(prev => {
           const updatedItems = prev.map(item => 
             item.id === itemId 
-              ? { ...item, status: 'requested', requestedAt: now }
+              ? { ...item, status: 'requested' as const, requestedAt: now }
               : item
           );
           // Salvar no localStorage
@@ -278,7 +278,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
         setPersonalItems(prev => {
           const updatedItems = prev.map(item => 
             item.id === itemId 
-              ? { ...item, status: 'requested', requestedAt: now }
+              ? { ...item, status: 'requested' as const, requestedAt: now }
               : item
           );
           // Salvar no localStorage
@@ -315,7 +315,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
       setPropertyItems(prev => {
         const updatedItems = prev.map(item => 
           item.id === itemId 
-            ? { ...item, status: 'requested', requestedAt: now }
+            ? { ...item, status: 'requested' as const, requestedAt: now }
             : item
         );
         // Salvar no localStorage
@@ -329,7 +329,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
       setPersonalItems(prev => {
         const updatedItems = prev.map(item => 
           item.id === itemId 
-            ? { ...item, status: 'requested', requestedAt: now }
+            ? { ...item, status: 'requested' as const, requestedAt: now }
             : item
         );
         // Salvar no localStorage
@@ -434,7 +434,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
       setPropertyItems(prev => {
         const updatedItems = prev.map(item => 
           item.id === itemId 
-            ? { ...item, status: 'pending', requestedAt: undefined }
+            ? { ...item, status: 'pending' as const, requestedAt: undefined }
             : item
         );
         // Salvar no localStorage
@@ -448,7 +448,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
       setPersonalItems(prev => {
         const updatedItems = prev.map(item => 
           item.id === itemId 
-            ? { ...item, status: 'pending', requestedAt: undefined }
+            ? { ...item, status: 'pending' as const, requestedAt: undefined }
             : item
         );
         // Salvar no localStorage

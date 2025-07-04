@@ -284,6 +284,7 @@ export const storage = {
           stats.propostas++;
           break;
         case 'contrato':
+        case 'financiamento':
         case 'instrumento':
         case 'concluido':
           stats.contratos++;

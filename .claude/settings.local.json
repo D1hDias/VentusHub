@@ -34,7 +34,15 @@
       "Bash(ss:*)",
       "Bash(bash:*)",
       "Bash(cat:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(git commit -m \"Teste: remover autenticação e ir direto ao dashboard\")",
+      "Bash(git config:*)",
+      "Bash(git push origin main)",
+      "Bash(git push Diego main)",
+      "Bash(cd:*)",
+      "Bash(./deploy-production.sh)",
+      "Bash(npm install)",
+      "Bash(npm install:*)"
     ],
     "deny": []
   }

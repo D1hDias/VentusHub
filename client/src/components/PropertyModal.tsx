@@ -32,7 +32,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { supabase } from "@/lib/supabase";
-import { Upload, X, CloudUpload, CheckCircle, Eye, Download, Plus, Trash2 } from "lucide-react";
+import { Upload, X, CloudUpload, CheckCircle, Eye, Download, Plus, Trash2, Banknote } from "lucide-react";
 
 const BRAZILIAN_STATES = [
   { value: "AC", label: "AC" },
@@ -65,7 +65,7 @@ const BRAZILIAN_STATES = [
 ];
 
 const ownerSchema = z.object({
-  id: z.union([z.string(), z.number()]).transform(val => String(val)),
+  id: z.string(),
   fullName: z.string().min(1, "Nome completo é obrigatório"),
   cpf: z.string().min(1, "CPF é obrigatório"),
   rg: z.string().optional(),
@@ -1159,6 +1159,56 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
                       </label>
                     </div>
                     {files.filter(f => f.category === 'COMPROVANTE_RESIDENCIA').map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 bg-blue-50 border border-blue-200 rounded">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-4 w-4 text-blue-500" />
+                          <span className="text-xs truncate">{file.name}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setFiles(files.filter(f => f !== file))}
+                          disabled={uploading}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* FINANCIAMENTO */}
+                  <div className="border rounded-lg p-4 space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg">💰</span>
+                      <h5 className="font-medium text-sm">Documentos de Financiamento</h5>
+                    </div>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-3">
+                      <label htmlFor="file-FINANCIAMENTO" className="cursor-pointer">
+                        <div className="text-center">
+                          <CloudUpload className="mx-auto h-8 w-8 text-gray-400" />
+                          <div className="mt-2">
+                            <span className="text-xs font-medium text-gray-600">Clique para enviar</span>
+                            <p className="text-xs text-gray-400 mt-1">PDF, JPG, PNG até 10MB</p>
+                          </div>
+                        </div>
+                        <input
+                          id="file-FINANCIAMENTO"
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          className="sr-only"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const fileWithCategory = Object.assign(file, { category: 'FINANCIAMENTO' }) as FileWithCategory;
+                              setFiles(prev => [...prev, fileWithCategory]);
+                            }
+                          }}
+                          disabled={uploading}
+                        />
+                      </label>
+                    </div>
+                    {files.filter(f => f.category === 'FINANCIAMENTO').map((file, index) => (
                       <div key={index} className="flex items-center justify-between p-2 bg-blue-50 border border-blue-200 rounded">
                         <div className="flex items-center space-x-2">
                           <CheckCircle className="h-4 w-4 text-blue-500" />

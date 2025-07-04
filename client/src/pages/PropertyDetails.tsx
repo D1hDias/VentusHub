@@ -18,7 +18,8 @@ import {
   FileCheck,
   Award,
   Home,
-  DollarSign
+  DollarSign,
+  Banknote
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -139,19 +140,27 @@ export default function PropertyDetails() {
       },
       {
         id: 6,
-        label: "Instrumento",
-        description: "Escritura e transferência de propriedade",
-        icon: FileCheck,
-        color: "#14b8a6",
+        label: "Financiamento",
+        description: "Processo de financiamento bancário",
+        icon: Banknote,
+        color: "#f59e0b",
         completed: currentStage >= 6
       },
       {
         id: 7,
+        label: "Instrumento",
+        description: "Escritura e transferência de propriedade",
+        icon: FileCheck,
+        color: "#14b8a6",
+        completed: currentStage >= 7
+      },
+      {
+        id: 8,
         label: "Concluído",
         description: "Venda finalizada com sucesso",
         icon: Award,
         color: "#059669",
-        completed: currentStage >= 7
+        completed: currentStage >= 8
       }
     ];
 
@@ -159,7 +168,7 @@ export default function PropertyDetails() {
   };
 
   const calculateProgress = (currentStage: number): number => {
-    return Math.min(((currentStage - 1) / 6) * 100, 100);
+    return Math.min(((currentStage - 1) / 7) * 100, 100);
   };
 
   const getDueDiligenceStatus = () => {
@@ -300,7 +309,7 @@ export default function PropertyDetails() {
                   Due Diligence
                 </Button>
                 <Badge variant="secondary" className="text-sm">
-                  Etapa {property.currentStage || 1} de 7
+                  Etapa {property.currentStage || 1} de 8
                 </Badge>
               </div>
             </div>

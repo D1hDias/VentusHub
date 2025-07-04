@@ -12,7 +12,8 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X
+  X,
+  Banknote
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ const navigationItems = [
   { path: "/mercado", label: "Imóveis no Mercado", icon: Store },
   { path: "/propostas", label: "Propostas", icon: Handshake },
   { path: "/contratos", label: "Contratos", icon: File },
+  { path: "/financiamento", label: "Financiamento", icon: Banknote },
   { path: "/instrumento", label: "Instrumento Definitivo", icon: Stamp },
   { path: "/timeline", label: "Acompanhamento", icon: Clock },
 ];
