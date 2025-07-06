@@ -23,6 +23,13 @@ import SimuladorValorRegistro from "./pages/SimuladorValorRegistro";
 import SimuladorFinanciamento from "./pages/SimuladorFinanciamento";
 import SimuladorMetroQuadrado from "./pages/SimuladorMetroQuadrado";
 import SimuladorValorImovel from "./pages/SimuladorValorImovel";
+import SimuladorPoderDeCompra from "./pages/SimuladorPoderDeCompra";
+import SimuladorAluguelXCompra from "./pages/SimuladorAluguelXCompra";
+import SimuladorConsorcioXFinanciamento from "./pages/SimuladorConsorcioXFinanciamento";
+import SimuladorSacXPrice from "./pages/SimuladorSacXPrice";
+import SimuladorRoiFlipping from "./pages/SimuladorRoiFlipping";
+import SimuladorPotencialDeValorizacao from "./pages/SimuladorPotencialDeValorizacao";
+import SimuladorComissaoEMetas from "./pages/SimuladorComissaoEMetas";
 
 // Components
 import Layout from "./components/Layout.tsx";
@@ -128,6 +135,12 @@ function AppRoutes() {
         </ProtectedRoute>
       </Route>
 
+      <Route path="/financiamento">
+        <ProtectedRoute>
+          <Financiamento />
+        </ProtectedRoute>
+      </Route>
+
       <Route path="/instrumento">
         <ProtectedRoute>
           <DefinitiveInstrument />
@@ -168,6 +181,48 @@ function AppRoutes() {
       <Route path="/simulador-valor-imovel">
         <ProtectedRoute>
           <SimuladorValorImovel />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/simulador-poder-de-compra">
+        <ProtectedRoute>
+          <SimuladorPoderDeCompra />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/simulador-aluguel-x-compra">
+        <ProtectedRoute>
+          <SimuladorAluguelXCompra />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/simulador-consorcio-x-financiamento">
+        <ProtectedRoute>
+          <SimuladorConsorcioXFinanciamento />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/simulador-sac-x-price">
+        <ProtectedRoute>
+          <SimuladorSacXPrice />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/simulador-roi-flipping">
+        <ProtectedRoute>
+          <SimuladorRoiFlipping />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/simulador-potencial-de-valorizacao">
+        <ProtectedRoute>
+          <SimuladorPotencialDeValorizacao />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/simulador-comissao-e-metas">
+        <ProtectedRoute>
+          <SimuladorComissaoEMetas />
         </ProtectedRoute>
       </Route>
 

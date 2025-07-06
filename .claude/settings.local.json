@@ -42,7 +42,9 @@
       "Bash(cd:*)",
       "Bash(./deploy-production.sh)",
       "Bash(npm install)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(cd:*)",
+      "WebFetch(domain:www.canva.com)"
     ],
     "deny": []
   }
