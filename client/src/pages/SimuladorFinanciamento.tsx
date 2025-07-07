@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calculator, Download, Building, CreditCard, FileText, TrendingUp, Home, DollarSign, Calendar, Shield, Info, User, MapPin, Check, FileDown, X } from "lucide-react";
+import IndicadoresMercado from '@/components/IndicadoresMercado';
 import { scroller, Element } from 'react-scroll';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -214,22 +215,22 @@ const BANCOS_CONFIG = {
     entradaMin: 0.30,
     observacaoEspecial: "Percentual de financiamento e taxa de juros podem variar de acordo com o seu relacionamento com o banco, sistema de amortização e correção.",
     taxas: {
-      SAC_TR: 10.62, // Taxa mensal de 0.8769% equivale a 10.62% ao ano
-      PRICE_TR: 10.92,
-      SAC_POUPANCA: 10.02
+      SAC_TR: 11.49, // Taxa de juros oficial da Caixa (CET será diferente por incluir seguros)
+      PRICE_TR: 11.79,
+      SAC_POUPANCA: 10.89
     },
     seguros: {
       mip: [
-        { idadeMin: 18, idadeMax: 35, aliquota: 0.0002785 }, // R$ 116,97 mensal para R$ 420k financiado (24 anos - dados oficiais)
-        { idadeMin: 36, idadeMax: 50, aliquota: 0.000346 }, // R$ 145,19 mensal para R$ 420k financiado (44 anos - dados oficiais)
-        { idadeMin: 51, idadeMax: 60, aliquota: 0.000859 }, // R$ 360,98 mensal para R$ 420k financiado (54 anos - dados oficiais)
-        { idadeMin: 61, idadeMax: 80, aliquota: 0.002902 } // R$ 1.218,68 mensal para R$ 420k financiado (64 anos - dados oficiais)
+        { idadeMin: 18, idadeMax: 35, aliquota: 0.0004367 }, // Ajustado para R$ 183,60 na simulação oficial
+        { idadeMin: 36, idadeMax: 50, aliquota: 0.000515 }, 
+        { idadeMin: 51, idadeMax: 60, aliquota: 0.001015 }, 
+        { idadeMin: 61, idadeMax: 80, aliquota: 0.003402 }
       ],
-      dfi: { residencial: 0.00003, comercial: 0.00003 } // Valor mínimo para DFI
+      dfi: { residencial: 0.000043, comercial: 0.000043 } // R$ 18,00 mensal conforme simulação oficial
     },
     regrasEspeciais: {
       SAC_TR: { financiamentoMax: 0.70 },
-      PRICE_TR: { financiamentoMax: 0.70 },
+      PRICE_TR: { financiamentoMax: 0.60 }, // Financiamento máximo de 60% para PRICE + TR
       SAC_POUPANCA: { financiamentoMax: 0.60 }
     }
   },
@@ -274,12 +275,13 @@ const BANCOS_CONFIG = {
     },
     seguros: {
       mip: [
-        { idadeMin: 18, idadeMax: 35, aliquota: 0.000273 }, // R$ 109,20 mensal para R$ 400k financiado
-        { idadeMin: 36, idadeMax: 55, aliquota: 0.000592 }, // R$ 236,68 mensal para R$ 400k financiado (47 anos)
-        { idadeMin: 56, idadeMax: 65, aliquota: 0.001539 }, // R$ 615,76 mensal para R$ 400k financiado (57 anos)
-        { idadeMin: 66, idadeMax: 80, aliquota: 0.003663 }  // R$ 1.465,28 mensal para R$ 400k financiado (67 anos)
+        // Calibrado conforme simulação oficial para R$ 960k financiado
+        { idadeMin: 18, idadeMax: 35, aliquota: 0.0001746 }, // R$ 167,62 para R$ 960k financiado (24 anos)
+        { idadeMin: 36, idadeMax: 55, aliquota: 0.000378 }, // Ajustado proporcionalmente
+        { idadeMin: 56, idadeMax: 65, aliquota: 0.000984 }, // Ajustado proporcionalmente  
+        { idadeMin: 66, idadeMax: 80, aliquota: 0.002342 }  // Ajustado proporcionalmente
       ],
-      dfi: { residencial: 0.0000554, comercial: 0.0000554 } // R$ 27,70 mensal para R$ 500k imóvel
+      dfi: { residencial: 0.0000554, comercial: 0.0000554 } // R$ 66,48 para R$ 1,2M imóvel (confirmado)
     },
     regrasEspeciais: {
       SAC_TR: { financiamentoMax: 0.80 },
@@ -1109,7 +1111,6 @@ export default function SimuladorComparativo() {
         formatCurrency(parcela.juros),
         formatCurrency(parcela.seguroMIP),
         formatCurrency(parcela.seguroDFI),
-        // formatCurrency(parcela.tac), // TAC removida
         formatCurrency(parcela.saldoDevedor)
       ]);
       
@@ -1137,12 +1138,12 @@ export default function SimuladorComparativo() {
         },
         columnStyles: {
           0: { halign: 'center', cellWidth: 18 },  // Parcela
-          1: { halign: 'right', cellWidth: 30 },   // Prestação - ampliado
-          2: { halign: 'right', cellWidth: 30 },   // Amortização - ampliado
-          3: { halign: 'right', cellWidth: 30 },   // Juros - ampliado
-          4: { halign: 'right', cellWidth: 25 },   // Seguro MIP - ampliado
-          5: { halign: 'right', cellWidth: 25 },   // Seguro DFI - ampliado
-          6: { halign: 'right', cellWidth: 30 }    // Saldo Devedor - ampliado para evitar quebra
+          1: { halign: 'right', cellWidth: 30 },   // Prestação
+          2: { halign: 'right', cellWidth: 30 },   // Amortização
+          3: { halign: 'right', cellWidth: 30 },   // Juros
+          4: { halign: 'right', cellWidth: 25 },   // Seguro MIP
+          5: { halign: 'right', cellWidth: 25 },   // Seguro DFI
+          6: { halign: 'right', cellWidth: 30 }    // Saldo Devedor
         },
         margin: { left: 10, right: 5 }
       });
@@ -1323,7 +1324,7 @@ export default function SimuladorComparativo() {
       currentY += 15;
       
       // Tabela comparativa principal (conforme wireframe)
-      const headerComparativo = ['Bancos', ...bancosAprovados.map(([_, resultado]) => resultado.banco)];
+      const headerComparativo = ['Bancos', ...bancosAprovados.map(([_, resultado]) => '')];
       
       // Usar CET regulamentar já calculado para cada banco
       const bancosComCET = bancosAprovados.map(([codigoBanco, resultado]) => {
@@ -1450,7 +1451,7 @@ export default function SimuladorComparativo() {
       }
       
       // Cabeçalho da tabela
-      const headerTabela = ['Parcela', ...bancosAprovados.map(([_, r]) => r.banco)];
+      const headerTabela = ['Parcela', ...bancosAprovados.map(([_, r]) => '')];
       
       autoTable(doc, {
         startY: currentY,
@@ -1480,6 +1481,27 @@ export default function SimuladorComparativo() {
           lineWidth: 0.1
         },
         margin: { left: 5, right: 5 }
+      });
+      
+      // Adicionar logos dos bancos na segunda página
+      const tableStartY = currentY;
+      const tableStartX = 5;
+      const firstColWidth = 35; // Largura da coluna "Parcela"
+      const remainingWidth = pageWidth - 10 - firstColWidth;
+      const bankColWidth = remainingWidth / bancosAprovados.length;
+      
+      bancosAprovados.forEach(([codigoBanco, resultado], index) => {
+        if (logosCarregados[codigoBanco]) {
+          const logoHeight = 8;
+          const logoWidth = logoHeight * logosCarregados[codigoBanco].aspectRatio;
+          
+          const colCenterX = tableStartX + firstColWidth + (index * bankColWidth) + (bankColWidth / 2) - (logoWidth / 2);
+          const logoY = tableStartY + 3;
+          
+          if (colCenterX >= 0 && logoY >= 0 && logoWidth > 0 && logoHeight > 0) {
+            doc.addImage(logosCarregados[codigoBanco].dataUrl, 'PNG', colCenterX, logoY, logoWidth, logoHeight);
+          }
+        }
       });
       
       // Rodapé compactado para todas as páginas
@@ -1570,6 +1592,9 @@ export default function SimuladorComparativo() {
           </div>
         </div>
       </div>
+
+      {/* Indicadores do Mercado */}
+      <IndicadoresMercado />
 
       {/* Seleção de Bancos */}
       <div className="bg-white rounded-lg shadow-sm">
@@ -1851,6 +1876,15 @@ export default function SimuladorComparativo() {
                   <p><strong>Prazo máximo:</strong> {dadosCalculados.prazoMaximo} meses ({(dadosCalculados.prazoMaximo/12).toFixed(1)} anos)</p>
                   <p><strong>Valor da entrada:</strong> {formatCurrency(dadosCalculados.valorEntrada)}</p>
                   <p><strong>Capacidade de pagamento (30% renda):</strong> {formatCurrency(dadosCalculados.capacidadePagamento)}</p>
+                  <p><strong>Média de renda bruta necessária:</strong> {formatCurrency((() => {
+                    // Se já temos resultados de simulação, calcular baseado na menor parcela
+                    if (Object.keys(resultados).length > 0) {
+                      const menorParcela = Math.min(...Object.values(resultados).map(r => r.primeiraParcela));
+                      return menorParcela / 0.30; // Renda necessária para a menor parcela ficar em 30%
+                    }
+                    // Caso contrário, usar a capacidade atual
+                    return dadosCalculados.capacidadePagamento / 0.30;
+                  })())}*</p>
                   
                   {/* Informações MCMV */}
                   {minhaCasaMinhaVida && formData.rendaBrutaFamiliar && formData.valorImovel && (
@@ -1877,6 +1911,8 @@ export default function SimuladorComparativo() {
                       return null;
                     })()
                   )}
+                  
+                  <p className="text-sm text-gray-600 mt-2">* valor médio de renda. Cada banco terá sua leitura ao percentual de renda considerado de acordo com regras particulares e portanto poderá ser diferente no ato da análise de crédito.</p>
                 </div>
               )}
 

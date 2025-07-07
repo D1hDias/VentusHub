@@ -232,10 +232,7 @@ export default function Layout({ children }: LayoutProps) {
                 <Link href="/simulador-financiamento">Financiamento Imobiliário</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href="/simulador-metro-quadrado">M²</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/simulador-valor-imovel">Valor de Imóvel</Link>
+                <Link href="/simulador-valor-imovel">Avaliação Imobiliária</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/simulador-poder-de-compra">Poder de Compra</Link>
