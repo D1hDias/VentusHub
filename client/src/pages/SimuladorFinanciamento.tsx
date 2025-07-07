@@ -390,6 +390,7 @@ export default function SimuladorComparativo() {
   const [prazoValido, setPrazoValido] = useState(true);
   const [showTooltip, setShowTooltip] = useState(false);
   const [minhaCasaMinhaVida, setMinhaCasaMinhaVida] = useState(false);
+  const [showMCMVModal, setShowMCMVModal] = useState(false);
   const [showRelatorio, setShowRelatorio] = useState(false);
   const [relatorioContent, setRelatorioContent] = useState('');
   const [resultados, setResultados] = useState({});
@@ -397,9 +398,116 @@ export default function SimuladorComparativo() {
   // Helper para obter configuração correta dos bancos
   const getBancosConfig = () => minhaCasaMinhaVida ? BANCOS_MCMV_CONFIG : BANCOS_CONFIG;
 
-  // Limpar bancos selecionados quando toggle muda
+  // Função para gerenciar o toggle do MCMV
+  const handleMCMVToggle = (checked) => {
+    if (checked) {
+      setShowMCMVModal(true);
+    } else {
+      setMinhaCasaMinhaVida(false);
+    }
+  };
+
+  // Confirmar ativação do MCMV
+  const confirmarMCMV = () => {
+    setMinhaCasaMinhaVida(true);
+    setShowMCMVModal(false);
+  };
+
+  // Calcular faixa MCMV e regras de financiamento
+  const calcularFaixaMCMV = (rendaFamiliar, valorImovel, opcaoFinanciamento) => {
+    if (!minhaCasaMinhaVida) return null;
+
+    if (rendaFamiliar <= 2850) {
+      return {
+        faixa: 1,
+        taxaJuros: 5.12,
+        financiamentoMax: 0.80,
+        valorImovelMax: null,
+        mensagem: "Faixa 1 - Renda até R$ 2.850,00"
+      };
+    }
+
+    if (rendaFamiliar >= 2850.01 && rendaFamiliar <= 3500) {
+      if (valorImovel > 270000) {
+        return {
+          faixa: null,
+          erro: "Para esta faixa de renda, o valor do imóvel não pode exceder R$ 270.000,00"
+        };
+      }
+      return {
+        faixa: 2,
+        taxaJuros: 5.64,
+        financiamentoMax: 0.80,
+        valorImovelMax: 270000,
+        mensagem: "Faixa 2 - Renda de R$ 2.850,01 a R$ 3.500,00"
+      };
+    }
+
+    if (rendaFamiliar >= 3500.01 && rendaFamiliar <= 4700) {
+      if (valorImovel > 270000) {
+        return {
+          faixa: null,
+          erro: "Para esta faixa de renda, o valor do imóvel não pode exceder R$ 270.000,00"
+        };
+      }
+      return {
+        faixa: 2,
+        taxaJuros: 6.17,
+        financiamentoMax: 0.80,
+        valorImovelMax: 270000,
+        mensagem: "Faixa 2 - Renda de R$ 3.500,01 a R$ 4.700,00"
+      };
+    }
+
+    if (rendaFamiliar >= 4700.01 && rendaFamiliar <= 8600) {
+      if (valorImovel > 270000) {
+        return {
+          faixa: null,
+          erro: "Para esta faixa de renda, o valor do imóvel não pode exceder R$ 270.000,00"
+        };
+      }
+      return {
+        faixa: 3,
+        taxaJuros: 10.47,
+        financiamentoMax: 0.50,
+        valorImovelMax: 270000,
+        mensagem: "Faixa 3 - Renda de R$ 4.700,01 a R$ 8.600,00"
+      };
+    }
+
+    if (rendaFamiliar >= 8600.01 && rendaFamiliar <= 12000) {
+      if (valorImovel < 271000 || valorImovel > 500000) {
+        return {
+          faixa: null,
+          erro: "Para esta faixa de renda, o valor do imóvel deve estar entre R$ 271.000,00 e R$ 500.000,00"
+        };
+      }
+      return {
+        faixa: 4,
+        taxaJuros: 8.16,
+        financiamentoMax: opcaoFinanciamento === 'imovel_novo' ? 0.80 : 0.60,
+        valorImovelMin: 271000,
+        valorImovelMax: 500000,
+        mensagem: `Faixa 4 - Renda de R$ 8.600,01 a R$ 12.000,00 (${opcaoFinanciamento === 'imovel_novo' ? '80%' : '60%'} financiamento)`
+      };
+    }
+
+    return {
+      faixa: null,
+      erro: "Renda acima de R$ 12.000,00 não se enquadra no programa Minha Casa Minha Vida"
+    };
+  };
+
+  // Limpar bancos selecionados e ajustar campos quando toggle muda
   useEffect(() => {
     setBancosEscolhidos([]);
+    if (minhaCasaMinhaVida) {
+      setFormData(prev => ({
+        ...prev,
+        tipoImovel: 'residencial',
+        opcaoFinanciamento: 'imovel_novo'
+      }));
+    }
   }, [minhaCasaMinhaVida]);
 
   // Calcular idade e prazo máximo baseado na data de nascimento
@@ -528,12 +636,30 @@ export default function SimuladorComparativo() {
     const configBanco = getBancosConfig()[codigoBanco];
     const valorImovel = parseFloat(formData.valorImovel.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     let valorFinanciamento = parseFloat(formData.valorFinanciamento.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    const rendaFamiliar = parseFloat(formData.rendaBrutaFamiliar.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     const prazo = parseInt(formData.prazoDesejado);
+    
+    // Verificar regras MCMV se aplicável
+    let regrasMCMV = null;
+    if (minhaCasaMinhaVida && (codigoBanco === 'caixa_mcmv' || codigoBanco === 'bb_mcmv')) {
+      regrasMCMV = calcularFaixaMCMV(rendaFamiliar, valorImovel, formData.opcaoFinanciamento);
+      
+      if (regrasMCMV?.erro) {
+        return { 
+          banco: configBanco.nome, 
+          cor: configBanco.cor,
+          logo: configBanco.logo,
+          erros: [regrasMCMV.erro], 
+          aprovado: false 
+        };
+      }
+    }
     
     // Verificar prazo máximo específico do BB
     const { prazoMaximo: prazoMaximoEspecifico } = calcularIdadePrazoMaximo(formData.dataNascimento, codigoBanco);
     
-    const taxaJurosAnual = configBanco.taxas[formData.sistemaAmortizacao];
+    // Usar taxa MCMV se aplicável, senão usar taxa normal
+    const taxaJurosAnual = regrasMCMV?.taxaJuros || configBanco.taxas[formData.sistemaAmortizacao];
     
     if (taxaJurosAnual === null || taxaJurosAnual === undefined) {
       return { 
@@ -547,8 +673,14 @@ export default function SimuladorComparativo() {
     
     const regrasEspeciais = configBanco.regrasEspeciais[formData.sistemaAmortizacao] || {};
     
-    // Percentuais fixos por tipo de imóvel
-    const percentualMaximo = formData.tipoImovel === 'comercial' ? 0.70 : 0.80;
+    // Usar percentual MCMV se aplicável, senão usar regras normais
+    let percentualMaximo;
+    if (regrasMCMV?.financiamentoMax) {
+      percentualMaximo = regrasMCMV.financiamentoMax;
+    } else {
+      percentualMaximo = formData.tipoImovel === 'comercial' ? 0.70 : 0.80;
+    }
+    
     const financiamentoMaxPermitido = Math.min(
       (regrasEspeciais.financiamentoMax || configBanco.financiamentoMax) * valorImovel,
       percentualMaximo * valorImovel
@@ -567,7 +699,11 @@ export default function SimuladorComparativo() {
     // Se excede o limite, ajustar para o máximo do banco
     if (valorFinanciamento > financiamentoMaxPermitido) {
       valorFinanciamentoAjustado = financiamentoMaxPermitido;
-      mensagemAjuste = `Foi simulado ${percentualMaximoBanco}% pois o ${configBanco.nome}, neste momento, não financia percentual superior do imóvel.`;
+      if (regrasMCMV) {
+        mensagemAjuste = `Foi simulado ${percentualMaximoBanco}% conforme regras do MCMV - ${regrasMCMV.mensagem}.`;
+      } else {
+        mensagemAjuste = `Foi simulado ${percentualMaximoBanco}% pois o ${configBanco.nome}, neste momento, não financia percentual superior do imóvel.`;
+      }
     }
     
     const erros = [];
@@ -723,6 +859,15 @@ export default function SimuladorComparativo() {
     if (rendaFamiliar <= 0) {
       alert('Informe a renda bruta familiar');
       return;
+    }
+
+    // Validações específicas do MCMV
+    if (minhaCasaMinhaVida) {
+      const regrasMCMV = calcularFaixaMCMV(rendaFamiliar, valorImovel, formData.opcaoFinanciamento);
+      if (regrasMCMV?.erro) {
+        alert(`MCMV: ${regrasMCMV.erro}`);
+        return;
+      }
     }
     
     if (!formData.dataNascimento) {
@@ -1443,7 +1588,7 @@ export default function SimuladorComparativo() {
                   type="checkbox"
                   className="sr-only"
                   checked={minhaCasaMinhaVida}
-                  onChange={(e) => setMinhaCasaMinhaVida(e.target.checked)}
+                  onChange={(e) => handleMCMVToggle(e.target.checked)}
                 />
                 <div className={`w-11 h-6 rounded-full relative transition-colors duration-200 ${
                   minhaCasaMinhaVida ? 'bg-green-600' : 'bg-gray-200'
@@ -1533,14 +1678,23 @@ export default function SimuladorComparativo() {
                     <Building className="h-4 w-4 inline mr-1" />
                     Tipo do Imóvel
                   </label>
-                  <select 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={formData.tipoImovel} 
-                    onChange={(e) => setFormData({...formData, tipoImovel: e.target.value})}
-                  >
-                    <option value="residencial">Residencial</option>
-                    <option value="comercial">Comercial</option>
-                  </select>
+                  {minhaCasaMinhaVida ? (
+                    <input
+                      type="text"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                      value="Residencial"
+                      disabled
+                    />
+                  ) : (
+                    <select 
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={formData.tipoImovel} 
+                      onChange={(e) => setFormData({...formData, tipoImovel: e.target.value})}
+                    >
+                      <option value="residencial">Residencial</option>
+                      <option value="comercial">Comercial</option>
+                    </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1552,9 +1706,18 @@ export default function SimuladorComparativo() {
                     value={formData.opcaoFinanciamento} 
                     onChange={(e) => setFormData({...formData, opcaoFinanciamento: e.target.value})}
                   >
-                    <option value="imovel_pronto">Imóvel Pronto</option>
-                    <option value="terreno">Terreno</option>
-                    <option value="emprestimo_garantia">Empréstimo c/ Garantia</option>
+                    {minhaCasaMinhaVida ? (
+                      <>
+                        <option value="imovel_novo">Imóvel Novo</option>
+                        <option value="imovel_usado">Imóvel Usado</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="imovel_pronto">Imóvel Pronto</option>
+                        <option value="terreno">Terreno</option>
+                        <option value="emprestimo_garantia">Empréstimo c/ Garantia</option>
+                      </>
+                    )}
                   </select>
                 </div>
               </div>
@@ -1688,6 +1851,32 @@ export default function SimuladorComparativo() {
                   <p><strong>Prazo máximo:</strong> {dadosCalculados.prazoMaximo} meses ({(dadosCalculados.prazoMaximo/12).toFixed(1)} anos)</p>
                   <p><strong>Valor da entrada:</strong> {formatCurrency(dadosCalculados.valorEntrada)}</p>
                   <p><strong>Capacidade de pagamento (30% renda):</strong> {formatCurrency(dadosCalculados.capacidadePagamento)}</p>
+                  
+                  {/* Informações MCMV */}
+                  {minhaCasaMinhaVida && formData.rendaBrutaFamiliar && formData.valorImovel && (
+                    (() => {
+                      const rendaFamiliar = parseFloat(formData.rendaBrutaFamiliar.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+                      const valorImovel = parseFloat(formData.valorImovel.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+                      const regrasMCMV = calcularFaixaMCMV(rendaFamiliar, valorImovel, formData.opcaoFinanciamento);
+                      
+                      if (regrasMCMV?.faixa) {
+                        return (
+                          <div className="border-t pt-2 mt-2">
+                            <p className="text-green-700"><strong>📋 MCMV:</strong> {regrasMCMV.mensagem}</p>
+                            <p className="text-green-700"><strong>Taxa MCMV:</strong> {regrasMCMV.taxaJuros}% a.a.</p>
+                            <p className="text-green-700"><strong>Financiamento máximo:</strong> {(regrasMCMV.financiamentoMax * 100)}%</p>
+                          </div>
+                        );
+                      } else if (regrasMCMV?.erro) {
+                        return (
+                          <div className="border-t pt-2 mt-2">
+                            <p className="text-red-700"><strong>⚠️ MCMV:</strong> {regrasMCMV.erro}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()
+                  )}
                 </div>
               )}
 
@@ -1865,6 +2054,152 @@ export default function SimuladorComparativo() {
           </div>
         </Element>
       )}
+
+      {/* Modal de Regras do Minha Casa Minha Vida */}
+      <AnimatePresence>
+        {showMCMVModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowMCMVModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-lg max-w-4xl max-h-[80vh] overflow-y-auto relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Botão X */}
+              <button
+                onClick={() => setShowMCMVModal(false)}
+                className="absolute top-4 right-4 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors z-10"
+                title="Fechar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              {/* Conteúdo */}
+              <div className="p-6 pr-16">
+                <h1 className="text-2xl font-bold text-red-600 mb-6 text-center">
+                  # ATENÇÃO ÀS REGRAS!
+                </h1>
+
+                <div className="space-y-6 text-sm">
+                  <section>
+                    <h2 className="text-lg font-bold text-gray-800 mb-3">
+                      Elegibilidade e Requisitos Gerais
+                    </h2>
+                    <p className="font-semibold mb-3">
+                      Para participar do programa, é necessário atender a alguns critérios básicos:
+                    </p>
+                    <ul className="list-disc pl-6 space-y-2">
+                      <li>Idade mínima: 18 anos.</li>
+                      <li>Residência no Brasil: Ser brasileiro ou estrangeiro com visto permanente.</li>
+                      <li>Não possuir outro imóvel: O solicitante não pode ser proprietário ou ter financiamento de outro imóvel residencial.</li>
+                      <li>Cadastro regular: Não estar inscrito no Cadin (Cadastro Informativo de Créditos não Quitados do Setor Público Federal).</li>
+                      <li>Finalidade do imóvel: O imóvel deve ser destinado exclusivamente à moradia da família.</li>
+                      <li>Restrições de crédito: Não possuir restrições de crédito.</li>
+                      <li>Idade e financiamento: A soma da idade do comprador com o tempo de financiamento não pode ultrapassar 80 anos e seis meses.</li>
+                      <li>Residência na cidade do imóvel: Residir na cidade onde pretende financiar o imóvel.</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h2 className="text-lg font-bold text-gray-800 mb-3">
+                      Faixas de Renda e Benefícios
+                    </h2>
+                    <p className="mb-3">
+                      O programa é dividido em faixas de renda, que determinam os benefícios e as condições de financiamento. Em 2025, houve um reajuste nos tetos de renda e a inclusão de uma nova faixa.
+                    </p>
+
+                    <h3 className="font-bold text-gray-700 mb-2">Área Urbana</h3>
+                    
+                    <div className="space-y-4">
+                      <div className="border-l-4 border-blue-500 pl-4">
+                        <p className="font-semibold">Faixa 1: Famílias com renda mensal bruta de até R$ 2.850.</p>
+                        <p><strong>Subsídio:</strong> Até 95% do valor do imóvel.</p>
+                        <p><strong>Valor Máximo do Imóvel:</strong> Não especificado um teto único, mas o subsídio é aplicado ao valor do imóvel. Para beneficiários do BPC ou Bolsa Família, o imóvel pode ser 100% subsidiado.</p>
+                      </div>
+
+                      <div className="border-l-4 border-green-500 pl-4">
+                        <p className="font-semibold">Faixa 2: Famílias com renda mensal bruta de R$2.850,01 a R$4.700,00.</p>
+                        <p><strong>Subsídio:</strong> Até R$ 55 mil.</p>
+                        <p><strong>Valor Máximo do Imóvel:</strong> Não especificado um teto único, mas o subsídio é aplicado ao valor do imóvel.</p>
+                      </div>
+
+                      <div className="border-l-4 border-yellow-500 pl-4">
+                        <p className="font-semibold">Faixa 3: Famílias com renda mensal bruta de R$4.700,01 a R$ 8.600,00.</p>
+                        <p><strong>Percentual de Financiamento (Imóveis Usados):</strong> Até 50% do valor do imóvel para regiões Sul e Sudeste; até 70% para Nordeste, Norte e Centro-Oeste.</p>
+                        <p><strong>Valor Máximo do Imóvel:</strong> O teto de financiamento pode chegar a R$350 mil (Para imóveis, o valor máximo financiável foi reduzido para R$270 mil).</p>
+                      </div>
+
+                      <div className="border-l-4 border-orange-500 pl-4">
+                        <p className="font-semibold">Faixa 4 (Nova): Famílias com renda mensal bruta entre R$8.600,01 a R$ 12.000,00.</p>
+                        <p><strong>Percentual de Financiamento (Imóveis Novos):</strong> 80% do valor do imóvel, independente da região.</p>
+                        <p><strong>Percentual de Financiamento (Imóveis Usados):</strong> 60% nas regiões Sul e Sudeste e 80% para as demais localidades.</p>
+                        <p><strong>Valor Máximo do Imóvel:</strong> Pode chegar a R$ 500 mil.</p>
+                      </div>
+                    </div>
+
+                    <p className="mt-4 text-sm text-gray-600">
+                      É importante notar que pagamentos de auxílio-doença, auxílio-acidente, seguro-desemprego, Benefício de Prestação Continuada (BPC) e Bolsa Família não são considerados no cálculo da renda familiar para as faixas.
+                    </p>
+
+                    <h3 className="font-bold text-gray-700 mb-2 mt-6">Área Rural</h3>
+                    <div className="space-y-2">
+                      <p><strong>Faixa 1:</strong> Renda bruta familiar anual de até R$ 40.000.</p>
+                      <p><strong>Faixa 2:</strong> Renda bruta familiar anual de R$40.000,01 a R$ 66.600,00.</p>
+                      <p><strong>Faixa 3:</strong> Renda bruta familiar anual de R$66.600,01 a R$96.000,00.</p>
+                      <p><strong>Faixa 4 (Nova):</strong> Renda bruta familiar anual de ate R$ 150.000,00.</p>
+                    </div>
+                  </section>
+
+                  <section>
+                    <h2 className="text-lg font-bold text-gray-800 mb-3">
+                      Condições de Financiamento
+                    </h2>
+                    <p className="mb-3">As condições de financiamento variam conforme a faixa de renda e a região do país:</p>
+                    
+                    <div className="space-y-2">
+                      <p><strong>Prazos:</strong> O financiamento pode ser feito em até 420 meses (35 anos).</p>
+                      <p><strong>Taxas de Juros:</strong> As taxas de juros são reduzidas em comparação com as do mercado.</p>
+                      
+                      <ul className="list-disc pl-6 space-y-1 mt-2">
+                        <li><strong>Faixa 1:</strong> Juros entre 4% e 5% ao ano.</li>
+                        <li><strong>Faixa 2:</strong> Juros entre 4,75% e 7% ao ano.</li>
+                        <li><strong>Faixa 3:</strong> Juros que podem chegar a 8,16% ao ano.</li>
+                        <li><strong>Faixa 4:</strong> Juros entre 7,66% e 8,16% ao ano.</li>
+                      </ul>
+                      
+                      <p className="mt-2"><strong>Subsídios:</strong> As Faixas 1, 2 e 3 podem ter acesso a subsídios do governo, que são descontos no valor do imóvel ou nas prestações. A Faixa 4 não possui subsídio.</p>
+                      <p><strong>Valor Máximo do Imóvel:</strong> Além dos valores específicos por faixa, em municípios de até 100 mil habitantes, os novos limites para imóveis serão de R$210 mil a R$230 mil.</p>
+                    </div>
+                  </section>
+                </div>
+
+                {/* Botões */}
+                <div className="flex justify-center gap-4 mt-8 pt-6 border-t">
+                  <button
+                    onClick={() => setShowMCMVModal(false)}
+                    className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={confirmarMCMV}
+                    className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    Entendi e quero continuar
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
