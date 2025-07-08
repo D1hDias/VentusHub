@@ -2,6 +2,7 @@ import type { Express } from "express";
 import session from "express-session";
 import bcrypt from "bcryptjs";
 import { storage } from "./storage";
+import { db } from "./db";
 
 // Configuração da sessão
 export function setupAuth(app: Express) {
@@ -9,14 +10,18 @@ export function setupAuth(app: Express) {
     session({
       secret: process.env.SESSION_SECRET || "default-secret-key",
       resave: false,
-      saveUninitialized: false,
+      saveUninitialized: true, // Criar sessão mesmo se vazia
       name: "connect.sid",
       cookie: {
-        secure: false, // Desabilitar temporariamente para teste
+        secure: false,
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 horas
         sameSite: "lax",
         path: "/",
+      },
+      // Forçar criação de cookie
+      genid: () => {
+        return require('crypto').randomBytes(20).toString('hex');
       },
     })
   );
