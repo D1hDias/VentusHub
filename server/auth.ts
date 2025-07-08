@@ -138,6 +138,19 @@ export function setupAuthRoutes(app: Express) {
         }
 
         console.log("Session saved successfully");
+        console.log("Headers before response:", res.getHeaders());
+        
+        // Forçar definição do cookie manualmente
+        res.cookie('connect.sid', req.sessionID, {
+          httpOnly: true,
+          secure: false,
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 24 * 60 * 60 * 1000
+        });
+        
+        console.log("Cookie set manually");
+        console.log("Headers after cookie:", res.getHeaders());
         
         // Remover senha da resposta
         const { password: _, ...userWithoutPassword } = user;
