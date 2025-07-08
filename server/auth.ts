@@ -119,6 +119,12 @@ export function setupAuthRoutes(app: Express) {
         creci: user.creci,
       };
 
+      console.log("=== LOGIN DEBUG ===");
+      console.log("Session created:", req.session.user);
+      console.log("Session ID:", req.sessionID);
+      console.log("Session:", req.session);
+      console.log("==================");
+
       // Remover senha da resposta
       const { password: _, ...userWithoutPassword } = user;
 
