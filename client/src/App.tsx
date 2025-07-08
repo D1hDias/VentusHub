@@ -31,6 +31,9 @@ import SimuladorRoiFlipping from "./pages/SimuladorRoiFlipping";
 import SimuladorPotencialDeValorizacao from "./pages/SimuladorPotencialDeValorizacao";
 import SimuladorComissaoEMetas from "./pages/SimuladorComissaoEMetas";
 import SimuladorRendaPassiva from "./pages/SimuladorRendaPassiva";
+import CreditoFinanciamento from "./pages/CreditoFinanciamento";
+import CreditoConsorcio from "./pages/CreditoConsorcio";
+import CreditoCGI from "./pages/CreditoCGI";
 
 // Components
 import Layout from "./components/Layout.tsx";
@@ -130,15 +133,27 @@ function AppRoutes() {
         </ProtectedRoute>
       </Route>
 
-      <Route path="/financiamento">
+      <Route path="/credito">
         <ProtectedRoute>
           <Financiamento />
         </ProtectedRoute>
       </Route>
 
-      <Route path="/financiamento">
+      <Route path="/credito/financiamento">
         <ProtectedRoute>
-          <Financiamento />
+          <CreditoFinanciamento />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/credito/consorcio">
+        <ProtectedRoute>
+          <CreditoConsorcio />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/credito/cgi">
+        <ProtectedRoute>
+          <CreditoCGI />
         </ProtectedRoute>
       </Route>
 

@@ -44,7 +44,8 @@
       "Bash(npm install)",
       "Bash(npm install:*)",
       "Bash(cd:*)",
-      "WebFetch(domain:www.canva.com)"
+      "WebFetch(domain:www.canva.com)",
+      "Bash(find:*)"
     ],
     "deny": []
   }

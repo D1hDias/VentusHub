@@ -2,12 +2,12 @@ import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
 import { 
   users, 
-  properties, 
+  properties,
   propertyOwners,
-  documents, 
-  proposals, 
-  contracts, 
-  timelineEntries 
+  documents,
+  proposals,
+  contracts,
+  timelineEntries
 } from "@shared/schema";
 
 export const storage = {

@@ -13,7 +13,12 @@ import {
   LogOut,
   Menu,
   X,
-  Banknote
+  Banknote,
+  ChevronDown,
+  ChevronRight,
+  CreditCard,
+  Shield,
+  Calculator
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -25,7 +30,17 @@ const navigationItems = [
   { path: "/mercado", label: "Imóveis no Mercado", icon: Store },
   { path: "/propostas", label: "Propostas", icon: Handshake },
   { path: "/contratos", label: "Contratos", icon: File },
-  { path: "/financiamento", label: "Financiamento", icon: Banknote },
+  { 
+    path: "/credito", 
+    label: "Crédito", 
+    icon: Banknote,
+    hasSubmenu: true,
+    submenu: [
+      { path: "/credito/financiamento", label: "Financiamento", icon: Calculator, color: "text-purple-700" },
+      { path: "/credito/consorcio", label: "Consórcio", icon: CreditCard, color: "text-blue-700" },
+      { path: "/credito/cgi", label: "CGI", icon: Shield, tooltip: "Crédito com Garantia de Imóvel", color: "text-indigo-700" }
+    ]
+  },
   { path: "/instrumento", label: "Instrumento Definitivo", icon: Stamp },
   { path: "/timeline", label: "Acompanhamento", icon: Clock },
 ];
@@ -40,6 +55,7 @@ interface SidebarProps {
 
 export function Sidebar({ className }: SidebarProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [showFinanciamentoSubmenu, setShowFinanciamentoSubmenu] = useState(false);
   const [location] = useLocation();
 
   return (
@@ -89,6 +105,68 @@ export function Sidebar({ className }: SidebarProps) {
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = location === item.path;
+
+            if (item.hasSubmenu && item.submenu) {
+              return (
+                <div key={item.path}>
+                  <button
+                    className={cn(
+                      "w-full flex items-center justify-start text-white/80 hover:text-white hover:bg-white/10 h-12 px-3 rounded-md transition-colors",
+                      (isActive || location.startsWith(item.path)) && "bg-white/15 text-white",
+                      !isExpanded && "px-3"
+                    )}
+                    onClick={() => setShowFinanciamentoSubmenu(!showFinanciamentoSubmenu)}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span className={cn(
+                      "ml-3 whitespace-nowrap transition-opacity flex-1 text-left",
+                      isExpanded ? "opacity-100" : "opacity-0 lg:opacity-0"
+                    )}>
+                      {item.label}
+                    </span>
+                    {isExpanded && (
+                      <div className="ml-auto">
+                        {showFinanciamentoSubmenu ? (
+                          <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 transition-transform duration-200" />
+                        )}
+                      </div>
+                    )}
+                  </button>
+
+                  <div
+                    style={{
+                      maxHeight: showFinanciamentoSubmenu ? `${item.submenu.length * 44}px` : '0px',
+                      overflow: 'hidden',
+                      transition: 'max-height 0.3s ease-in-out',
+                      backgroundColor: showFinanciamentoSubmenu ? '#f3f4f6' : 'transparent'
+                    }}
+                  >
+                    <div className="ml-4 mr-2 mt-1 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-inner border border-gray-200 dark:border-gray-700 p-1">
+                      {item.submenu.map(subItem => {
+                        const SubIcon = subItem.icon;
+                        return (
+                          <Link key={subItem.path} href={subItem.path}>
+                            <button 
+                              className={cn(
+                                "w-full flex items-center justify-start h-10 text-sm px-3 rounded",
+                                subItem.color,
+                                `hover:bg-${subItem.color.split('-')[1]}-50`
+                              )}
+                              title={subItem.tooltip}
+                            >
+                              <SubIcon className="h-4 w-4 shrink-0" />
+                              <span className="ml-3">{subItem.label}</span>
+                            </button>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
 
             return (
               <Link key={item.path} href={item.path}>

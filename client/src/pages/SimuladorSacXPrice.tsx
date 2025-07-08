@@ -203,7 +203,7 @@ export default function SimuladorSacXPrice() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
+    <div className="p-6 space-y-6 bg-background min-h-screen">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
           <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
