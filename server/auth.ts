@@ -125,12 +125,22 @@ export function setupAuthRoutes(app: Express) {
       console.log("Session:", req.session);
       console.log("==================");
 
-      // Remover senha da resposta
-      const { password: _, ...userWithoutPassword } = user;
+      // Salvar sessão explicitamente
+      req.session.save((err: any) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).json({ message: "Erro ao salvar sessão" });
+        }
 
-      res.json({
-        message: "Login realizado com sucesso",
-        user: userWithoutPassword,
+        console.log("Session saved successfully");
+        
+        // Remover senha da resposta
+        const { password: _, ...userWithoutPassword } = user;
+
+        res.json({
+          message: "Login realizado com sucesso",
+          user: userWithoutPassword,
+        });
       });
     } catch (error) {
       console.error("Error logging in:", error);
