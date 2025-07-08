@@ -10,12 +10,13 @@ export function setupAuth(app: Express) {
       secret: process.env.SESSION_SECRET || "default-secret-key",
       resave: false,
       saveUninitialized: false,
+      name: "connect.sid",
       cookie: {
-        secure: process.env.NODE_ENV === "production",
+        secure: true,
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 horas
-        sameSite: process.env.NODE_ENV === "production" ? "lax" : "lax",
-        domain: process.env.NODE_ENV === "production" ? "ventushub.com.br" : undefined,
+        sameSite: "lax",
+        path: "/",
       },
     })
   );
