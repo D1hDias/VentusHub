@@ -57,6 +57,9 @@ export default function Login() {
   });
 
   const onSubmit = (data: LoginFormData) => {
+    console.log("=== LOGIN FORM SUBMIT ===");
+    console.log("Form data:", data);
+    console.log("========================");
     loginMutation.mutate(data);
   };
 
