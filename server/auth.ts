@@ -64,12 +64,25 @@ export function setupAuthRoutes(app: Express) {
         message: "Usuário criado com sucesso",
         user: userWithoutPassword,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("=== ERROR REGISTERING USER ===");
       console.error("Error:", error);
       console.error("Stack:", error instanceof Error ? error.stack : "No stack");
       console.error("Request body:", req.body);
       console.error("================================");
+      
+      // Tratar erros de duplicação do PostgreSQL
+      if (error.code === '23505') {
+        if (error.constraint === 'users_email_unique') {
+          return res.status(400).json({ message: "E-mail já cadastrado" });
+        }
+        if (error.constraint === 'users_cpf_unique') {
+          return res.status(400).json({ message: "CPF já cadastrado" });
+        }
+        if (error.constraint === 'users_creci_unique') {
+          return res.status(400).json({ message: "CRECI já cadastrado" });
+        }
+      }
       
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
       res.status(500).json({ 
