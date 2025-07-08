@@ -34,10 +34,27 @@ export default function Login() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: LoginFormData) => {
-      const response = await apiRequest("POST", "/api/auth/login", data);
-      return await response.json();
+      console.log("=== MUTATION STARTED ===");
+      console.log("Data:", data);
+      
+      try {
+        const response = await apiRequest("POST", "/api/auth/login", data);
+        console.log("Response:", response);
+        const result = await response.json();
+        console.log("Result:", result);
+        return result;
+      } catch (error) {
+        console.error("=== MUTATION ERROR ===");
+        console.error("Error:", error);
+        console.error("Stack:", error instanceof Error ? error.stack : "No stack");
+        console.error("======================");
+        throw error;
+      }
     },
     onSuccess: (data) => {
+      console.log("=== LOGIN SUCCESS ===");
+      console.log("Success data:", data);
+      
       toast({
         title: "Login realizado com sucesso!",
         description: "Redirecionando para o dashboard...",
@@ -48,6 +65,10 @@ export default function Login() {
       }, 1000);
     },
     onError: (error: any) => {
+      console.log("=== LOGIN ERROR ===");
+      console.log("Error:", error);
+      console.log("===================");
+      
       toast({
         title: "Erro no login",
         description: error.message || "E-mail ou senha incorretos",
