@@ -412,17 +412,17 @@ export default function SimuladorRoiFlipping() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           
           {/* Cabeçalho */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
               <Target className="inline-block mr-3 h-10 w-10 text-blue-600" />
               Simulador ROI Flip/Revenda
             </h1>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               Analise a viabilidade financeira de projetos de compra, reforma e revenda. 
               Calcule ROI, TIR e faça análise de sensibilidade automaticamente.
             </p>
@@ -432,7 +432,7 @@ export default function SimuladorRoiFlipping() {
           </div>
 
           {/* Formulário */}
-          <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
+          <div className="bg-card rounded-lg shadow-lg p-8 mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
               <Calculator className="h-6 w-6 mr-2 text-blue-600" />
               Parâmetros do Projeto
@@ -442,7 +442,7 @@ export default function SimuladorRoiFlipping() {
               
               {/* Preço de Aquisição */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Building className="h-4 w-4 inline mr-1" />
                   Preço de Aquisição *
                 </label>
@@ -451,14 +451,14 @@ export default function SimuladorRoiFlipping() {
                   value={formData.precoAquisicao}
                   onChange={(e) => handleInputChange('precoAquisicao', e.target.value)}
                   placeholder="R$ 480.000,00"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                   required
                 />
               </div>
               
               {/* Custo da Obra */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Hammer className="h-4 w-4 inline mr-1" />
                   Custo da Obra *
                 </label>
@@ -467,21 +467,21 @@ export default function SimuladorRoiFlipping() {
                   value={formData.custoObra}
                   onChange={(e) => handleInputChange('custoObra', e.target.value)}
                   placeholder="R$ 120.000,00"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                   required
                 />
               </div>
               
               {/* Prazo da Obra */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Calendar className="h-4 w-4 inline mr-1" />
                   Prazo da Obra (meses) *
                 </label>
                 <select
                   value={formData.prazoObraMeses}
                   onChange={(e) => handleInputChange('prazoObraMeses', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                   required
                 >
                   {[...Array(24)].map((_, i) => (
@@ -492,7 +492,7 @@ export default function SimuladorRoiFlipping() {
               
               {/* Preço de Revenda */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <Target className="h-4 w-4 inline mr-1" />
                   Preço de Revenda *
                 </label>
@@ -501,14 +501,14 @@ export default function SimuladorRoiFlipping() {
                   value={formData.precoRevenda}
                   onChange={(e) => handleInputChange('precoRevenda', e.target.value)}
                   placeholder="R$ 760.000,00"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                   required
                 />
               </div>
               
               {/* IPTU Anual */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <FileText className="h-4 w-4 inline mr-1" />
                   IPTU Anual
                   <span className="text-xs text-gray-500 ml-1">(opcional)</span>
@@ -518,13 +518,13 @@ export default function SimuladorRoiFlipping() {
                   value={formData.iptuAnual}
                   onChange={(e) => handleInputChange('iptuAnual', e.target.value)}
                   placeholder="R$ 3.600,00"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                 />
               </div>
               
               {/* Corretagem */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <DollarSign className="h-4 w-4 inline mr-1" />
                   Corretagem (%)
                 </label>
@@ -535,7 +535,7 @@ export default function SimuladorRoiFlipping() {
                   step="0.5"
                   min="0"
                   max="10"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                 />
               </div>
               
@@ -557,7 +557,7 @@ export default function SimuladorRoiFlipping() {
                       checked={formData.toggleCondominio}
                       onCheckedChange={(checked) => handleInputChange('toggleCondominio', checked)}
                     />
-                    <label className="text-sm font-medium text-gray-700">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Há condomínio/taxas mensais
                     </label>
                   </div>
@@ -567,7 +567,7 @@ export default function SimuladorRoiFlipping() {
                       value={formData.condominioMensal}
                       onChange={(e) => handleInputChange('condominioMensal', e.target.value)}
                       placeholder="R$ 450,00"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                     />
                   )}
                 </div>
@@ -579,7 +579,7 @@ export default function SimuladorRoiFlipping() {
                       checked={formData.toggleItbiRegistro}
                       onCheckedChange={(checked) => handleInputChange('toggleItbiRegistro', checked)}
                     />
-                    <label className="text-sm font-medium text-gray-700">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Personalizar ITBI + Registro (padrão: 5%)
                     </label>
                   </div>
@@ -591,7 +591,7 @@ export default function SimuladorRoiFlipping() {
                       step="0.1"
                       min="0"
                       max="10"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                     />
                   )}
                 </div>
@@ -603,7 +603,7 @@ export default function SimuladorRoiFlipping() {
                       checked={formData.toggleIrGanho}
                       onCheckedChange={(checked) => handleInputChange('toggleIrGanho', checked)}
                     />
-                    <label className="text-sm font-medium text-gray-700">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Personalizar IR Ganho Capital (padrão: 15%)
                     </label>
                   </div>
@@ -615,14 +615,14 @@ export default function SimuladorRoiFlipping() {
                       step="0.1"
                       min="0"
                       max="25"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                     />
                   )}
                 </div>
                 
                 {/* Custo de Oportunidade */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Custo de Oportunidade (% a.m. líquido)
                   </label>
                   <div className="space-y-2">
@@ -677,7 +677,7 @@ export default function SimuladorRoiFlipping() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -50 }}
                   transition={{ duration: 0.5 }}
-                  className="bg-white rounded-lg shadow-lg p-8 mb-8"
+                  className="bg-card rounded-lg shadow-lg p-8 mb-8"
                 >
                   <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
@@ -697,14 +697,14 @@ export default function SimuladorRoiFlipping() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     
                     <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-500">
-                      <h3 className="text-lg font-semibold text-blue-900 mb-2">ROI Simples</h3>
-                      <p className="text-2xl font-bold text-blue-900">{formatPercent(resultado.roi * 100)}</p>
+                      <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">ROI Simples</h3>
+                      <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{formatPercent(resultado.roi * 100)}</p>
                       <p className="text-xs text-blue-700">Retorno sobre investimento</p>
                     </div>
 
                     <div className="bg-green-50 rounded-lg p-6 border-l-4 border-green-500">
-                      <h3 className="text-lg font-semibold text-green-900 mb-2">ROI Anualizado</h3>
-                      <p className="text-2xl font-bold text-green-900">{formatPercent(resultado.roiAnualizado * 100)}</p>
+                      <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">ROI Anualizado</h3>
+                      <p className="text-2xl font-bold text-green-900 dark:text-green-100">{formatPercent(resultado.roiAnualizado * 100)}</p>
                       <p className="text-xs text-green-700">Equivalente anual</p>
                     </div>
 
@@ -726,7 +726,7 @@ export default function SimuladorRoiFlipping() {
                   {/* Detalhes Financeiros */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     
-                    <div className="bg-gray-50 rounded-lg p-6">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">💰 Investimentos</h3>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
@@ -753,7 +753,7 @@ export default function SimuladorRoiFlipping() {
                       </div>
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg p-6">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">📈 Retornos</h3>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
@@ -784,7 +784,7 @@ export default function SimuladorRoiFlipping() {
                   </div>
 
                   {/* Análise de Sensibilidade */}
-                  <div className="bg-gray-50 rounded-lg p-6 mb-8">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 mb-8">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                       <PieChart className="h-5 w-5 mr-2 text-blue-600" />
                       Análise de Sensibilidade - Preço de Revenda

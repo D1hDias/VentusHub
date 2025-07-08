@@ -500,76 +500,47 @@ export default function SimuladorAluguelXCompra() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           
           {/* Cabeçalho */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-100 mb-4">
               <Home className="inline-block mr-3 h-10 w-10 text-blue-600" />
               Simulador Alugar × Comprar
             </h1>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-400 dark:text-gray-400 max-w-3xl mx-auto">
               Descubra qual é a melhor opção financeira para você: alugar ou comprar um imóvel. 
               Nossa simulação usa indicadores reais do mercado automaticamente.
             </p>
             
             {/* Indicadores do Mercado */}
-            <IndicadoresMercado className="mt-6 max-w-4xl mx-auto" />
+            <IndicadoresMercado 
+              className="mt-6 max-w-4xl mx-auto" 
+              indicadoresVisiveis={['igpM']} 
+            />
           </div>
 
           {/* Formulário */}
-          <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
+          <div className="bg-card rounded-lg shadow-lg p-8 mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-100 mb-6 flex items-center">
               <Calculator className="h-6 w-6 mr-2 text-blue-600" />
               Parâmetros da Simulação
             </h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              
-              {/* Preço de Compra */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Building className="h-4 w-4 inline mr-1" />
-                  Preço de Compra *
-                </label>
-                <input
-                  type="text"
-                  value={formData.precoCompra}
-                  onChange={(e) => handleInputChange('precoCompra', e.target.value)}
-                  placeholder="R$ 500.000,00"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              
-              {/* Aluguel Mensal */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Home className="h-4 w-4 inline mr-1" />
-                  Aluguel Mensal *
-                </label>
-                <input
-                  type="text"
-                  value={formData.aluguelMensal}
-                  onChange={(e) => handleInputChange('aluguelMensal', e.target.value)}
-                  placeholder="R$ 2.000,00"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              
-              {/* Anos de Permanência */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+            {/* Valor Comum */}
+            <div className="mb-8">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 dark:text-gray-100 mb-4">💰 Tempo de Permanência</h3>
+              <div className="max-w-md">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300 mb-2">
                   <Calendar className="h-4 w-4 inline mr-1" />
                   Tempo de Permanência *
                 </label>
                 <select
                   value={formData.anosPermanencia}
                   onChange={(e) => handleInputChange('anosPermanencia', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                   required
                 >
                   {[...Array(30)].map((_, i) => (
@@ -577,127 +548,199 @@ export default function SimuladorAluguelXCompra() {
                   ))}
                 </select>
               </div>
+            </div>
+
+            {/* Layout em duas colunas: Comprar e Alugar */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               
-              {/* Entrada */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <DollarSign className="h-4 w-4 inline mr-1" />
-                  Entrada (%)
-                </label>
-                <select
-                  value={formData.entradaPercentual}
-                  onChange={(e) => handleInputChange('entradaPercentual', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="0">0% (100% financiado)</option>
-                  <option value="10">10%</option>
-                  <option value="20">20%</option>
-                  <option value="30">30%</option>
-                  <option value="40">40%</option>
-                  <option value="50">50%</option>
-                </select>
+              {/* === COLUNA ESQUERDA: COMPRAR === */}
+              <div className="bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-blue-800 dark:text-blue-200 mb-6 flex items-center">
+                  <Building className="h-6 w-6 mr-2" />
+                  🏠 Comprar Imóvel
+                </h3>
+                
+                {/* Preço de Compra */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                    Preço de Compra (R$) *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.precoCompra}
+                    onChange={(e) => handleInputChange('precoCompra', e.target.value)}
+                    placeholder="R$ 500.000,00"
+                    className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
+                    required
+                  />
+                </div>
+
+                {/* Parâmetros de Financiamento */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                      Entrada (%)
+                    </label>
+                    <select
+                      value={formData.entradaPercentual}
+                      onChange={(e) => handleInputChange('entradaPercentual', e.target.value)}
+                      className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
+                    >
+                      <option value="0">0% (100% financiado)</option>
+                      <option value="10">10%</option>
+                      <option value="20">20%</option>
+                      <option value="30">30%</option>
+                      <option value="40">40%</option>
+                      <option value="50">50%</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                      Prazo Financiamento
+                    </label>
+                    <select
+                      value={formData.prazoMeses}
+                      onChange={(e) => handleInputChange('prazoMeses', e.target.value)}
+                      className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
+                    >
+                      <option value="240">20 anos</option>
+                      <option value="300">25 anos</option>
+                      <option value="360">30 anos</option>
+                      <option value="420">35 anos</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                      Taxa de Juros (% a.a.)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.taxaJurosFinanciamentoAA}
+                      onChange={(e) => handleInputChange('taxaJurosFinanciamentoAA', e.target.value)}
+                      step="0.1"
+                      min="6"
+                      max="18"
+                      className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                      Modelo de Financiamento
+                    </label>
+                    <select
+                      value={formData.modeloFinanciamento}
+                      onChange={(e) => handleInputChange('modeloFinanciamento', e.target.value)}
+                      className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
+                    >
+                      <option value="price">Tabela Price (parcela fixa)</option>
+                      <option value="sac">SAC (parcela decrescente)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Custos do Imóvel */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                      IPTU Anual
+                      <span className="text-xs text-blue-500 dark:text-blue-400 ml-1">(opcional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.iptuAnual}
+                      onChange={(e) => handleInputChange('iptuAnual', e.target.value)}
+                      placeholder="R$ 4.000,00"
+                      className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                      Condomínio Mensal
+                      <span className="text-xs text-blue-500 dark:text-blue-400 ml-1">(opcional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.condominioMensal}
+                      onChange={(e) => handleInputChange('condominioMensal', e.target.value)}
+                      placeholder="R$ 300,00"
+                      className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
+                    />
+                  </div>
+                </div>
               </div>
-              
-              {/* Prazo do Financiamento */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Calendar className="h-4 w-4 inline mr-1" />
-                  Prazo do Financiamento
-                </label>
-                <select
-                  value={formData.prazoMeses}
-                  onChange={(e) => handleInputChange('prazoMeses', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="240">20 anos</option>
-                  <option value="300">25 anos</option>
-                  <option value="360">30 anos</option>
-                  <option value="420">35 anos</option>
-                </select>
+
+              {/* === COLUNA DIREITA: ALUGAR === */}
+              <div className="bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800 rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-green-800 dark:text-green-200 mb-6 flex items-center">
+                  <Home className="h-6 w-6 mr-2" />
+                  🏡 Alugar Imóvel
+                </h3>
+                
+                {/* Aluguel Mensal */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-green-700 dark:text-green-300 mb-2">
+                    Aluguel Mensal (R$) *
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.aluguelMensal}
+                    onChange={(e) => handleInputChange('aluguelMensal', e.target.value)}
+                    placeholder="R$ 2.000,00"
+                    className="w-full px-3 py-2 border border-green-300 dark:border-green-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-background text-foreground"
+                    required
+                  />
+                </div>
+
+                {/* Informações sobre Aluguel */}
+                <div className="space-y-4">
+                  <div className="bg-green-100 rounded-lg p-4">
+                    <h4 className="font-medium text-green-800 dark:text-green-200 mb-2">💡 Considerações Automáticas:</h4>
+                    <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                      <li>• Correção anual pelo IGP-M: {INDICADORES_MERCADO.igpM}%</li>
+                      <li>• Investimento da entrada no CDI</li>
+                      <li>• Diferença de custos investida mensalmente</li>
+                      <li>• Sem custos de manutenção ou IPTU</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <h4 className="font-medium text-yellow-800 mb-2">📈 Estratégia de Investimento:</h4>
+                    <p className="text-sm text-yellow-700 mb-2">
+                      <strong>O que será investido:</strong>
+                    </p>
+                    <ul className="text-xs text-yellow-600 space-y-1">
+                      <li>• Valor da entrada que não foi gasta</li>
+                      <li>• Diferença mensal entre financiamento e aluguel</li>
+                      <li>• Rendimento: {INDICADORES_MERCADO.custoOportunidade}% a.a. (CDI)</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">🎯 Comparação Justa:</h4>
+                    <p className="text-xs text-blue-600">
+                      A simulação compara o patrimônio líquido final de ambas as estratégias, 
+                      considerando valorização do imóvel, custos totais, impostos e rendimentos de investimento.
+                    </p>
+                  </div>
+                </div>
               </div>
-              
-              {/* Taxa de Juros */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <TrendingUp className="h-4 w-4 inline mr-1" />
-                  Taxa de Juros (% a.a.)
-                </label>
-                <input
-                  type="number"
-                  value={formData.taxaJurosFinanciamentoAA}
-                  onChange={(e) => handleInputChange('taxaJurosFinanciamentoAA', e.target.value)}
-                  step="0.1"
-                  min="6"
-                  max="18"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              {/* IPTU Anual */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <FileText className="h-4 w-4 inline mr-1" />
-                  IPTU Anual
-                  <span className="text-xs text-gray-500 ml-1">(opcional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.iptuAnual}
-                  onChange={(e) => handleInputChange('iptuAnual', e.target.value)}
-                  placeholder="R$ 4.000,00"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              {/* Condomínio */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Building className="h-4 w-4 inline mr-1" />
-                  Condomínio Mensal
-                  <span className="text-xs text-gray-500 ml-1">(opcional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.condominioMensal}
-                  onChange={(e) => handleInputChange('condominioMensal', e.target.value)}
-                  placeholder="R$ 300,00"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              
-              {/* Modelo de Financiamento */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <Calculator className="h-4 w-4 inline mr-1" />
-                  Modelo de Financiamento
-                </label>
-                <select
-                  value={formData.modeloFinanciamento}
-                  onChange={(e) => handleInputChange('modeloFinanciamento', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="price">Tabela Price (parcela fixa)</option>
-                  <option value="sac">SAC (parcela decrescente)</option>
-                </select>
-              </div>
-              
             </div>
             
-            {/* Nota sobre indicadores automáticos */}
-            <div className="mt-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+            {/* Resumo dos Indicadores Automáticos */}
+            <div className="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-lg">
               <div className="flex items-start">
-                <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 mt-0.5" />
+                <BarChart3 className="h-5 w-5 text-gray-600 dark:text-gray-400 mr-2 mt-0.5" />
                 <div>
-                  <p className="text-sm text-yellow-800">
-                    <strong>Indicadores Automáticos:</strong> Nossa simulação usa automaticamente os seguintes dados de mercado:
+                  <p className="text-sm text-gray-800">
+                    <strong>📊 Indicadores Automáticos aplicados:</strong> Valorização imobiliária {INDICADORES_MERCADO.valorizacaoImovel}% a.a. • 
+                    Custos de compra {INDICADORES_MERCADO.custosCompra}% • Manutenção {INDICADORES_MERCADO.manutencaoAnual}% a.a.
                   </p>
-                  <ul className="text-xs text-yellow-700 mt-2 ml-4 list-disc">
-                    <li>Custo de oportunidade: {INDICADORES_MERCADO.custoOportunidade}% (CDI líquido)</li>
-                    <li>Valorização imobiliária: {INDICADORES_MERCADO.valorizacaoImovel}% a.a.</li>
-                    <li>Correção de aluguéis (IGP-M): {INDICADORES_MERCADO.igpM}% a.a.</li>
-                    <li>Custos de compra: {INDICADORES_MERCADO.custosCompra}% (ITBI + escritura + corretagem)</li>
-                    <li>Manutenção: {INDICADORES_MERCADO.manutencaoAnual}% a.a. do valor do imóvel</li>
-                  </ul>
                 </div>
               </div>
             </div>
@@ -726,7 +769,7 @@ export default function SimuladorAluguelXCompra() {
                   className="bg-white rounded-lg shadow-lg p-8 mb-8"
                 >
                   <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
+                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
                       <BarChart3 className="h-6 w-6 mr-2 text-blue-600" />
                       Resultados da Comparação
                     </h2>
@@ -743,60 +786,60 @@ export default function SimuladorAluguelXCompra() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     
                     {/* Comprar */}
-                    <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-500">
-                      <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                    <div className="bg-blue-50 dark:bg-blue-950/50 rounded-lg p-6 border-l-4 border-blue-500">
+                      <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4 flex items-center">
                         <Building className="h-5 w-5 mr-2" />
                         Comprar
                       </h3>
                       <div className="space-y-3">
                         <div className="flex justify-between">
-                          <span className="text-blue-700">Patrimônio Líquido Final:</span>
-                          <span className="font-semibold text-blue-900">{formatCurrency(resultado.patrimonioLiquidoComprar)}</span>
+                          <span className="text-blue-700 dark:text-blue-300">Patrimônio Líquido Final:</span>
+                          <span className="font-semibold text-blue-900 dark:text-blue-100">{formatCurrency(resultado.patrimonioLiquidoComprar)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-blue-700">TIR:</span>
-                          <span className="font-semibold text-blue-900">{formatPercent(resultado.tirComprar)}</span>
+                          <span className="text-blue-700 dark:text-blue-300">TIR:</span>
+                          <span className="font-semibold text-blue-900 dark:text-blue-100">{formatPercent(resultado.tirComprar)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-blue-700">Desembolso Inicial:</span>
-                          <span className="font-semibold text-blue-900">{formatCurrency(resultado.detalhesComprar.desembolsoInicial)}</span>
+                          <span className="text-blue-700 dark:text-blue-300">Desembolso Inicial:</span>
+                          <span className="font-semibold text-blue-900 dark:text-blue-100">{formatCurrency(resultado.detalhesComprar.desembolsoInicial)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-blue-700">Custos Fixos Mensais:</span>
-                          <span className="font-semibold text-blue-900">{formatCurrency(resultado.detalhesComprar.custosFixosMensais)}</span>
+                          <span className="text-blue-700 dark:text-blue-300">Custos Fixos Mensais:</span>
+                          <span className="font-semibold text-blue-900 dark:text-blue-100">{formatCurrency(resultado.detalhesComprar.custosFixosMensais)}</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Alugar */}
-                    <div className="bg-green-50 rounded-lg p-6 border-l-4 border-green-500">
-                      <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                    <div className="bg-green-50 dark:bg-green-950/50 rounded-lg p-6 border-l-4 border-green-500">
+                      <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4 flex items-center">
                         <Home className="h-5 w-5 mr-2" />
                         Alugar
                       </h3>
                       <div className="space-y-3">
                         <div className="flex justify-between">
-                          <span className="text-green-700">Patrimônio Líquido Final:</span>
-                          <span className="font-semibold text-green-900">{formatCurrency(resultado.patrimonioLiquidoAlugar)}</span>
+                          <span className="text-green-700 dark:text-green-300">Patrimônio Líquido Final:</span>
+                          <span className="font-semibold text-green-900 dark:text-green-100">{formatCurrency(resultado.patrimonioLiquidoAlugar)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-green-700">TIR:</span>
-                          <span className="font-semibold text-green-900">{formatPercent(resultado.tirAlugar)}</span>
+                          <span className="text-green-700 dark:text-green-300">TIR:</span>
+                          <span className="font-semibold text-green-900 dark:text-green-100">{formatPercent(resultado.tirAlugar)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-green-700">Aluguel Inicial:</span>
-                          <span className="font-semibold text-green-900">{formatCurrency(resultado.detalhesAlugar.aluguelInicial)}</span>
+                          <span className="text-green-700 dark:text-green-300">Aluguel Inicial:</span>
+                          <span className="font-semibold text-green-900 dark:text-green-100">{formatCurrency(resultado.detalhesAlugar.aluguelInicial)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-green-700">Aluguel Final:</span>
-                          <span className="font-semibold text-green-900">{formatCurrency(resultado.detalhesAlugar.aluguelFinal)}</span>
+                          <span className="text-green-700 dark:text-green-300">Aluguel Final:</span>
+                          <span className="font-semibold text-green-900 dark:text-green-100">{formatCurrency(resultado.detalhesAlugar.aluguelFinal)}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Recomendação */}
-                  <div className={`rounded-lg p-6 mb-8 ${resultado.patrimonioLiquidoComprar > resultado.patrimonioLiquidoAlugar ? 'bg-blue-100 border-l-4 border-blue-500' : 'bg-green-100 border-l-4 border-green-500'}`}>
+                  <div className={`rounded-lg p-6 mb-8 ${resultado.patrimonioLiquidoComprar > resultado.patrimonioLiquidoAlugar ? 'bg-blue-100 dark:bg-blue-950/50 border-l-4 border-blue-500' : 'bg-green-100 dark:bg-green-950/50 border-l-4 border-green-500'}`}>
                     <h3 className="text-lg font-semibold mb-2 flex items-center">
                       {resultado.patrimonioLiquidoComprar > resultado.patrimonioLiquidoAlugar ? (
                         <TrendingUp className="h-5 w-5 mr-2 text-blue-600" />
@@ -819,39 +862,39 @@ export default function SimuladorAluguelXCompra() {
 
                   {/* Métricas Adicionais */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <div className="bg-gray-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-gray-900">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                         {resultado.paybackAnos || 'N/A'}
                       </div>
-                      <div className="text-sm text-gray-600">Payback (anos)</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Payback (anos)</div>
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-gray-900">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                         {resultado.breakEvenAno || 'N/A'}
                       </div>
-                      <div className="text-sm text-gray-600">Break-even (ano)</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Break-even (ano)</div>
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-gray-900">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                         {formData.anosPermanencia}
                       </div>
-                      <div className="text-sm text-gray-600">Período analisado</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Período analisado</div>
                     </div>
                   </div>
 
                   {/* Gráfico Simplificado */}
-                  <div className="bg-gray-50 rounded-lg p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
                       <PieChart className="h-5 w-5 mr-2 text-blue-600" />
                       Evolução do Patrimônio
                     </h3>
                     <div className="space-y-2">
                       {resultado.serieTemporalAnos.map((ano, index) => (
                         <div key={ano} className="flex items-center space-x-4">
-                          <div className="w-16 text-sm font-medium text-gray-700">
+                          <div className="w-16 text-sm font-medium text-gray-700 dark:text-gray-300">
                             Ano {ano}
                           </div>
-                          <div className="flex-1 bg-gray-200 rounded-full h-4 relative">
+                          <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-4 relative">
                             <div
                               className="bg-blue-500 h-4 rounded-full"
                               style={{
@@ -865,7 +908,7 @@ export default function SimuladorAluguelXCompra() {
                               }}
                             ></div>
                           </div>
-                          <div className="w-32 text-sm text-gray-600">
+                          <div className="w-32 text-sm text-gray-600 dark:text-gray-400">
                             {formatCurrency(resultado.seriePatrimonioComprar[index] > resultado.seriePatrimonioAlugar[index] ? resultado.seriePatrimonioComprar[index] : resultado.seriePatrimonioAlugar[index])}
                           </div>
                         </div>
@@ -874,11 +917,11 @@ export default function SimuladorAluguelXCompra() {
                     <div className="mt-4 flex justify-center space-x-6">
                       <div className="flex items-center space-x-2">
                         <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
-                        <span className="text-sm text-gray-600">Comprar</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Comprar</span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                        <span className="text-sm text-gray-600">Alugar</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Alugar</span>
                       </div>
                     </div>
                   </div>

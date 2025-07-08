@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calculator, Download, Building, CreditCard, FileText, TrendingUp, Home, DollarSign, Calendar, Shield, Info, User, MapPin, Check, FileDown, X } from "lucide-react";
-import IndicadoresMercado from '@/components/IndicadoresMercado';
 import { scroller, Element } from 'react-scroll';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -1577,33 +1576,31 @@ export default function SimuladorComparativo() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-6 space-y-6 bg-background min-h-screen">
       {/* Header */}
-      <div className="bg-white rounded-lg p-6 shadow-sm">
+      <div className="bg-card rounded-lg p-6 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
             <Calculator className="h-7 w-7 text-blue-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Simulador Comparativo Bancário</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-100">Simulador Comparativo Bancário</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Compare condições de financiamento habitacional entre diferentes bancos
             </p>
           </div>
         </div>
       </div>
 
-      {/* Indicadores do Mercado */}
-      <IndicadoresMercado />
 
       {/* Seleção de Bancos */}
       <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Building className="h-5 w-5" />
             Escolha os Bancos para Comparar
           </h3>
-          <p className="text-sm text-gray-600 mt-1">Selecione um ou mais bancos para ver as condições específicas de cada um</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Selecione um ou mais bancos para ver as condições específicas de cada um</p>
         </div>
         <div className="p-6">
           <div className="flex justify-end items-center mb-4">
@@ -1616,13 +1613,13 @@ export default function SimuladorComparativo() {
                   onChange={(e) => handleMCMVToggle(e.target.checked)}
                 />
                 <div className={`w-11 h-6 rounded-full relative transition-colors duration-200 ${
-                  minhaCasaMinhaVida ? 'bg-green-600' : 'bg-gray-200'
+                  minhaCasaMinhaVida ? 'bg-green-600' : 'bg-gray-200 dark:bg-gray-700'
                 }`}>
                   <div className={`absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform duration-200 ${
                     minhaCasaMinhaVida ? 'translate-x-5' : 'translate-x-0'
                   }`}></div>
                 </div>
-                <span className="ml-3 text-sm font-medium text-gray-700">Simular Minha Casa Minha Vida</span>
+                <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">Simular Minha Casa Minha Vida</span>
               </label>
             </div>
             <button
@@ -1641,8 +1638,8 @@ export default function SimuladorComparativo() {
                 onClick={() => toggleBanco(codigo)}
                 className={`relative cursor-pointer border-2 rounded-lg p-4 transition-all ${
                   bancosEscolhidos.includes(codigo)
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/50'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-card'
                 }`}
               >
                 {bancosEscolhidos.includes(codigo) && (
@@ -1668,7 +1665,7 @@ export default function SimuladorComparativo() {
                       {config.nome}
                     </div>
                   </div>
-                  <div className="text-sm font-medium text-gray-900">{config.nome}</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{config.nome}</div>
                 </div>
               </div>
             ))}
@@ -1687,32 +1684,32 @@ export default function SimuladorComparativo() {
               transition={{ duration: 0.3 }}
               className="bg-white rounded-lg shadow-sm"
             >
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <FileText className="h-5 w-5" />
                 Dados Básicos do Financiamento
               </h3>
-              <p className="text-sm text-gray-600 mt-1">Estes são os dados básicos solicitados por todos os bancos</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Estes são os dados básicos solicitados por todos os bancos</p>
             </div>
             <div className="p-6 space-y-6">
               
               {/* Tipo de Imóvel e Opção de Financiamento */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <Building className="h-4 w-4 inline mr-1" />
                     Tipo do Imóvel
                   </label>
                   {minhaCasaMinhaVida ? (
                     <input
                       type="text"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-800 cursor-not-allowed text-foreground"
                       value="Residencial"
                       disabled
                     />
                   ) : (
                     <select 
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                       value={formData.tipoImovel} 
                       onChange={(e) => setFormData({...formData, tipoImovel: e.target.value})}
                     >
@@ -1722,12 +1719,12 @@ export default function SimuladorComparativo() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <MapPin className="h-4 w-4 inline mr-1" />
                     Opção de Financiamento
                   </label>
                   <select 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                     value={formData.opcaoFinanciamento} 
                     onChange={(e) => setFormData({...formData, opcaoFinanciamento: e.target.value})}
                   >
@@ -1750,26 +1747,26 @@ export default function SimuladorComparativo() {
               {/* Valor do Imóvel e Valor do Financiamento */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <Home className="h-4 w-4 inline mr-1" />
                     Valor do Imóvel (mín. R$ 100.000)
                   </label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                     value={formData.valorImovel}
                     onChange={(e) => handleInputChange('valorImovel', e.target.value)}
                     placeholder="R$ 500.000,00"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <DollarSign className="h-4 w-4 inline mr-1" />
                     Valor do Financiamento Desejado
                   </label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                     value={formData.valorFinanciamento}
                     onChange={(e) => handleInputChange('valorFinanciamento', e.target.value)}
                     placeholder="R$ 400.000,00"
@@ -1780,20 +1777,20 @@ export default function SimuladorComparativo() {
               {/* Renda e Data de Nascimento */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <CreditCard className="h-4 w-4 inline mr-1" />
                     Renda Bruta Familiar Comprovada
                   </label>
                   <input
                     type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                     value={formData.rendaBrutaFamiliar}
                     onChange={(e) => handleInputChange('rendaBrutaFamiliar', e.target.value)}
                     placeholder="R$ 10.000,00"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <User className="h-4 w-4 inline mr-1" />
                     Data de Nascimento
                     <div className="relative inline-block ml-1">
@@ -1811,7 +1808,7 @@ export default function SimuladorComparativo() {
                   </label>
                   <input
                     type="date"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                     value={formData.dataNascimento}
                     onChange={(e) => setFormData({...formData, dataNascimento: e.target.value})}
                     max={new Date().toISOString().split('T')[0]}
@@ -1822,7 +1819,7 @@ export default function SimuladorComparativo() {
               {/* Prazo e Sistema */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <Calendar className="h-4 w-4 inline mr-1" />
                     Prazo Desejado (máx. {dadosCalculados.prazoMaximo} meses)
                   </label>
@@ -1847,16 +1844,16 @@ export default function SimuladorComparativo() {
                         </div>
                       )}
                     </div>
-                    <span className="text-sm text-gray-600 font-medium">meses</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">meses</span>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     <TrendingUp className="h-4 w-4 inline mr-1" />
                     Sistema/Correção
                   </label>
                   <select 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                     value={formData.sistemaAmortizacao} 
                     onChange={(e) => setFormData({...formData, sistemaAmortizacao: e.target.value})}
                   >
@@ -1912,7 +1909,7 @@ export default function SimuladorComparativo() {
                     })()
                   )}
                   
-                  <p className="text-sm text-gray-600 mt-2">* valor médio de renda. Cada banco terá sua leitura ao percentual de renda considerado de acordo com regras particulares e portanto poderá ser diferente no ato da análise de crédito.</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">* valor médio de renda. Cada banco terá sua leitura ao percentual de renda considerado de acordo com regras particulares e portanto poderá ser diferente no ato da análise de crédito.</p>
                 </div>
               )}
 
@@ -1934,7 +1931,7 @@ export default function SimuladorComparativo() {
       {Object.keys(resultados).length > 0 && (
         <Element name="results-section">
           <div className="space-y-6">
-          <div className="bg-white rounded-lg p-6 shadow-sm">
+          <div className="bg-card rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">📊 Comparativo de Resultados</h3>
             </div>
@@ -1957,7 +1954,7 @@ export default function SimuladorComparativo() {
               {Object.entries(resultados).map(([codigo, resultado]) => (
                 <motion.div 
                   key={codigo} 
-                  className="border border-gray-200 rounded-lg p-4 relative" 
+                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 relative" 
                   style={{borderLeftColor: resultado.cor, borderLeftWidth: '4px'}}
                   initial={{ opacity: 1, scale: 1, x: 0 }}
                   exit={{ opacity: 0, scale: 0.9, x: -100 }}
@@ -2044,7 +2041,7 @@ export default function SimuladorComparativo() {
                       </div>
                       <div className="flex justify-between">
                         <span>Última parcela:</span>
-                        <strong className="text-gray-600">
+                        <strong className="text-gray-600 dark:text-gray-400">
                           {formatCurrency(resultado.ultimaParcela)}
                         </strong>
                       </div>
@@ -2151,7 +2148,7 @@ export default function SimuladorComparativo() {
                       O programa é dividido em faixas de renda, que determinam os benefícios e as condições de financiamento. Em 2025, houve um reajuste nos tetos de renda e a inclusão de uma nova faixa.
                     </p>
 
-                    <h3 className="font-bold text-gray-700 mb-2">Área Urbana</h3>
+                    <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-2">Área Urbana</h3>
                     
                     <div className="space-y-4">
                       <div className="border-l-4 border-blue-500 pl-4">
@@ -2180,11 +2177,11 @@ export default function SimuladorComparativo() {
                       </div>
                     </div>
 
-                    <p className="mt-4 text-sm text-gray-600">
+                    <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
                       É importante notar que pagamentos de auxílio-doença, auxílio-acidente, seguro-desemprego, Benefício de Prestação Continuada (BPC) e Bolsa Família não são considerados no cálculo da renda familiar para as faixas.
                     </p>
 
-                    <h3 className="font-bold text-gray-700 mb-2 mt-6">Área Rural</h3>
+                    <h3 className="font-bold text-gray-700 dark:text-gray-300 mb-2 mt-6">Área Rural</h3>
                     <div className="space-y-2">
                       <p><strong>Faixa 1:</strong> Renda bruta familiar anual de até R$ 40.000.</p>
                       <p><strong>Faixa 2:</strong> Renda bruta familiar anual de R$40.000,01 a R$ 66.600,00.</p>
@@ -2220,7 +2217,7 @@ export default function SimuladorComparativo() {
                 <div className="flex justify-center gap-4 mt-8 pt-6 border-t">
                   <button
                     onClick={() => setShowMCMVModal(false)}
-                    className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                    className="px-6 py-2 bg-gray-50 dark:bg-gray-8000 text-white rounded-md hover:bg-gray-600 transition-colors"
                   >
                     Cancelar
                   </button>

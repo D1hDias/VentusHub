@@ -255,6 +255,9 @@ export default function Layout({ children }: LayoutProps) {
               <DropdownMenuItem asChild>
                 <Link href="/simulador-comissao-e-metas">Comissão e Metas</Link>
               </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/simulador-renda-passiva">Renda Passiva (Aluguéis)</Link>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 

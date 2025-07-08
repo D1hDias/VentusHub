@@ -165,10 +165,22 @@ export default function SimuladorConsorcioXFinanciamento() {
   }, [formData.prazoConsorcioMeses, formData.prazoFinanciamentoMeses]);
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    if (field === 'valorCarta' || field === 'valorFinanciamento') {
+      const numericValue = value.replace(/[^\d]/g, '');
+      const formattedValue = new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(numericValue / 100);
+      setFormData(prev => ({
+        ...prev,
+        [field]: formattedValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    }
   };
 
   const calcularSimulacao = () => {
@@ -468,17 +480,17 @@ export default function SimuladorConsorcioXFinanciamento() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           
           {/* Cabeçalho */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-100 mb-4">
               <Users className="inline-block mr-3 h-10 w-10 text-blue-600" />
               Simulador Consórcio × Financiamento
             </h1>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-400 dark:text-gray-400 max-w-3xl mx-auto">
               Compare as vantagens financeiras entre consórcio imobiliário e financiamento bancário. 
               Análise com TIR, probabilidade de contemplação e fluxo de caixa detalhado.
             </p>
@@ -488,210 +500,206 @@ export default function SimuladorConsorcioXFinanciamento() {
           </div>
 
           {/* Formulário */}
-          <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
+          <div className="bg-card rounded-lg shadow-lg p-8 mb-8">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-100 mb-6 flex items-center">
               <Calculator className="h-6 w-6 mr-2 text-blue-600" />
               Parâmetros da Simulação
             </h2>
             
-            {/* Valores Principais */}
-            <div className="mb-8">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">💰 Valores Principais</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Valor da Carta de Crédito (R$)
+            {/* Layout em duas colunas: Consórcio e Financiamento */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              
+              {/* === COLUNA ESQUERDA: CONSÓRCIO === */}
+              <div className="bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800 rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-green-800 dark:text-green-200 mb-6 flex items-center">
+                  <Users className="h-6 w-6 mr-2" />
+                  📋 Consórcio Imobiliário
+                </h3>
+                
+                {/* Valor da Carta */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-green-700 dark:text-green-300 mb-2">
+                    Valor da Carta de Crédito (R$) *
                   </label>
                   <input
                     type="text"
                     value={formData.valorCarta}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\\D/g, '');
-                      const formatted = new Intl.NumberFormat('pt-BR').format(value);
-                      handleInputChange('valorCarta', formatted);
-                    }}
-                    placeholder="R$ 300.000"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => handleInputChange('valorCarta', e.target.value)}
+                    placeholder="R$ 300.000,00"
+                    className="w-full px-3 py-2 border border-green-300 dark:border-green-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-background text-foreground"
+                    required
                   />
                 </div>
+
+                {/* Parâmetros do Consórcio */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-green-700 dark:text-green-300 mb-2">
+                      Lance Inicial (% da carta)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.lancePercent}
+                      onChange={(e) => handleInputChange('lancePercent', e.target.value)}
+                      step="0.1"
+                      min="0"
+                      max="50"
+                      className="w-full px-3 py-2 border border-green-300 dark:border-green-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-background text-foreground"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-green-700 dark:text-green-300 mb-2">
+                      Prazo (meses)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.prazoConsorcioMeses}
+                      onChange={(e) => handleInputChange('prazoConsorcioMeses', e.target.value)}
+                      step="1"
+                      min="60"
+                      max="300"
+                      className="w-full px-3 py-2 border border-green-300 dark:border-green-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-background text-foreground"
+                    />
+                  </div>
+                </div>
+
+                {/* Opções Avançadas do Consórcio */}
+                <div className="space-y-4">
+                  
+                  {/* Toggle Taxa Administrativa */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <Switch
+                        checked={formData.toggleTaxaAdm}
+                        onCheckedChange={(checked) => handleInputChange('toggleTaxaAdm', checked)}
+                      />
+                      <label className="text-sm font-medium text-green-700 dark:text-green-300">
+                        Personalizar Taxa Administrativa (padrão: 20%)
+                      </label>
+                    </div>
+                    {formData.toggleTaxaAdm && (
+                      <input
+                        type="number"
+                        value={formData.taxaAdmTotalPercent}
+                        onChange={(e) => handleInputChange('taxaAdmTotalPercent', e.target.value)}
+                        step="0.1"
+                        min="10"
+                        max="30"
+                        className="w-full px-3 py-2 border border-green-300 dark:border-green-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-background text-foreground"
+                      />
+                    )}
+                  </div>
+
+                  {/* Toggle Correção */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <Switch
+                        checked={formData.toggleIndiceCorrecao}
+                        onCheckedChange={(checked) => handleInputChange('toggleIndiceCorrecao', checked)}
+                      />
+                      <label className="text-sm font-medium text-green-700 dark:text-green-300">
+                        Correção Anual (padrão: sem correção)
+                      </label>
+                    </div>
+                    {formData.toggleIndiceCorrecao && (
+                      <input
+                        type="number"
+                        value={formData.indiceCorrecaoAnual}
+                        onChange={(e) => handleInputChange('indiceCorrecaoAnual', e.target.value)}
+                        step="0.1"
+                        min="0"
+                        max="15"
+                        placeholder="6% (INCC)"
+                        className="w-full px-3 py-2 border border-green-300 dark:border-green-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-background text-foreground"
+                      />
+                    )}
+                  </div>
+
+                  {/* Toggle Seguro Consórcio */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <Switch
+                        checked={formData.toggleSeguroConsorcio}
+                        onCheckedChange={(checked) => handleInputChange('toggleSeguroConsorcio', checked)}
+                      />
+                      <label className="text-sm font-medium text-green-700 dark:text-green-300">
+                        Seguro do Consórcio (padrão: sem seguro)
+                      </label>
+                    </div>
+                    {formData.toggleSeguroConsorcio && (
+                      <input
+                        type="number"
+                        value={formData.seguroConsorcioPercentAA}
+                        onChange={(e) => handleInputChange('seguroConsorcioPercentAA', e.target.value)}
+                        step="0.01"
+                        min="0"
+                        max="1"
+                        placeholder="0.05% a.a."
+                        className="w-full px-3 py-2 border border-green-300 dark:border-green-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-background text-foreground"
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* === COLUNA DIREITA: FINANCIAMENTO === */}
+              <div className="bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+                <h3 className="text-xl font-semibold text-blue-800 dark:text-blue-200 mb-6 flex items-center">
+                  <Building className="h-6 w-6 mr-2" />
+                  🏦 Financiamento Bancário
+                </h3>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Valor do Financiamento (R$)
+                {/* Valor do Financiamento */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                    Valor do Financiamento (R$) *
                   </label>
                   <input
                     type="text"
                     value={formData.valorFinanciamento}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\\D/g, '');
-                      const formatted = new Intl.NumberFormat('pt-BR').format(value);
-                      handleInputChange('valorFinanciamento', formatted);
-                    }}
-                    placeholder="R$ 300.000"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => handleInputChange('valorFinanciamento', e.target.value)}
+                    placeholder="R$ 300.000,00"
+                    className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
+                    required
                   />
                 </div>
-              </div>
-            </div>
 
-            {/* Seção Consórcio */}
-            <div className="mb-8">
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                <Users className="h-5 w-5 mr-2 text-green-600" />
-                📋 Parâmetros do Consórcio
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Lance Inicial (% da carta)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.lancePercent}
-                    onChange={(e) => handleInputChange('lancePercent', e.target.value)}
-                    step="0.1"
-                    min="0"
-                    max="50"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Prazo do Consórcio (meses)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.prazoConsorcioMeses}
-                    onChange={(e) => handleInputChange('prazoConsorcioMeses', e.target.value)}
-                    step="1"
-                    min="60"
-                    max="300"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              {/* Toggles do Consórcio */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                {/* Toggle Taxa Administrativa */}
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Switch
-                      checked={formData.toggleTaxaAdm}
-                      onCheckedChange={(checked) => handleInputChange('toggleTaxaAdm', checked)}
-                    />
-                    <label className="text-sm font-medium text-gray-700">
-                      Personalizar Taxa Administrativa (padrão: 20%)
+                {/* Parâmetros do Financiamento */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                      Prazo (meses)
                     </label>
-                  </div>
-                  {formData.toggleTaxaAdm && (
                     <input
                       type="number"
-                      value={formData.taxaAdmTotalPercent}
-                      onChange={(e) => handleInputChange('taxaAdmTotalPercent', e.target.value)}
+                      value={formData.prazoFinanciamentoMeses}
+                      onChange={(e) => handleInputChange('prazoFinanciamentoMeses', e.target.value)}
+                      step="1"
+                      min="60"
+                      max="420"
+                      className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
+                      Taxa de Juros (% a.a.)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.taxaJurosFinanciamentoAA}
+                      onChange={(e) => handleInputChange('taxaJurosFinanciamentoAA', e.target.value)}
                       step="0.1"
-                      min="10"
-                      max="30"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      min="6"
+                      max="18"
+                      className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                     />
-                  )}
-                </div>
-
-                {/* Toggle Correção */}
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Switch
-                      checked={formData.toggleIndiceCorrecao}
-                      onCheckedChange={(checked) => handleInputChange('toggleIndiceCorrecao', checked)}
-                    />
-                    <label className="text-sm font-medium text-gray-700">
-                      Correção Anual (padrão: sem correção)
-                    </label>
                   </div>
-                  {formData.toggleIndiceCorrecao && (
-                    <input
-                      type="number"
-                      value={formData.indiceCorrecaoAnual}
-                      onChange={(e) => handleInputChange('indiceCorrecaoAnual', e.target.value)}
-                      step="0.1"
-                      min="0"
-                      max="15"
-                      placeholder="6% (INCC)"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  )}
                 </div>
 
-                {/* Toggle Seguro Consórcio */}
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Switch
-                      checked={formData.toggleSeguroConsorcio}
-                      onCheckedChange={(checked) => handleInputChange('toggleSeguroConsorcio', checked)}
-                    />
-                    <label className="text-sm font-medium text-gray-700">
-                      Seguro do Consórcio (padrão: sem seguro)
-                    </label>
-                  </div>
-                  {formData.toggleSeguroConsorcio && (
-                    <input
-                      type="number"
-                      value={formData.seguroConsorcioPercentAA}
-                      onChange={(e) => handleInputChange('seguroConsorcioPercentAA', e.target.value)}
-                      step="0.01"
-                      min="0"
-                      max="1"
-                      placeholder="0.05% a.a."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Seção Financiamento */}
-            <div className="mb-8">
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                <Building className="h-5 w-5 mr-2 text-blue-600" />
-                🏦 Parâmetros do Financiamento
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Prazo do Financiamento (meses)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.prazoFinanciamentoMeses}
-                    onChange={(e) => handleInputChange('prazoFinanciamentoMeses', e.target.value)}
-                    step="1"
-                    min="60"
-                    max="420"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Taxa de Juros (% a.a.)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.taxaJurosFinanciamentoAA}
-                    onChange={(e) => handleInputChange('taxaJurosFinanciamentoAA', e.target.value)}
-                    step="0.1"
-                    min="4"
-                    max="20"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">
                     Entrada (% do valor)
                   </label>
                   <input
@@ -701,84 +709,41 @@ export default function SimuladorConsorcioXFinanciamento() {
                     step="5"
                     min="0"
                     max="50"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
                   />
                 </div>
-              </div>
 
-              {/* Toggle Seguro Financiamento */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Switch
-                      checked={formData.toggleSeguroFinanciamento}
-                      onCheckedChange={(checked) => handleInputChange('toggleSeguroFinanciamento', checked)}
-                    />
-                    <label className="text-sm font-medium text-gray-700">
-                      Personalizar Seguro (padrão: 0,25% a.a.)
-                    </label>
+                {/* Opções Avançadas do Financiamento */}
+                <div className="space-y-4">
+                  
+                  {/* Toggle Seguro Financiamento */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <Switch
+                        checked={formData.toggleSeguroFinanciamento}
+                        onCheckedChange={(checked) => handleInputChange('toggleSeguroFinanciamento', checked)}
+                      />
+                      <label className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                        Seguro MIP/DFI (padrão: sem seguro)
+                      </label>
+                    </div>
+                    {formData.toggleSeguroFinanciamento && (
+                      <input
+                        type="number"
+                        value={formData.seguroFinanciamentoPercentAA}
+                        onChange={(e) => handleInputChange('seguroFinanciamentoPercentAA', e.target.value)}
+                        step="0.01"
+                        min="0"
+                        max="1"
+                        placeholder="0.25% a.a."
+                        className="w-full px-3 py-2 border border-blue-300 dark:border-blue-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-background text-foreground"
+                      />
+                    )}
                   </div>
-                  {formData.toggleSeguroFinanciamento && (
-                    <input
-                      type="number"
-                      value={formData.seguroFinanciamentoPercentAA}
-                      onChange={(e) => handleInputChange('seguroFinanciamentoPercentAA', e.target.value)}
-                      step="0.01"
-                      min="0"
-                      max="1"
-                      placeholder="0.25% a.a."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  )}
                 </div>
               </div>
             </div>
 
-            {/* Parâmetros Gerais */}
-            <div className="mb-8">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">⚙️ Parâmetros Gerais</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Custo de Oportunidade (% a.a.)
-                  </label>
-                  <div className="flex space-x-2">
-                    <input
-                      type="number"
-                      value={formData.custoOportunidadeAA}
-                      onChange={(e) => handleInputChange('custoOportunidadeAA', e.target.value)}
-                      step="0.1"
-                      min="3"
-                      max="20"
-                      placeholder={`${INDICADORES_MERCADO.custoOportunidade.toFixed(1)}% (CDI)`}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleInputChange('custoOportunidadeAA', INDICADORES_MERCADO.custoOportunidade.toString())}
-                      className="px-3 py-2 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 text-sm font-medium whitespace-nowrap"
-                    >
-                      Usar CDI
-                    </button>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Horizonte de Análise (meses)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.horizonteAnaliseMeses}
-                    onChange={(e) => handleInputChange('horizonteAnaliseMeses', e.target.value)}
-                    step="12"
-                    min="60"
-                    max="360"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
             
             <div className="mt-8 flex justify-center">
               <button
@@ -801,10 +766,10 @@ export default function SimuladorConsorcioXFinanciamento() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -50 }}
                   transition={{ duration: 0.5 }}
-                  className="bg-white rounded-lg shadow-lg p-8 mb-8"
+                  className="bg-card rounded-lg shadow-lg p-8 mb-8"
                 >
                   <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
+                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
                       <BarChart3 className="h-6 w-6 mr-2 text-blue-600" />
                       Resultados da Comparação
                     </h2>
@@ -825,10 +790,10 @@ export default function SimuladorConsorcioXFinanciamento() {
                       <Target className="h-5 w-5 mr-2" />
                       📊 Recomendação: {resultado.comparativo.vencedor}
                     </h3>
-                    <p className="text-gray-700 mb-2">
+                    <p className="text-gray-700 dark:text-gray-300 mb-2">
                       <strong>Vantagem financeira:</strong> {formatCurrency(resultado.comparativo.vantagem)}
                     </p>
-                    <p className="text-gray-700">
+                    <p className="text-gray-700 dark:text-gray-300">
                       <strong>Economia:</strong> {resultado.comparativo.economiaPercent.toFixed(2)}% em valor presente
                     </p>
                   </div>
@@ -838,86 +803,84 @@ export default function SimuladorConsorcioXFinanciamento() {
                     
                     {/* Consórcio */}
                     <div className="bg-green-50 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold text-green-900 mb-4 flex items-center">
+                      <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4 flex items-center">
                         <Users className="h-5 w-5 mr-2" />
                         📋 Consórcio
                       </h3>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span>TIR Anual:</span>
-                          <span className="font-medium">{formatPercent(resultado.consorcio.tirAnual * 100)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Parcela Base:</span>
-                          <span className="font-medium">{formatCurrency(resultado.consorcio.parcelaBase)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Prob. Contemplação:</span>
-                          <span className="font-medium">{formatPercent(resultado.consorcio.probContAteHoriz * 100)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Mês Contemplação:</span>
-                          <span className="font-medium">{resultado.consorcio.mesContemplacao}º mês</span>
+                          <span className="font-semibold">{formatPercent(resultado.consorcio.tirAnual)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>NPV:</span>
-                          <span className={`font-medium ${resultado.consorcio.npv > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {formatCurrency(resultado.consorcio.npv)}
-                          </span>
+                          <span className="font-semibold">{formatCurrency(resultado.consorcio.npv)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Custo Total:</span>
+                          <span className="font-semibold">{formatCurrency(resultado.consorcio.custoTotal)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Prob. Contemplação:</span>
+                          <span className="font-semibold">{resultado.consorcio.probabilidadeContemplacao.toFixed(2)}%</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Financiamento */}
                     <div className="bg-blue-50 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
+                      <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4 flex items-center">
                         <Building className="h-5 w-5 mr-2" />
                         🏦 Financiamento
                       </h3>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span>TIR Anual:</span>
-                          <span className="font-medium">{formatPercent(resultado.financiamento.tirAnual * 100)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Parcela Mensal:</span>
-                          <span className="font-medium">{formatCurrency(resultado.financiamento.parcelaMensal)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Entrada:</span>
-                          <span className="font-medium">{formatCurrency(resultado.financiamento.entrada)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Valor Financiado:</span>
-                          <span className="font-medium">{formatCurrency(resultado.financiamento.valorFinanciado)}</span>
+                          <span className="font-semibold">{formatPercent(resultado.financiamento.tirAnual)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>NPV:</span>
-                          <span className={`font-medium ${resultado.financiamento.npv > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {formatCurrency(resultado.financiamento.npv)}
-                          </span>
+                          <span className="font-semibold">{formatCurrency(resultado.financiamento.npv)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Custo Total:</span>
+                          <span className="font-semibold">{formatCurrency(resultado.financiamento.custoTotal)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Parcela Inicial:</span>
+                          <span className="font-semibold">{formatCurrency(resultado.financiamento.parcelaInicial)}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Gráfico de Probabilidade de Contemplação */}
-                  <div className="bg-gray-50 rounded-lg p-6 mb-8">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
-                      📈 Evolução da Probabilidade de Contemplação
-                    </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                      {resultado.consorcio.probabilidades.slice(0, 24).map((prob, index) => (
-                        <div key={index} className="text-center">
-                          <div className="text-gray-600">Mês {prob.mes}</div>
-                          <div className="font-medium">{formatPercent(prob.probabilidade * 100)}</div>
+                  {/* Detalhes Expandidos */}
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 mb-8">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">📊 Análise Detalhada</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      
+                      {/* Detalhes Consórcio */}
+                      <div>
+                        <h4 className="font-medium text-green-800 dark:text-green-200 mb-3">Detalhes do Consórcio:</h4>
+                        <div className="space-y-1 text-sm">
+                          <p><strong>Parcela Mensal:</strong> {formatCurrency(resultado.consorcio.parcelaMensal)}</p>
+                          <p><strong>Taxa Administrativa:</strong> {resultado.consorcio.taxaAdm}%</p>
+                          <p><strong>Valor Total Pago:</strong> {formatCurrency(resultado.consorcio.valorTotalPago)}</p>
+                          <p><strong>Tempo Médio Contemplação:</strong> {resultado.consorcio.tempoMedioContemplacao} meses</p>
                         </div>
-                      ))}
+                      </div>
+
+                      {/* Detalhes Financiamento */}
+                      <div>
+                        <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-3">Detalhes do Financiamento:</h4>
+                        <div className="space-y-1 text-sm">
+                          <p><strong>Entrada:</strong> {formatCurrency(resultado.financiamento.entrada)}</p>
+                          <p><strong>Valor Financiado:</strong> {formatCurrency(resultado.financiamento.valorFinanciado)}</p>
+                          <p><strong>Taxa de Juros:</strong> {resultado.financiamento.taxaJuros}% a.a.</p>
+                          <p><strong>Valor Total Pago:</strong> {formatCurrency(resultado.financiamento.valorTotalPago)}</p>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-4">
-                      *Modelo logístico: P(t) = σ(-3 + 0.12·lance% + 0.08·t)
-                    </p>
                   </div>
 
                   {/* Observações */}

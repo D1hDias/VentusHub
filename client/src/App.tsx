@@ -30,6 +30,7 @@ import SimuladorSacXPrice from "./pages/SimuladorSacXPrice";
 import SimuladorRoiFlipping from "./pages/SimuladorRoiFlipping";
 import SimuladorPotencialDeValorizacao from "./pages/SimuladorPotencialDeValorizacao";
 import SimuladorComissaoEMetas from "./pages/SimuladorComissaoEMetas";
+import SimuladorRendaPassiva from "./pages/SimuladorRendaPassiva";
 
 // Components
 import Layout from "./components/Layout.tsx";
@@ -223,6 +224,12 @@ function AppRoutes() {
       <Route path="/simulador-comissao-e-metas">
         <ProtectedRoute>
           <SimuladorComissaoEMetas />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/simulador-renda-passiva">
+        <ProtectedRoute>
+          <SimuladorRendaPassiva />
         </ProtectedRoute>
       </Route>
 
