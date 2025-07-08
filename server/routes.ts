@@ -549,6 +549,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
   });
 
+  // Rota temporária para criar usuário de teste
+  app.post("/api/create-test-user", async (req: any, res) => {
+    try {
+      const bcrypt = require('bcryptjs');
+      const hashedPassword = await bcrypt.hash("123456", 10);
+      
+      const testUser = await storage.createUser({
+        firstName: "Teste",
+        lastName: "Usuario",
+        email: "teste@ventushub.com.br",
+        password: hashedPassword,
+        cpf: "12345678901",
+        creci: "12345",
+        phone: "11999999999",
+      });
+      
+      res.json({ message: "Usuário de teste criado", user: testUser });
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao criar usuário", error: error.message });
+    }
+  });
+
   // Rota temporária para corrigir sequence numbers
   app.get("/api/fix-sequence-numbers", isAuthenticated, async (req: any, res) => {
     try {
