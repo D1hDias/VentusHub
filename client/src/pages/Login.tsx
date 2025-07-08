@@ -145,6 +145,12 @@ export default function Login() {
                   type="submit"
                   className="w-full"
                   disabled={loginMutation.isPending}
+                  onClick={(e) => {
+                    console.log("=== BUTTON CLICKED ===");
+                    console.log("Form valid:", form.formState.isValid);
+                    console.log("Form errors:", form.formState.errors);
+                    console.log("======================");
+                  }}
                 >
                   {loginMutation.isPending ? "Entrando..." : "Entrar"}
                 </Button>
