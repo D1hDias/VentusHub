@@ -12,7 +12,7 @@ export function setupAuth(app: Express) {
       saveUninitialized: false,
       name: "connect.sid",
       cookie: {
-        secure: true,
+        secure: false, // Desabilitar temporariamente para teste
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 horas
         sameSite: "lax",
