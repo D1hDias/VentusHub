@@ -65,8 +65,18 @@ export function setupAuthRoutes(app: Express) {
         user: userWithoutPassword,
       });
     } catch (error) {
-      console.error("Error registering user:", error);
-      res.status(500).json({ message: "Erro interno do servidor" });
+      console.error("=== ERROR REGISTERING USER ===");
+      console.error("Error:", error);
+      console.error("Stack:", error instanceof Error ? error.stack : "No stack");
+      console.error("Request body:", req.body);
+      console.error("================================");
+      
+      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+      res.status(500).json({ 
+        message: "Erro interno do servidor", 
+        error: errorMessage,
+        details: process.env.NODE_ENV === "development" ? error : undefined
+      });
     }
   });
 
