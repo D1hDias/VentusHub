@@ -17,11 +17,12 @@ export function setupAuth(app: Express) {
       saveUninitialized: false, // Alterado para false para evitar sessões vazias
       name: "connect.sid",
       cookie: {
-        secure: isProduction, // true em produção, false em desenvolvimento
+        secure: isProduction,
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 horas
         sameSite: "lax",
         path: "/",
+        domain: isProduction ? ".ventushub.com.br" : undefined, // Domínio do cookie
       },
     })
   );

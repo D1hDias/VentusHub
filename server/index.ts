@@ -2,10 +2,33 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors"; // Importar cors
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
+
+// Configuração de CORS
+const allowedOrigins = [
+  'https://ventushub.com.br',
+  'https://www.ventushub.com.br'
+];
+
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Permitir requisições sem 'origin' (ex: Postman, mobile apps)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // Permitir envio de cookies
+};
+
+app.use(cors(corsOptions));
+
 app.set('trust proxy', 1); // Trust first proxy (LiteSpeed)
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
