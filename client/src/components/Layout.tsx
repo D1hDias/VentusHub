@@ -129,7 +129,7 @@ export default function Layout({ children }: LayoutProps) {
                 <Menu className="h-5 w-5" />
               </Button>
               <img 
-                src="VentusHub\client\src\assets\logo.png" 
+                src="client\src\assets\logo.png" 
                 alt="Ventus Hub" 
                 className="w-[120px] h-auto"
               />
