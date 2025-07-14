@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Eye, EyeOff } from "lucide-react";
@@ -19,11 +21,22 @@ const registerSchema = z.object({
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
   confirmPassword: z.string(),
   cpf: z.string().min(11, "CPF deve ter 11 dígitos"),
-  creci: z.string().min(1, "CRECI é obrigatório"),
+  userType: z.enum(["corretor", "cliente"], {
+    required_error: "Selecione o tipo de usuário",
+  }),
+  creci: z.string().optional(),
   phone: z.string().min(10, "Telefone é obrigatório"),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Senhas não coincidem",
   path: ["confirmPassword"],
+}).refine((data) => {
+  if (data.userType === "corretor" && (!data.creci || data.creci.length < 1)) {
+    return false;
+  }
+  return true;
+}, {
+  message: "CRECI é obrigatório para corretores",
+  path: ["creci"],
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -31,6 +44,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isCorretor, setIsCorretor] = useState(true);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -43,6 +57,7 @@ export default function Register() {
       password: "",
       confirmPassword: "",
       cpf: "",
+      userType: "corretor" as const,
       creci: "",
       phone: "",
     },
@@ -96,7 +111,7 @@ export default function Register() {
               />
             </div>
             <CardTitle className="text-2xl font-bold">Ventus Hub</CardTitle>
-            <p className="text-muted-foreground">Crie sua conta de corretor</p>
+            <p className="text-muted-foreground">Crie sua conta</p>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -175,6 +190,41 @@ export default function Register() {
 
                   <FormField
                     control={form.control}
+                    name="userType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipo de Usuário</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            value={field.value}
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              setIsCorretor(value === "corretor");
+                              if (value === "cliente") {
+                                form.setValue("creci", "");
+                              }
+                            }}
+                            className="flex gap-6"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="corretor" id="corretor" />
+                              <Label htmlFor="corretor">Corretor de Imóveis</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="cliente" id="cliente" />
+                              <Label htmlFor="cliente">Cliente</Label>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {isCorretor && (
+                  <FormField
+                    control={form.control}
                     name="creci"
                     render={({ field }) => (
                       <FormItem>
@@ -186,7 +236,7 @@ export default function Register() {
                       </FormItem>
                     )}
                   />
-                </div>
+                )}
 
                 <FormField
                   control={form.control}

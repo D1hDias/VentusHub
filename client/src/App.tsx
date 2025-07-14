@@ -141,7 +141,7 @@ function AppRoutes() {
 
       <Route path="/credito/financiamento">
         <ProtectedRoute>
-          <SimuladorFinanciamento />
+          <CreditoFinanciamento />
         </ProtectedRoute>
       </Route>
 
