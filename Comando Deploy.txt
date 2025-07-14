@@ -1,0 +1,144 @@
+git pull && export $(cat .env | xargs) && npm run build && pm2 restart ventushub
+
+
+EXPLICAÇÕES:
+
+Modo Desenvolvimento (NODE_ENV=development)
+
+  Frontend (Vite)
+
+  - ✅ Hot Reload - Alterações aparecem instantaneamente
+  - ✅ Source Maps - Debug fácil com código original
+  - ✅ Código não minificado - Mais fácil de debugar
+  - ✅ Mensagens de erro detalhadas - Stack traces completos
+  - ✅ React DevTools funcionam perfeitamente
+  - ⚡ Compilação rápida - Vite compila apenas o que mudou
+
+  Backend (Express)
+
+  - 🔄 Vite Middleware - Serve arquivos React dinamicamente
+  - 📝 Logs detalhados - Mais informações de debug
+  - 🐛 Error overlay - Erros aparecem na tela
+  - 🔍 Stack traces completos - Facilita debug
+
+  ---
+  Modo Produção (NODE_ENV=production)
+
+  Frontend (Build estático)
+
+  - 📦 Código minificado - Arquivos menores (~1.9MB → ~500KB)
+  - ⚡ Otimizado - Tree-shaking remove código não usado
+  - 🗜️ Assets otimizados - Imagens comprimidas, CSS combinado
+  - 🚫 Sem source maps - Código ofuscado
+  - 🔒 Variáveis injetadas - VITE_* inseridas no build final
+
+  Backend (Express)
+
+  - 📁 Serve arquivos estáticos - Diretório dist/public/
+  - 🚀 Performance máxima - Sem overhead do Vite
+  - 📊 Logs mínimos - Apenas essencial
+  - 🛡️ Segurança - Menos informações expostas
+
+  ---
+  Fluxo de Arquivos
+
+  Desenvolvimento:
+
+  Browser → Express → Vite Middleware → React (tempo real)
+
+  Produção:
+
+  Browser → Express → Arquivos estáticos pré-buildados
+
+  ---
+  Quando Usar Cada Um
+
+  Development (local):
+
+  NODE_ENV=development
+  npm run dev
+  # Perfeito para codificar, testar, debugar
+
+  Production (servidor):
+
+  NODE_ENV=production
+  npm run build
+  npm start
+  # Otimizado para velocidade e eficiência
+
+  ---
+  Variáveis de Ambiente
+
+  Development:
+
+  - Vite lê .env automaticamente
+  - VITE_* disponíveis imediatamente
+
+  Production:
+
+  - Precisa export $(cat .env | xargs) antes do build
+  - Variáveis "injetadas" permanentemente no código
+
+
+  Conceito Básico:
+
+  🔧 Desenvolvimento = Local (Construir/Testar)
+
+  - Para você codificar no seu computador
+  - Ver mudanças instantaneamente
+  - Debugar erros facilmente
+  - Testar funcionalidades
+
+  🚀 Produção = Online (Deploy/Web)
+
+  - Para usuários reais acessarem
+  - Otimizado para velocidade
+  - Seguro e estável
+  - No seu servidor da web
+
+  ---
+  Fluxo Prático:
+
+  1. 💻 Local: NODE_ENV=development → npm run dev
+     (Você codifica e testa)
+
+  2. 🌐 Servidor: NODE_ENV=production → npm run build → npm start
+     (Usuários acessam)
+
+  ---
+  Analogia: É como uma oficina vs loja:
+  - Desenvolvimento = Oficina (bagunçada, ferramentas à vista, trabalho em progresso)
+  - Produção = Loja (limpa, organizada, produto final para clientes)
+
+  Resumo do Fluxo:
+
+  ✅ SEGURO - Pode fazer à vontade:
+
+  # No seu computador (desenvolvimento):
+  - Modificar código
+  - git add, commit, push, sync no Cursor
+  - Repositório fica atualizado
+  ➡️ Servidor online continua funcionando normalmente!
+
+  ⚠️ SÓ AFETA quando você executar no servidor:
+
+  # No servidor SSH (só quando quiser atualizar):
+  git pull
+  export $(cat .env | xargs) && npm run build
+  pm2 restart ventushub
+
+  ---
+  Vantagens desse fluxo:
+
+  ✅ Repositório sempre atualizado - Backup seguro do seu trabalho
+  ✅ Site online estável - Usuários não são afetados
+  ✅ Deploy controlado - Você escolhe quando atualizar
+  ✅ Rollback fácil - Pode voltar versão anterior se der problema
+
+  ---
+  Fluxo Recomendado:
+
+  1. 🔨 Desenvolve local → testa → git push/sync
+  2. 🔨 Desenvolve mais → testa → git push/sync
+  3. 🔨 Desenvolve mais → testa → git push/sync
+  4. ✅ Quando satisfeito → Deploy no servidor
