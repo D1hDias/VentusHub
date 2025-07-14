@@ -188,16 +188,7 @@ export function setupAuthRoutes(app: Express) {
   });
 
   // Verificar usuário atual
-  app.get("/api/auth/user", (req: any, res: any, next: any) => {
-    // DEBUG: Logar cabeçalhos e sessão recebidos
-    console.log("\n--- DEBUG INCOMING REQUEST /api/auth/user ---");
-    console.log("TIMESTAMP:", new Date().toISOString());
-    console.log("HEADERS RECEBIDOS:", JSON.stringify(req.headers, null, 2));
-    console.log("SESSÃO RECEBIDA:", req.session);
-    console.log("--- FIM DEBUG ---\n");
-
-    isAuthenticated(req, res, next);
-  }, async (req: any, res: any) => {
+  app.get("/api/auth/user", isAuthenticated, async (req: any, res: any) => {
     try {
       const userId = req.session.user.id;
       const user = await storage.getUser(userId);
