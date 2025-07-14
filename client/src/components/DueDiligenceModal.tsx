@@ -164,7 +164,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
       id: 'sefaz', 
       name: 'Certidão negativa de tributos estaduais inscritos em dívida ativa, emitida pela Procuradoria Geral do Estado - SEFAZ', 
       status: 'pending',
-      url: 'http://www.consultadividaativa.rj.gov.br/RDGWEBLNX/servlet/StartCISPage?PAGEURL=/cisnatural/NatLogon.html&xciParameters.natsession=Solicitar_Certidao',
+      url: 'https://www.consultadividaativa.rj.gov.br/RDGWEBLNX/servlet/StartCISPage?PAGEURL=/cisnatural/NatLogon.html&xciParameters.natsession=Solicitar_Certidao',
       tutorialUrl: 'https://youtube.com/watch?v=placeholder15'
     },
   ]);
