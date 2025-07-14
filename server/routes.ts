@@ -1,7 +1,8 @@
 import type { Express } from "express";
 import { storage } from "./storage";
 import { isAuthenticated } from "./auth";
-import { insertProposalSchema, z } from "@shared/schema";
+import { insertProposalSchema } from "@shared/schema";
+import { z } from "zod";
 import { db } from "./db";
 import { documents as propertyDocuments, properties } from "@shared/schema";
 import { eq } from "drizzle-orm";
