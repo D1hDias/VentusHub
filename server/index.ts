@@ -26,7 +26,6 @@ log(`
 
   // 2. Configuração de CORS (deve vir antes da sessão e das rotas)
   const allowedOrigins = [
-    'https://ventushub.com.br',
     'https://www.ventushub.com.br',
     'http://localhost:5000' // Adicionado para desenvolvimento local
   ];
