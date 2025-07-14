@@ -3,18 +3,27 @@
 import type { Express } from "express";
 import session from "express-session";
 import bcrypt from "bcryptjs";
+import connectPgSimple from "connect-pg-simple";
 import { storage } from "./storage";
-import { db } from "./db";
+import { pool } from "./db"; // Importar o pool de conexão do Neon
 
 // Configuração da sessão
 export function setupAuth(app: Express) {
   const isProduction = process.env.NODE_ENV === 'production';
+  const PgSession = connectPgSimple(session);
+
+  const store = new PgSession({
+    pool: pool, // Usar o pool de conexão existente
+    tableName: 'user_sessions', // Nome da tabela para armazenar sessões
+    createTableIfMissing: true,
+  });
 
   app.use(
     session({
-      secret: process.env.SESSION_SECRET || "default-secret-key",
+      store: store, // Usar o armazenamento do PostgreSQL
+      secret: process.env.SESSION_SECRET || "default-secret-key-that-is-long-and-secure",
       resave: false,
-      saveUninitialized: false, // Alterado para false para evitar sessões vazias
+      saveUninitialized: false,
       name: "connect.sid",
       cookie: {
         secure: isProduction,
@@ -22,7 +31,7 @@ export function setupAuth(app: Express) {
         maxAge: 24 * 60 * 60 * 1000, // 24 horas
         sameSite: "lax",
         path: "/",
-        domain: isProduction ? ".ventushub.com.br" : undefined, // Domínio do cookie
+        domain: isProduction ? ".ventushub.com.br" : undefined,
       },
     })
   );
