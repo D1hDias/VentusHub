@@ -8,6 +8,15 @@ import { setupAuth, setupAuthRoutes } from "./auth";
 import { registerApiRoutes } from "./routes"; // Renomeado para maior clareza
 import { setupVite, serveStatic, log } from "./vite";
 
+// ====================================================================
+// VERIFICAÇÃO DE AMBIENTE - VERIFIQUE ESTE LOG NO SEU SERVIDOR
+log(`
+
+*** O servidor está rodando em modo: [${process.env.NODE_ENV || 'INDEFINIDO'}] ***
+
+`);
+// ====================================================================
+
 (async () => {
   const app = express();
   const httpServer = createServer(app);
