@@ -39,13 +39,13 @@
       "Bash(git config:*)",
       "Bash(git push origin main)",
       "Bash(git push Diego main)",
-      "Bash(cd:*)",
       "Bash(./deploy-production.sh)",
       "Bash(npm install)",
       "Bash(npm install:*)",
-      "Bash(cd:*)",
       "WebFetch(domain:www.canva.com)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(pm2 restart:*)",
+      "Bash(npm start)"
     ],
     "deny": []
   }
