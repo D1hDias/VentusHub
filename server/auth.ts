@@ -11,13 +11,17 @@ import { pool } from "./db"; // Importar o pool de conexão do Neon
 // Configuração da sessão
 export function setupAuth(app: Express) {
   const isProduction = process.env.NODE_ENV === 'production';
-  
-  // Temporariamente usando MemoryStore para evitar problemas de sessão
-  // TODO: Voltar para PostgreSQL store quando resolver o problema do índice
-  
+  const PgSession = connectPgSimple(session);
+
+  const store = new PgSession({
+    pool: pool,
+    tableName: 'user_sessions',
+    createTableIfMissing: false, // Tabela já foi criada manualmente
+  });
+
   app.use(
     session({
-      // store: store, // Comentado temporariamente
+      store: store,
       secret: process.env.SESSION_SECRET || "default-secret-key-that-is-long-and-secure",
       resave: false,
       saveUninitialized: false,
