@@ -3,6 +3,7 @@
 import type { Express } from "express";
 import session from "express-session";
 import bcrypt from "bcryptjs";
+import { randomBytes } from "crypto";
 import connectPgSimple from "connect-pg-simple";
 import { storage } from "./storage";
 import { pool } from "./db"; // Importar o pool de conexão do Neon
@@ -25,6 +26,7 @@ export function setupAuth(app: Express) {
       resave: false,
       saveUninitialized: false,
       name: "connect.sid",
+      genid: () => randomBytes(16).toString('hex'), // Fix crypto import issue
       cookie: {
         secure: isProduction,
         httpOnly: true,
