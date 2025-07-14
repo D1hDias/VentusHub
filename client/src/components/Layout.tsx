@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import logoImage from "@/assets/logo.png";
 import {
   Home,
   Building2,
