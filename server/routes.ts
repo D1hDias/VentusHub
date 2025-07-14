@@ -1,20 +1,12 @@
 import type { Express } from "express";
-import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, setupAuthRoutes, isAuthenticated } from "./auth";
-import { insertPropertySchema, insertProposalSchema, insertContractSchema, insertTimelineEntrySchema, properties } from "@shared/schema";
-import { z } from "zod";
+import { isAuthenticated } from "./auth";
+import { insertProposalSchema, z } from "@shared/schema";
 import { db } from "./db";
-import { documents as propertyDocuments } from "@shared/schema";
+import { documents as propertyDocuments, properties } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
-export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup auth middleware
-  setupAuth(app);
-  
-  // Setup auth routes
-  setupAuthRoutes(app);
-
+export function registerApiRoutes(app: Express): void {
   // Property routes
   app.get("/api/properties", isAuthenticated, async (req: any, res) => {
     try {

@@ -2,93 +2,71 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express, { type Request, Response, NextFunction } from "express";
-import cors from "cors"; // Importar cors
-import { registerRoutes } from "./routes";
+import cors from "cors";
+import { createServer } from "http";
+import { setupAuth, setupAuthRoutes } from "./auth";
+import { registerApiRoutes } from "./routes"; // Renomeado para maior clareza
 import { setupVite, serveStatic, log } from "./vite";
 
-const app = express();
+(async () => {
+  const app = express();
+  const httpServer = createServer(app);
 
-// Configuração de CORS
-const allowedOrigins = [
-  'https://ventushub.com.br',
-  'https://www.ventushub.com.br'
-];
+  // 1. Confiar no proxy reverso (essencial para o secure cookie em produção)
+  app.set('trust proxy', 1);
 
-const corsOptions = {
-  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    // Permitir requisições sem 'origin' (ex: Postman, mobile apps)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true, // Permitir envio de cookies
-};
+  // 2. Configuração de CORS (deve vir antes da sessão e das rotas)
+  const allowedOrigins = [
+    'https://ventushub.com.br',
+    'https://www.ventushub.com.br',
+    'http://localhost:5000' // Adicionado para desenvolvimento local
+  ];
 
-app.use(cors(corsOptions));
-
-app.set('trust proxy', 1); // Trust first proxy (LiteSpeed)
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
+  const corsOptions = {
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
   };
 
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
+  app.use(cors(corsOptions));
 
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
+  // 3. Configuração da Sessão (essencial antes das rotas)
+  setupAuth(app);
 
-      log(logLine);
-    }
-  });
+  // 4. Parsers de corpo de requisição
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
-  next();
-});
+  // 5. Registro de Rotas da API
+  setupAuthRoutes(app); // Rotas de autenticação
+  registerApiRoutes(app); // Outras rotas da API
 
-(async () => {
-  const server = await registerRoutes(app);
-
+  // 6. Middleware de tratamento de erros (opcional, mas boa prática)
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
-
     res.status(status).json({ message });
-    throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
+  // 7. Configuração do Vite ou Servidor Estático (deve vir por último)
+  if (process.env.NODE_ENV === "development") {
+    await setupVite(app, httpServer);
   } else {
     serveStatic(app);
   }
 
-  // Configure port based on environment
-  // Development: 5000, Production: 5000 (or PORT env var)
+  // Iniciar o servidor
   const port = process.env.PORT || 5000;
   const host = process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1";
   
-  server.listen(port, host, () => {
-    log(`serving on ${host}:${port}`);
+  httpServer.listen(port, () => {
+    log(`Server listening on port: ${port}`);
   });
+
 })();
+
