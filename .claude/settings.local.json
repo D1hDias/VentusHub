@@ -45,7 +45,9 @@
       "WebFetch(domain:www.canva.com)",
       "Bash(find:*)",
       "Bash(pm2 restart:*)",
-      "Bash(npm start)"
+      "Bash(npm start)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }
