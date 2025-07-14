@@ -4,6 +4,14 @@ import { Calculator, Download, Building, CreditCard, FileText, TrendingUp, Home,
 import { scroller, Element } from 'react-scroll';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import logoBB from '@/assets/logo-bb.png';
+import logoBradesco from '@/assets/logo-bradesco.png';
+import logoBRB from '@/assets/logo-brb.png';
+import logoCaixa from '@/assets/logo-caixa.png';
+import logoInter from '@/assets/logo-inter.png';
+import logoItau from '@/assets/logo-itau.png';
+import logoSantander from '@/assets/logo-santander.png';
+import logoVentusHub from '@/assets/logo.png';
 
 // Função para converter imagem em base64 e obter dimensões
 const imageToBase64 = (url) => {
@@ -132,7 +140,7 @@ const BANCOS_CONFIG = {
   bb: {
     nome: "Banco do Brasil",
     cor: "#FFD700",
-    logo: "/src/assets/logo-bb.png",
+    logo: logoBB,
     financiamentoMax: 0.80,
     entradaMin: 0.20,
     prazoMaximoEspecial: 360,
@@ -155,7 +163,7 @@ const BANCOS_CONFIG = {
   bradesco: {
     nome: "Bradesco",
     cor: "#CC0000",
-    logo: "/src/assets/logo-bradesco.png",
+    logo: logoBradesco,
     financiamentoMax: 0.70,
     entradaMin: 0.30,
     observacaoEspecial: "Percentual de financiamento e taxa de juros podem variar de acordo com o seu relacionamento com o banco.",
@@ -181,7 +189,7 @@ const BANCOS_CONFIG = {
   brb: {
     nome: "BRB",
     cor: "#0066CC",
-    logo: "/src/assets/logo-brb.png",
+    logo: logoBRB,
     financiamentoMax: 0.80,
     entradaMin: 0.20,
     observacaoEspecial: "Percentual de financiamento e taxa de juros podem variar de acordo com o seu relacionamento com o banco.",
@@ -209,7 +217,7 @@ const BANCOS_CONFIG = {
   caixa: {
     nome: "Caixa",
     cor: "#0066CC",
-    logo: "/src/assets/logo-caixa.png",
+    logo: logoCaixa,
     financiamentoMax: 0.70,
     entradaMin: 0.30,
     observacaoEspecial: "Percentual de financiamento e taxa de juros podem variar de acordo com o seu relacionamento com o banco, sistema de amortização e correção.",
@@ -236,7 +244,7 @@ const BANCOS_CONFIG = {
   inter: {
     nome: "Inter",
     cor: "#FF6600",
-    logo: "/src/assets/logo-inter.png",
+    logo: logoInter,
     financiamentoMax: 0.75,
     entradaMin: 0.25,
     observacao: "Inter não trabalha com correção TR. Financiamentos apenas com IPCA.",
@@ -263,7 +271,7 @@ const BANCOS_CONFIG = {
   itau: {
     nome: "Itaú",
     cor: "#EC7000",
-    logo: "/src/assets/logo-itau.png",
+    logo: logoItau,
     financiamentoMax: 0.80,
     entradaMin: 0.20,
     observacaoEspecial: "Percentual de financiamento e taxa de juros podem variar de acordo com o seu relacionamento com o banco.",
@@ -291,7 +299,7 @@ const BANCOS_CONFIG = {
   santander: {
     nome: "Santander",
     cor: "#EC0000",
-    logo: "/src/assets/logo-santander.png",
+    logo: logoSantander,
     financiamentoMax: 0.80,
     entradaMin: 0.20,
     observacaoEspecial: "Percentual de financiamento e taxa de juros podem variar de acordo com o seu relacionamento com o banco.",
@@ -321,7 +329,7 @@ const BANCOS_MCMV_CONFIG = {
   caixa_mcmv: {
     nome: "Caixa Econômica Federal",
     cor: "#0066CC",
-    logo: "/src/assets/logo-caixa.png",
+    logo: logoCaixa,
     financiamentoMax: 0.90,
     entradaMin: 0.10,
     observacaoEspecial: "Taxas especiais do programa Minha Casa Minha Vida. Condições diferenciadas para famílias de baixa renda.",
@@ -345,7 +353,7 @@ const BANCOS_MCMV_CONFIG = {
   bb_mcmv: {
     nome: "Banco do Brasil",
     cor: "#FFD700",
-    logo: "/src/assets/logo-bb.png",
+    logo: logoBB,
     financiamentoMax: 0.90,
     entradaMin: 0.10,
     prazoMaximoEspecial: 360,
@@ -960,7 +968,7 @@ export default function SimuladorComparativo() {
       }
       
       try {
-        logoVentusHub = await imageToBase64('/src/assets/logo.png');
+        logoVentusHub = await imageToBase64(logoVentusHub);
       } catch (error) {
         console.warn('Erro ao carregar logo VentusHub:', error);
       }
@@ -1270,7 +1278,7 @@ export default function SimuladorComparativo() {
       // Carregar logo VentusHub primeiro
       let logoVentusHub = null;
       try {
-        logoVentusHub = await imageToBase64('/src/assets/logo.png');
+        logoVentusHub = await imageToBase64(logoVentusHub);
       } catch (error) {
         console.warn('Erro ao carregar logo VentusHub:', error);
       }
