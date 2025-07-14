@@ -1,3 +1,5 @@
+// server/auth.ts
+
 import type { Express } from "express";
 import session from "express-session";
 import bcrypt from "bcryptjs";
@@ -6,22 +8,20 @@ import { db } from "./db";
 
 // Configuração da sessão
 export function setupAuth(app: Express) {
+  const isProduction = process.env.NODE_ENV === 'production';
+
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "default-secret-key",
       resave: false,
-      saveUninitialized: true, // Criar sessão mesmo se vazia
+      saveUninitialized: false, // Alterado para false para evitar sessões vazias
       name: "connect.sid",
       cookie: {
-        secure: false,
+        secure: isProduction, // true em produção, false em desenvolvimento
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 horas
         sameSite: "lax",
         path: "/",
-      },
-      // Forçar criação de cookie
-      genid: () => {
-        return require('crypto').randomBytes(20).toString('hex');
       },
     })
   );
