@@ -151,9 +151,10 @@ export function setupAuthRoutes(app: Express) {
         // Forçar definição do cookie manualmente
         res.cookie('connect.sid', req.sessionID, {
           httpOnly: true,
-          secure: false,
+          secure: isProduction,
           sameSite: 'lax',
           path: '/',
+          domain: isProduction ? 'ventushub.com.br' : undefined,
           maxAge: 24 * 60 * 60 * 1000
         });
         
