@@ -29,7 +29,7 @@ export function setupAuth(app: Express) {
         maxAge: 24 * 60 * 60 * 1000, // 24 horas
         sameSite: "lax",
         path: "/",
-        domain: isProduction ? ".ventushub.com.br" : undefined,
+        domain: isProduction ? "ventushub.com.br" : undefined, // Remover o ponto inicial
       },
     })
   );
