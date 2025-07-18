@@ -1,3 +1,16 @@
+# Atualizar aplicação após mudanças
+cd /var/www/VentusHub
+git pull
+npm run build
+sudo docker build -t ventushub:latest .
+sudo docker service update --image ventushub:latest ventushub
+
+# Monitorar logs
+sudo docker service logs ventushub --follow
+
+# Ver status
+sudo docker service ls
+
 git pull && export $(cat .env | xargs) && npm run build && pm2 restart ventushub
 
 
