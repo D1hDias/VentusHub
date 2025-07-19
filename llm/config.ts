@@ -3,7 +3,7 @@ import { buildSystemPrompt, buildTrainingPrompt } from './prompts/index.js';
 
 // Configuração padrão para desenvolvimento com prompts aprimorados
 export const DEFAULT_LLM_CONFIG = createLLMConfig(
-  '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',
+  process.env.OPENROUTER_API_KEY || '',
   'deepseek-chat',
   {
     temperature: 0.7,
