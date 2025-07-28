@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import logoImage from "@/assets/logo.png";
@@ -24,7 +24,17 @@ import {
   ChevronRight,
   CreditCard,
   Shield,
-  BarChart3
+  BarChart3,
+  Circle,
+  DollarSign,
+  ArrowRightLeft,
+  Scale,
+  BarChart2,
+  TrendingUp,
+  Target,
+  PiggyBank,
+  Repeat,
+  BadgeCent
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -63,11 +73,115 @@ export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showFinanciamentoSubmenu, setShowFinanciamentoSubmenu] = useState(false);
+  const [showCreditoSidebar, setShowCreditoSidebar] = useState(false);
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(1, 5);
   const [isSimulatorsOpen, setIsSimulatorsOpen] = useState(false);
+
+  // Auto-abrir sidebar de crédito quando estivermos nas rotas de crédito
+  React.useEffect(() => {
+    if (location === "/credito/financiamento" || location === "/credito/consorcio") {
+      if (!showCreditoSidebar) {
+        setSidebarCollapsed(true);
+        setShowCreditoSidebar(true);
+      }
+    } else {
+      if (showCreditoSidebar) {
+        setSidebarCollapsed(false);
+        setShowCreditoSidebar(false);
+      }
+    }
+  }, [location]);
+
+  // Função para obter as cores baseadas na rota atual
+  const getCurrentTheme = () => {
+    if (location === "/credito/financiamento") {
+      return {
+        primary: "#3b82f6",
+        primaryRgb: "59, 130, 246",
+        name: "Financiamento",
+        classes: {
+          border: "border-blue-200",
+          headerBg: "from-blue-50 to-white",
+          buttonText: "text-blue-600",
+          buttonHover: "hover:bg-blue-100",
+          dotBg: "bg-blue-500",
+          titleGradient: "from-blue-600 to-blue-800",
+          itemActive: "from-blue-500 to-blue-600 border-blue-500",
+          itemHover: "hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300",
+          iconBg: "bg-blue-100 hover:bg-blue-200",
+          iconText: "text-blue-600",
+          footerBg: "from-blue-50 to-blue-100",
+          footerBorder: "border-blue-200",
+          footerText: "text-blue-700",
+          footerSubtext: "text-blue-500",
+          footerDots: "bg-blue-400"
+        }
+      };
+    } else if (location === "/credito/consorcio") {
+      return {
+        primary: "#ef4444",
+        primaryRgb: "239, 68, 68",
+        name: "Consórcio",
+        classes: {
+          border: "border-red-200",
+          headerBg: "from-red-50 to-white",
+          buttonText: "text-red-600",
+          buttonHover: "hover:bg-red-100",
+          dotBg: "bg-red-500",
+          titleGradient: "from-red-600 to-red-800",
+          itemActive: "from-red-500 to-red-600 border-red-500",
+          itemHover: "hover:bg-red-50 hover:text-red-700 hover:border-red-300",
+          iconBg: "bg-red-100 hover:bg-red-200",
+          iconText: "text-red-600",
+          footerBg: "from-red-50 to-red-100",
+          footerBorder: "border-red-200",
+          footerText: "text-red-700",
+          footerSubtext: "text-red-500",
+          footerDots: "bg-red-400"
+        }
+      };
+    }
+    // Default (financiamento)
+    return {
+      primary: "#3b82f6",
+      primaryRgb: "59, 130, 246",
+      name: "Financiamento",
+      classes: {
+        border: "border-blue-200",
+        headerBg: "from-blue-50 to-white",
+        buttonText: "text-blue-600",
+        buttonHover: "hover:bg-blue-100",
+        dotBg: "bg-blue-500",
+        titleGradient: "from-blue-600 to-blue-800",
+        itemActive: "from-blue-500 to-blue-600 border-blue-500",
+        itemHover: "hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300",
+        iconBg: "bg-blue-100 hover:bg-blue-200",
+        iconText: "text-blue-600",
+        footerBg: "from-blue-50 to-blue-100",
+        footerBorder: "border-blue-200",
+        footerText: "text-blue-700",
+        footerSubtext: "text-blue-500",
+        footerDots: "bg-blue-400"
+      }
+    };
+  };
+
+  const currentTheme = getCurrentTheme();
+
+  // Items da nova sidebar de Crédito
+  const creditoItems = [
+    { href: "/credito/financiamento", label: "Visão geral", icon: Home },
+    { href: "/credito/clientes", label: "Clientes", icon: User },
+    { href: "/credito/imoveis", label: "Imóveis", icon: Building2 },
+    { href: "/credito/propostas", label: "Propostas", icon: HandHeart },
+    { href: "/credito/usuarios", label: "Usuários", icon: User },
+    { href: "/credito/bancos", label: "Bancos", icon: CreditCard },
+    { href: "/credito/imobiliarias", label: "Imobiliárias", icon: Store },
+    { href: "/credito/relatorios", label: "Relatórios", icon: FileText },
+  ];
 
   const getNotificationIcon = (type: string, category: string) => {
     if (category === 'property') return Building2;
@@ -103,18 +217,25 @@ export default function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-background flex transition-colors duration-200">
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-[#001f3f] to-[#004286] shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-[#001f3f] to-[#004286] transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } ${
-        sidebarCollapsed ? "w-16" : "w-64"
+        sidebarCollapsed ? "w-14 shadow-2xl shadow-black/40" : "w-60 shadow-lg"
         }`}
+        style={sidebarCollapsed ? {
+          boxShadow: '6px 0 25px rgba(0, 0, 0, 0.5), 3px 0 15px rgba(0, 0, 0, 0.3), 1px 0 5px rgba(0, 0, 0, 0.2)',
+          zIndex: 60
+        } : {}}
       >
-        <div className="flex items-center h-16 px-3 border-b border-white/10">
+        <div className={`flex items-center h-16 border-b border-white/10 ${sidebarCollapsed ? "px-2" : "px-3"}`}>
           {sidebarCollapsed ? (
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/10 w-full flex justify-center"
+              className="text-white hover:bg-white/20 w-full flex justify-center hover:shadow-lg transition-all duration-200"
+              style={{ 
+                filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
+              }}
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             >
               <Menu className="h-5 w-5" />
@@ -138,7 +259,7 @@ export default function Layout({ children }: LayoutProps) {
           )}
         </div>
 
-        <nav className="mt-6 px-3">
+        <nav className={`mt-6 ${sidebarCollapsed ? "px-1" : "px-3"}`}>
           <div className="space-y-1">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -150,11 +271,14 @@ export default function Layout({ children }: LayoutProps) {
                   <div key={item.href}>
                     {/* Crédito Button */}
                     <div
-                      className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${
+                      className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${sidebarCollapsed ? "px-2" : "px-3"} ${
                         isActive || location.startsWith("/credito")
                           ? "bg-white/20 text-white border-r-2 border-white"
                           : "text-white/80 hover:bg-white/10 hover:text-white"
-                      } ${sidebarCollapsed ? "justify-center" : ""}`}
+                      } ${sidebarCollapsed ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""}`}
+                      style={sidebarCollapsed ? { 
+                        filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
+                      } : {}}
                       title={sidebarCollapsed ? item.label : ""}
                       onClick={() => setShowFinanciamentoSubmenu(!showFinanciamentoSubmenu)}
                     >
@@ -198,16 +322,21 @@ export default function Layout({ children }: LayoutProps) {
                                 <div
                                   className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] ${
                                     location === "/credito/financiamento"
-                                      ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/25"
-                                      : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-purple-700 dark:hover:text-purple-400"
+                                      ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
+                                      : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-blue-700 dark:hover:text-blue-400"
                                   }`}
+                                  onClick={() => {
+                                    // Fechar o submenu após clique
+                                    setShowFinanciamentoSubmenu(false);
+                                    // A sidebar será aberta automaticamente pelo useEffect quando a rota mudar
+                                  }}
                                 >
                                   <div className={`p-1 rounded-md mr-2 transition-all duration-300 ${
                                     location === "/credito/financiamento"
                                       ? "bg-white/20"
-                                      : "bg-purple-100 dark:bg-gray-700 group-hover:bg-purple-200 dark:group-hover:bg-gray-600"
+                                      : "bg-blue-100 dark:bg-gray-700 group-hover:bg-blue-200 dark:group-hover:bg-gray-600"
                                   }`}>
-                                    <Calculator className="h-3 w-3" />
+                                    <CreditCard className="h-3 w-3" />
                                   </div>
                                   <span className="font-medium text-xs">Financiamento</span>
                                   <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -221,16 +350,16 @@ export default function Layout({ children }: LayoutProps) {
                                 <div
                                   className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] ${
                                     location === "/credito/consorcio"
-                                      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25"
-                                      : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-blue-700 dark:hover:text-blue-400"
+                                      ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25"
+                                      : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-red-700 dark:hover:text-red-400"
                                   }`}
                                 >
                                   <div className={`p-1 rounded-md mr-2 transition-all duration-300 ${
                                     location === "/credito/consorcio"
                                       ? "bg-white/20"
-                                      : "bg-blue-100 dark:bg-gray-700 group-hover:bg-blue-200 dark:group-hover:bg-gray-600"
+                                      : "bg-red-100 dark:bg-gray-700 group-hover:bg-red-200 dark:group-hover:bg-gray-600"
                                   }`}>
-                                    <CreditCard className="h-3 w-3" />
+                                    <BadgeCent className="h-3 w-3" />
                                   </div>
                                   <span className="font-medium text-xs">Consórcio</span>
                                   <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -280,13 +409,16 @@ export default function Layout({ children }: LayoutProps) {
               return (
                 <Link key={item.href} href={item.href}>
                   <div
-                    className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${
+                    className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${sidebarCollapsed ? "px-2" : "px-3"} ${
                     isActive
                         ? "bg-white/20 text-white border-r-2 border-white"
                         : "text-white/80 hover:bg-white/10 hover:text-white"
                     } ${
-                    sidebarCollapsed ? "justify-center" : ""
+                    sidebarCollapsed ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
                     }`}
+                    style={sidebarCollapsed ? { 
+                      filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
+                    } : {}}
                     title={sidebarCollapsed ? item.label : ""}
                   >
                     <Icon className={`h-5 w-5 ${sidebarCollapsed ? "" : "mr-3"}`} />
@@ -298,10 +430,13 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </nav>
 
-        <div className="absolute bottom-4 left-0 right-0 px-3">
-          <div className={`flex items-center px-3 py-2 text-sm text-white/80 cursor-pointer hover:bg-white/10 rounded-md ${
-            sidebarCollapsed ? "justify-center" : ""
+        <div className={`absolute bottom-4 left-0 right-0 ${sidebarCollapsed ? "px-1" : "px-3"}`}>
+          <div className={`flex items-center py-2 text-sm text-white/80 cursor-pointer hover:bg-white/10 rounded-md ${sidebarCollapsed ? "px-2" : "px-3"} ${
+            sidebarCollapsed ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
           }`}
+          style={sidebarCollapsed ? { 
+            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
+          } : {}}
           title={sidebarCollapsed ? "Configurações" : ""}
           >
             <Settings className={`h-5 w-5 ${sidebarCollapsed ? "" : "mr-3"}`} />
@@ -309,6 +444,93 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </div>
       </div>
+
+      {/* Nova Sidebar de Crédito */}
+      <AnimatePresence>
+        {showCreditoSidebar && (
+          <motion.div
+            initial={{ x: -320, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -320, opacity: 0 }}
+            transition={{ duration: 0.4, ease: "easeInOut" }}
+            className={`fixed inset-y-0 left-14 z-30 w-56 bg-gradient-to-b from-white to-gray-50 border-r ${currentTheme.classes.border} shadow-lg`}
+            style={{
+              boxShadow: `inset 4px 0 10px rgba(${currentTheme.primaryRgb}, 0.08), 0 0 20px rgba(${currentTheme.primaryRgb}, 0.05), inset 0 0 0 1px rgba(${currentTheme.primaryRgb}, 0.1)`
+            }}
+          >
+            {/* Header da nova sidebar */}
+            <div className={`flex items-center h-16 px-4 border-b ${currentTheme.classes.border} bg-gradient-to-r ${currentTheme.classes.headerBg}`}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`${currentTheme.classes.buttonText} ${currentTheme.classes.buttonHover} mr-3 transition-colors duration-200`}
+                onClick={() => {
+                  setSidebarCollapsed(false);
+                  setShowCreditoSidebar(false);
+                }}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center">
+                <div className={`w-2 h-2 ${currentTheme.classes.dotBg} rounded-full mr-2 animate-pulse`}></div>
+                <h2 className={`text-lg font-semibold bg-gradient-to-r ${currentTheme.classes.titleGradient} bg-clip-text text-transparent`}>{currentTheme.name}</h2>
+              </div>
+            </div>
+
+            {/* Navegação da sidebar de crédito */}
+            <nav className="mt-6 px-3">
+              <div className="space-y-1">
+                {creditoItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location === item.href;
+                  
+                  return (
+                    <Link key={item.href} href={item.href}>
+                      <motion.div
+                        whileHover={{ scale: 1.02, x: 4 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer ${
+                          isActive
+                            ? `bg-gradient-to-r ${currentTheme.classes.itemActive} text-white shadow-lg border-r-2`
+                            : `text-gray-700 ${currentTheme.classes.itemHover} hover:border-l-2`
+                        }`}
+                      >
+                        <div className={`p-1.5 rounded-lg mr-3 transition-all duration-300 ${
+                          isActive 
+                            ? "bg-white/20" 
+                            : currentTheme.classes.iconBg
+                        }`}>
+                          <Icon className={`h-4 w-4 ${isActive ? "text-white" : currentTheme.classes.iconText}`} />
+                        </div>
+                        <span className="flex-1">{item.label}</span>
+                        {isActive && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="w-2 h-2 bg-white rounded-full ml-auto"
+                          />
+                        )}
+                      </motion.div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </nav>
+
+            {/* Footer da sidebar de crédito */}
+            <div className="absolute bottom-4 left-0 right-0 px-3">
+              <div className={`bg-gradient-to-r ${currentTheme.classes.footerBg} rounded-lg px-3 py-2 text-center border ${currentTheme.classes.footerBorder}`}>
+                <div className={`text-xs ${currentTheme.classes.footerText} font-medium`}>Sistema de Crédito</div>
+                <div className={`text-[10px] ${currentTheme.classes.footerSubtext} mt-0.5 flex items-center justify-center`}>
+                  <div className={`w-1 h-1 ${currentTheme.classes.footerDots} rounded-full mr-1`}></div>
+                  {currentTheme.name}
+                  <div className={`w-1 h-1 ${currentTheme.classes.footerDots} rounded-full ml-1`}></div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Overlay para mobile */}
       {sidebarOpen && (
@@ -320,7 +542,9 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Main content */}
       {/* Header */}
-      <header className={cn("fixed top-0 right-0 z-40 bg-gradient-to-r from-[#001f3f] to-[#004286] border-b border-white/10 shadow-sm transition-all duration-300 ease-in-out h-16", sidebarCollapsed ? "lg:left-16" : "lg:left-64")}>
+      <header className={cn("fixed top-0 right-0 z-40 bg-gradient-to-r from-[#001f3f] to-[#004286] border-b border-white/10 shadow-sm transition-all duration-300 ease-in-out h-16", 
+        showCreditoSidebar ? "lg:left-[280px]" : (sidebarCollapsed ? "lg:left-14" : "lg:left-60")
+      )}>
         <div className="flex items-center justify-between h-full px-6">
           <div className="flex items-center">
             <Button
@@ -375,7 +599,9 @@ export default function Layout({ children }: LayoutProps) {
                 <DropdownMenuItem asChild className="p-0">
                   <Link href="/simulador-valor-registro" className="group">
                     <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-blue-700 dark:hover:text-blue-400">
-                      <Calculator className="h-3 w-3 mr-2" />
+                      <div className="p-1 rounded-full bg-blue-100 dark:bg-blue-900/50 mr-2 transition-all duration-300 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50">
+                        <FileText className="h-2.5 w-2.5 text-blue-600 dark:text-blue-400" />
+                      </div>
                       <span className="font-medium text-xs">Valor de Registro</span>
                       <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <ChevronRight className="h-2.5 w-2.5" />
@@ -386,7 +612,9 @@ export default function Layout({ children }: LayoutProps) {
                 <DropdownMenuItem asChild className="p-0">
                   <Link href="/simulador-financiamento" className="group">
                     <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-green-700 dark:hover:text-green-400">
-                      <Calculator className="h-3 w-3 mr-2" />
+                      <div className="p-1 rounded-full bg-green-100 dark:bg-green-900/50 mr-2 transition-all duration-300 group-hover:bg-green-200 dark:group-hover:bg-green-800/50">
+                        <Home className="h-2.5 w-2.5 text-green-600 dark:text-green-400" />
+                      </div>
                       <span className="font-medium text-xs">Financiamento Imobiliário</span>
                       <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <ChevronRight className="h-2.5 w-2.5" />
@@ -397,7 +625,9 @@ export default function Layout({ children }: LayoutProps) {
                 <DropdownMenuItem asChild className="p-0">
                   <Link href="/simulador-valor-imovel" className="group">
                     <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-purple-700 dark:hover:text-purple-400">
-                      <Calculator className="h-3 w-3 mr-2" />
+                      <div className="p-1 rounded-full bg-purple-100 dark:bg-purple-900/50 mr-2 transition-all duration-300 group-hover:bg-purple-200 dark:group-hover:bg-purple-800/50">
+                        <Search className="h-2.5 w-2.5 text-purple-600 dark:text-purple-400" />
+                      </div>
                       <span className="font-medium text-xs">Avaliação Imobiliária</span>
                       <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <ChevronRight className="h-2.5 w-2.5" />
@@ -408,7 +638,9 @@ export default function Layout({ children }: LayoutProps) {
                 <DropdownMenuItem asChild className="p-0">
                   <Link href="/simulador-poder-de-compra" className="group">
                     <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-orange-700 dark:hover:text-orange-400">
-                      <Calculator className="h-3 w-3 mr-2" />
+                      <div className="p-1 rounded-full bg-orange-100 dark:bg-orange-900/50 mr-2 transition-all duration-300 group-hover:bg-orange-200 dark:group-hover:bg-orange-800/50">
+                        <DollarSign className="h-2.5 w-2.5 text-orange-600 dark:text-orange-400" />
+                      </div>
                       <span className="font-medium text-xs">Poder de Compra</span>
                       <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <ChevronRight className="h-2.5 w-2.5" />
@@ -419,7 +651,9 @@ export default function Layout({ children }: LayoutProps) {
                 <DropdownMenuItem asChild className="p-0">
                   <Link href="/simulador-aluguel-x-compra" className="group">
                     <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-cyan-700 dark:hover:text-cyan-400">
-                      <Calculator className="h-3 w-3 mr-2" />
+                      <div className="p-1 rounded-full bg-cyan-100 dark:bg-cyan-900/50 mr-2 transition-all duration-300 group-hover:bg-cyan-200 dark:group-hover:bg-cyan-800/50">
+                        <ArrowRightLeft className="h-2.5 w-2.5 text-cyan-600 dark:text-cyan-400" />
+                      </div>
                       <span className="font-medium text-xs">Aluguel x Compra</span>
                       <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <ChevronRight className="h-2.5 w-2.5" />
@@ -430,7 +664,9 @@ export default function Layout({ children }: LayoutProps) {
                 <DropdownMenuItem asChild className="p-0">
                   <Link href="/simulador-consorcio-x-financiamento" className="group">
                     <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-teal-50 hover:to-green-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-teal-700 dark:hover:text-teal-400">
-                      <Calculator className="h-3 w-3 mr-2" />
+                      <div className="p-1 rounded-full bg-teal-100 dark:bg-teal-900/50 mr-2 transition-all duration-300 group-hover:bg-teal-200 dark:group-hover:bg-teal-800/50">
+                        <Scale className="h-2.5 w-2.5 text-teal-600 dark:text-teal-400" />
+                      </div>
                       <span className="font-medium text-xs">Consórcio x Financiamento</span>
                       <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <ChevronRight className="h-2.5 w-2.5" />
@@ -441,7 +677,9 @@ export default function Layout({ children }: LayoutProps) {
                 <DropdownMenuItem asChild className="p-0">
                   <Link href="/simulador-sac-x-price" className="group">
                     <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-orange-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-yellow-700 dark:hover:text-yellow-400">
-                      <Calculator className="h-3 w-3 mr-2" />
+                      <div className="p-1 rounded-full bg-yellow-100 dark:bg-yellow-900/50 mr-2 transition-all duration-300 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50">
+                        <Repeat className="h-2.5 w-2.5 text-yellow-600 dark:text-yellow-400" />
+                      </div>
                       <span className="font-medium text-xs">SAC x PRICE</span>
                       <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <ChevronRight className="h-2.5 w-2.5" />
@@ -452,7 +690,9 @@ export default function Layout({ children }: LayoutProps) {
                 <DropdownMenuItem asChild className="p-0">
                   <Link href="/simulador-roi-flipping" className="group">
                     <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-rose-50 hover:to-pink-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-rose-700 dark:hover:text-rose-400">
-                      <Calculator className="h-3 w-3 mr-2" />
+                      <div className="p-1 rounded-full bg-rose-100 dark:bg-rose-900/50 mr-2 transition-all duration-300 group-hover:bg-rose-200 dark:group-hover:bg-rose-800/50">
+                        <BarChart2 className="h-2.5 w-2.5 text-rose-600 dark:text-rose-400" />
+                      </div>
                       <span className="font-medium text-xs">ROI Flipping</span>
                       <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <ChevronRight className="h-2.5 w-2.5" />
@@ -463,7 +703,9 @@ export default function Layout({ children }: LayoutProps) {
                 <DropdownMenuItem asChild className="p-0">
                   <Link href="/simulador-potencial-de-valorizacao" className="group">
                     <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-emerald-700 dark:hover:text-emerald-400">
-                      <Calculator className="h-3 w-3 mr-2" />
+                      <div className="p-1 rounded-full bg-emerald-100 dark:bg-emerald-900/50 mr-2 transition-all duration-300 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-800/50">
+                        <TrendingUp className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" />
+                      </div>
                       <span className="font-medium text-xs">Potencial de Valorização</span>
                       <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <ChevronRight className="h-2.5 w-2.5" />
@@ -474,7 +716,9 @@ export default function Layout({ children }: LayoutProps) {
                 <DropdownMenuItem asChild className="p-0">
                   <Link href="/simulador-comissao-e-metas" className="group">
                     <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-indigo-700 dark:hover:text-indigo-400">
-                      <Calculator className="h-3 w-3 mr-2" />
+                      <div className="p-1 rounded-full bg-indigo-100 dark:bg-indigo-900/50 mr-2 transition-all duration-300 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-800/50">
+                        <Target className="h-2.5 w-2.5 text-indigo-600 dark:text-indigo-400" />
+                      </div>
                       <span className="font-medium text-xs">Comissão e Metas</span>
                       <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <ChevronRight className="h-2.5 w-2.5" />
@@ -485,8 +729,23 @@ export default function Layout({ children }: LayoutProps) {
                 <DropdownMenuItem asChild className="p-0">
                   <Link href="/simulador-renda-passiva" className="group">
                     <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-violet-50 hover:to-purple-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-violet-700 dark:hover:text-violet-400">
-                      <Calculator className="h-3 w-3 mr-2" />
+                      <div className="p-1 rounded-full bg-violet-100 dark:bg-violet-900/50 mr-2 transition-all duration-300 group-hover:bg-violet-200 dark:group-hover:bg-violet-800/50">
+                        <PiggyBank className="h-2.5 w-2.5 text-violet-600 dark:text-violet-400" />
+                      </div>
                       <span className="font-medium text-xs">Renda Passiva (Aluguéis)</span>
+                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <ChevronRight className="h-2.5 w-2.5" />
+                      </div>
+                    </div>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="p-0">
+                  <Link href="/simulador-cgi" className="group">
+                    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-amber-700 dark:hover:text-amber-400">
+                      <div className="p-1 rounded-full bg-amber-100 dark:bg-amber-900/50 mr-2 transition-all duration-300 group-hover:bg-amber-200 dark:group-hover:bg-amber-800/50">
+                        <Shield className="h-2.5 w-2.5 text-amber-600 dark:text-amber-400" />
+                      </div>
+                      <span className="font-medium text-xs">Crédito com Garantia de Imóvel</span>
                       <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <ChevronRight className="h-2.5 w-2.5" />
                       </div>
@@ -655,7 +914,9 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Page content */}
-      <main className={cn("flex-1 overflow-auto pt-16", sidebarCollapsed ? "lg:ml-16" : "lg:ml-64")}>
+      <main className={cn("flex-1 overflow-auto pt-16 transition-all duration-300", 
+        showCreditoSidebar ? "lg:ml-[280px]" : (sidebarCollapsed ? "lg:ml-14" : "lg:ml-60")
+      )}>
         {children}
       </main>
     </div>

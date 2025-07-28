@@ -31,6 +31,7 @@ import SimuladorRoiFlipping from "./pages/SimuladorRoiFlipping";
 import SimuladorPotencialDeValorizacao from "./pages/SimuladorPotencialDeValorizacao";
 import SimuladorComissaoEMetas from "./pages/SimuladorComissaoEMetas";
 import SimuladorRendaPassiva from "./pages/SimuladorRendaPassiva";
+import SimuladorCGI from "./pages/SimuladorCGI";
 import CreditoFinanciamento from "./pages/CreditoFinanciamento";
 import CreditoConsorcio from "./pages/CreditoConsorcio";
 import CreditoCGI from "./pages/CreditoCGI";
@@ -245,6 +246,12 @@ function AppRoutes() {
       <Route path="/simulador-renda-passiva">
         <ProtectedRoute>
           <SimuladorRendaPassiva />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/simulador-cgi">
+        <ProtectedRoute>
+          <SimuladorCGI />
         </ProtectedRoute>
       </Route>
 

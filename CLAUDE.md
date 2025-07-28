@@ -17,6 +17,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Git Operations
 - `npm run sync` - Quick git add, commit with "Auto update" message, and push
 
+### Production Deployment
+- `npm run start:80` - Start production server on port 80
+- `npm run start:443` - Start production server on port 443 (HTTPS)
+- Build process combines frontend (Vite) and backend (esbuild) into unified deployment
+
 ## Architecture Overview
 
 ### Technology Stack
@@ -154,6 +159,76 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Port Configuration
 
 The application runs on port 5000 for development and port 80 for production (with HTTPS on 443), serving the integrated frontend and backend together.
+
+## Financial Simulators Architecture
+
+**Comprehensive Financial Tools**: The system includes 14+ specialized financial simulators (`Simulador*.tsx` files):
+
+**Core Simulators**:
+- `SimuladorFinanciamento.tsx` - Complete mortgage financing calculator with multi-bank comparison
+- `SimuladorCGI.tsx` - Real estate collateral credit (CGI) simulator with 60% max financing limit
+- `SimuladorConsorcioXFinanciamento.tsx` - Consortium vs financing comparison
+- `SimuladorAluguelXCompra.tsx` - Rent vs buy decision calculator
+
+**Investment Analysis**:
+- `SimuladorPotencialDeValorizacao.tsx` - Property appreciation potential
+- `SimuladorRoiFlipping.tsx` - Real estate flipping ROI calculator
+- `SimuladorRendaPassiva.tsx` - Passive income from rental properties
+- `SimuladorLiquidezImovel.tsx` - Property liquidity analysis
+
+**Market Analysis**:
+- `SimuladorValorImovel.tsx` - Property valuation calculator
+- `SimuladorMetroQuadrado.tsx` - Price per square meter analysis
+- `SimuladorPoderDeCompra.tsx` - Purchasing power calculator
+
+**Professional Tools**:
+- `SimuladorComissaoEMetas.tsx` - Real estate agent commission and goal calculator
+- `SimuladorValorRegistro.tsx` - Property registration cost calculator
+- `SimuladorSacXPrice.tsx` - SAC vs PRICE amortization system comparison
+
+**Financial Simulator Patterns**:
+- **Multi-bank Configuration**: `BANCOS_CONFIG` objects with bank-specific rules, logos, interest rates, and limits
+- **PDF Generation**: jsPDF integration for detailed financial reports and amortization tables
+- **Age-based Calculations**: Dynamic term limits based on borrower age (max 80 years old)
+- **Real-time Validation**: Form validation with Brazilian financial regulations
+- **Responsive Charts**: Recharts integration for visual financial data representation
+
+**Banking System Integration**:
+- Individual bank configurations with specific rules:
+  - Interest rates by amortization system (SAC, PRICE)
+  - Maximum financing percentages (60%-80%)
+  - Age-based term limits
+  - Insurance calculations (MIP, DFI)
+  - Regional variations and special programs
+
+## LLM Integration System
+
+**AI-Powered Features** (`/llm/` directory):
+
+**Multi-Provider Support**:
+- Anthropic Claude (`providers/anthropic.ts`)
+- Google Gemini (`providers/gemini.ts`) 
+- OpenAI GPT (`providers/openai.ts`)
+- OpenRouter (`providers/openrouter.ts`)
+
+**Specialized Prompts**:
+- `prompts/business-prompts.ts` - Real estate business intelligence prompts
+- `prompts/system-prompts.ts` - Core system behavior prompts
+- `prompts/training-prompts.ts` - Domain-specific training prompts covering market knowledge, legal requirements, and best practices
+
+**Default Configuration**: Uses DeepSeek Chat via OpenRouter with temperature 0.7 and context-aware system prompts for real estate domain expertise.
+
+## Vite Configuration & Aliases
+
+**Path Aliases**:
+- `@/` → `client/src/` (React components and pages)
+- `@shared/` → `shared/` (Shared TypeScript schemas)
+- `@assets/` → `attached_assets/` (Project documentation and wireframes)
+
+**Build Configuration**:
+- Development server on port 5000 with hot reload
+- Production build outputs to `dist/public/`
+- File system access restricted for security
 
 ## Outras informações relevantes
 

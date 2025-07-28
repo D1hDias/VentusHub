@@ -17,6 +17,13 @@ export function setupAuth(app: Express) {
     pool: pool,
     tableName: 'user_sessions',
     createTableIfMissing: false, // Tabela já foi criada manualmente
+    pruneSessionInterval: false, // Desabilitar limpeza automática
+    errorLog: (error: any) => {
+      // Logar erros da sessão de forma silenciosa em produção
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Session store warning:', error.message);
+      }
+    }
   });
 
   app.use(
