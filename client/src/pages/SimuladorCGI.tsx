@@ -137,25 +137,18 @@ const calcularCETRegulamentar = (valorLiberado, parcelas, taxaJurosAnual) => {
 const BANCOS_CONFIG = {
   bari: {
     nome: "Bari",
-    cor: "#E67E22",
+    cor: "#000000",
     logo: logoBari,
     financiamentoMax: 0.60,
     entradaMin: 0.40,
     prazoMaximoEspecial: 240,
     observacaoEspecial: "Taxa de juros pode variar de acordo com o seu relacionamento com o banco e o prazo escolhido.",
     taxas: {
-      SAC_TR: 14.25,
-      PRICE_TR: 14.55,
-      SAC_POUPANCA: 13.65
+      PRICE_IPCA: 14.40
     },
     seguros: {
-      mip: { 18: 0.009, 30: 0.009, 40: 0.013, 50: 0.019, 60: 0.027, 70: 0.037, 80: 0.047 },
-      dfi: { residencial: 0.00015, comercial: 0.00025 }
-    },
-    regrasEspeciais: {
-      SAC_TR: { financiamentoMax: 0.80 },
-      PRICE_TR: { financiamentoMax: 0.75 },
-      SAC_POUPANCA: { financiamentoMax: 0.70 }
+      mip: { 18: 0.00021028, 30: 0.00021028, 40: 0.00021028, 50: 0.00021028, 60: 0.00021028, 70: 0.00021028, 80: 0.00021028 },
+      dfi: { residencial: 0.000037, comercial: 0.000037 }
     }
   },
   inter: {
@@ -167,22 +160,15 @@ const BANCOS_CONFIG = {
     prazoMaximoEspecial: 240,
     observacaoEspecial: "Percentual de financiamento e taxa de juros podem variar de acordo com o seu relacionamento com o banco.",
     taxas: {
-      SAC_TR: 13.25,
-      PRICE_TR: 13.55,
-      SAC_POUPANCA: 12.65
+      PRICE_IPCA: 12.68
     },
     seguros: {
       mip: [
-        { idadeMin: 18, idadeMax: 35, aliquota: 0.0001568 },
-        { idadeMin: 36, idadeMax: 55, aliquota: 0.0001819 },
-        { idadeMin: 56, idadeMax: 80, aliquota: 0.001782 }
+        { idadeMin: 18, idadeMax: 35, aliquota: 0.0005684 },
+        { idadeMin: 36, idadeMax: 55, aliquota: 0.0005684 },
+        { idadeMin: 56, idadeMax: 80, aliquota: 0.0005684 }
       ],
-      dfi: { residencial: 0.000066, comercial: 0.000066 }
-    },
-    regrasEspeciais: {
-      SAC_TR: { financiamentoMax: 0.80 },
-      PRICE_TR: { financiamentoMax: 0.75 },
-      SAC_POUPANCA: { financiamentoMax: 0.70 }
+      dfi: { residencial: 0, comercial: 0 }
     }
   },
   itau: {
@@ -194,9 +180,8 @@ const BANCOS_CONFIG = {
     prazoMaximoEspecial: 240,
     observacaoEspecial: "Taxa de juros pode variar de acordo com o seu relacionamento com o banco.",
     taxas: {
-      SAC_TR: 12.95,
-      PRICE_TR: 13.25,
-      SAC_POUPANCA: 12.35
+      PRICE_TR: 26.40,
+      PRICE_IPCA: 26.40
     },
     seguros: {
       mip: [
@@ -205,38 +190,26 @@ const BANCOS_CONFIG = {
         { idadeMin: 56, idadeMax: 80, aliquota: 0.001782 }
       ],
       dfi: { residencial: 0.000066, comercial: 0.000066 }
-    },
-    regrasEspeciais: {
-      SAC_TR: { financiamentoMax: 0.80 },
-      PRICE_TR: { financiamentoMax: 0.75 },
-      SAC_POUPANCA: { financiamentoMax: 0.70 }
     }
   },
   galleria: {
     nome: "Galleria",
-    cor: "#8E44AD",
+    cor: "#16A34A",
     logo: logoGalleria,
     financiamentoMax: 0.60,
     entradaMin: 0.40,
     prazoMaximoEspecial: 240,
     observacaoEspecial: "Percentual de financiamento e taxa de juros podem variar de acordo com o seu relacionamento com o banco.",
     taxas: {
-      SAC_TR: 13.75,
-      PRICE_TR: 14.05,
-      SAC_POUPANCA: 13.15
+      PRICE_IPCA: 14.28
     },
     seguros: {
       mip: [
-        { idadeMin: 18, idadeMax: 35, aliquota: 0.0001568 },
-        { idadeMin: 36, idadeMax: 55, aliquota: 0.0001819 },
-        { idadeMin: 56, idadeMax: 80, aliquota: 0.001782 }
+        { idadeMin: 18, idadeMax: 35, aliquota: 0.00021028 },
+        { idadeMin: 36, idadeMax: 55, aliquota: 0.00021028 },
+        { idadeMin: 56, idadeMax: 80, aliquota: 0.00021028 }
       ],
-      dfi: { residencial: 0.000066, comercial: 0.000066 }
-    },
-    regrasEspeciais: {
-      SAC_TR: { financiamentoMax: 0.75 },
-      PRICE_TR: { financiamentoMax: 0.70 },
-      SAC_POUPANCA: { financiamentoMax: 0.65 }
+      dfi: { residencial: 0.000037, comercial: 0.000037 }
     }
   },
   santander: {
@@ -248,9 +221,8 @@ const BANCOS_CONFIG = {
     prazoMaximoEspecial: 240,
     observacaoEspecial: "Percentual de financiamento e taxa de juros podem variar de acordo com o seu relacionamento com o banco.",
     taxas: {
-      SAC_TR: 13.50,
-      PRICE_TR: 13.80,
-      SAC_POUPANCA: 12.90
+      PRICE_TR: 22.28,
+      PRICE_IPCA: 22.28
     },
     seguros: {
       mip: [
@@ -259,11 +231,6 @@ const BANCOS_CONFIG = {
         { idadeMin: 56, idadeMax: 80, aliquota: 0.001782 }
       ],
       dfi: { residencial: 0.000066, comercial: 0.000066 }
-    },
-    regrasEspeciais: {
-      SAC_TR: { financiamentoMax: 0.80 },
-      PRICE_TR: { financiamentoMax: 0.75 },
-      SAC_POUPANCA: { financiamentoMax: 0.70 }
     }
   }
 };
@@ -332,6 +299,73 @@ function calcularParcelaPrice(valor, taxaMensal, numeroParcelas) {
   return valor * fatorPrice;
 }
 
+// Função para calibração exata - 240 meses
+function calcularTaxaNecessaria(valorFinanciado, prestacaoDesejada, prazo) {
+  // Busca binária para encontrar a taxa que resulta na prestação desejada
+  let taxaMin = 0.001; // 0.1% ao mês
+  let taxaMax = 0.05;   // 5% ao mês
+  const tolerancia = 0.01; // R$ 0,01 de diferença
+  
+  for (let i = 0; i < 100; i++) {
+    const taxaTeste = (taxaMin + taxaMax) / 2;
+    const prestacaoTeste = calcularParcelaPrice(valorFinanciado, taxaTeste, prazo);
+    
+    if (Math.abs(prestacaoTeste - prestacaoDesejada) < tolerancia) {
+      return taxaTeste;
+    }
+    
+    if (prestacaoTeste < prestacaoDesejada) {
+      taxaMin = taxaTeste;
+    } else {
+      taxaMax = taxaTeste;
+    }
+  }
+  
+  return (taxaMin + taxaMax) / 2;
+}
+
+function testarCalculosPrestacao() {
+  const valorFinanciado = 500000;
+  const prazo = 240;
+  
+  // Valores esperados dos simuladores oficiais dos bancos
+  const valoresEsperados = {
+    bari: 7228.09,
+    galleria: 6756.92,
+    inter: 6492.31
+  };
+  
+  // Taxas informadas
+  const taxasInformadas = {
+    bari: 14.40,
+    galleria: 14.28,
+    inter: 12.68
+  };
+  
+  console.log('=== CALIBRAÇÃO EXATA - 240 MESES ===');
+  console.log(`Valor financiado: R$ ${valorFinanciado.toLocaleString('pt-BR')}`);
+  console.log(`Prazo: ${prazo} meses`);
+  console.log('');
+  
+  Object.entries(valoresEsperados).forEach(([banco, valorEsperado]) => {
+    const taxaInformada = taxasInformadas[banco];
+    const taxaMensalInformada = Math.pow(1 + taxaInformada / 100, 1/12) - 1;
+    const prestacaoCalculada = calcularParcelaPrice(valorFinanciado, taxaMensalInformada, prazo);
+    
+    // Encontrar taxa necessária para o valor exato
+    const taxaMensalNecessaria = calcularTaxaNecessaria(valorFinanciado, valorEsperado, prazo);
+    const taxaAnualNecessaria = (Math.pow(1 + taxaMensalNecessaria, 12) - 1) * 100;
+    
+    console.log(`${banco.toUpperCase()}:`);
+    console.log(`  Valor esperado: R$ ${valorEsperado.toFixed(2)}`);
+    console.log(`  Taxa informada: ${taxaInformada}% a.a.`);
+    console.log(`  Prestação atual: R$ ${prestacaoCalculada.toFixed(2)}`);
+    console.log(`  Diferença: R$ ${(prestacaoCalculada - valorEsperado).toFixed(2)}`);
+    console.log(`  Taxa necessária: ${taxaAnualNecessaria.toFixed(4)}% a.a.`);
+    console.log('');
+  });
+}
+
 // Tabela de parcelas Price
 function gerarTabelaParcelasPrice(valor, taxaMensal, numeroParcelas) {
   const parcelas = [];
@@ -365,7 +399,7 @@ function calcularFGTS(salarioBruto, tempoContribuicao) {
 }
 
 // Calcular seguros
-function calcularSeguros(banco, idade, valorFinanciado, tipoImovel = 'residencial') {
+function calcularSeguros(banco, idade, valorFinanciado, tipoImovel = 'residencial', valorImovel = valorFinanciado, numeroParcela = 1) {
   const config = BANCOS_CONFIG[banco];
   if (!config) return { mip: 0, dfi: 0 };
   
@@ -373,13 +407,18 @@ function calcularSeguros(banco, idade, valorFinanciado, tipoImovel = 'residencia
   let seguroDFI = 0;
   
   // Calcular MIP (Morte e Invalidez Permanente)
-  if (Array.isArray(config.seguros.mip)) {
+  if (banco === 'bari') {
+    // Cálculo especial para Bari - valores mensais decrescentes
+    const mipInicial = 105.14;
+    const reducaoMensal = 0.09;
+    seguroMIP = Math.max(mipInicial - (numeroParcela - 1) * reducaoMensal, 50);
+  } else if (Array.isArray(config.seguros.mip)) {
     // Para bancos com faixas de idade (como Bradesco)
     const faixaIdade = config.seguros.mip.find(faixa => 
       idade >= faixa.idadeMin && idade <= faixa.idadeMax
     );
     if (faixaIdade) {
-      seguroMIP = valorFinanciado * faixaIdade.aliquota;
+      seguroMIP = (valorFinanciado * faixaIdade.aliquota) / 12;
     }
   } else {
     // Para bancos com tabela por idade (como BB)
@@ -392,11 +431,17 @@ function calcularSeguros(banco, idade, valorFinanciado, tipoImovel = 'residencia
       }
     }
     
-    seguroMIP = valorFinanciado * config.seguros.mip[idadeAplicavel];
+    seguroMIP = (valorFinanciado * config.seguros.mip[idadeAplicavel]) / 12;
   }
   
   // Calcular DFI (Danos Físicos do Imóvel)
-  seguroDFI = valorFinanciado * config.seguros.dfi[tipoImovel];
+  if (banco === 'bari') {
+    // Valor fixo mensal para Bari
+    seguroDFI = 48.10;
+  } else {
+    // Aplicado sobre valor do imóvel para outros bancos
+    seguroDFI = (valorImovel * config.seguros.dfi[tipoImovel]) / 12;
+  }
   
   return { mip: seguroMIP, dfi: seguroDFI };
 }
@@ -412,9 +457,9 @@ function calcularTabelaSAC(valorFinanciado, taxaMensal, numeroParcelas, banco, i
     const parcelaPrincipal = amortizacao + juros;
     
     // Calcular seguros mensais
-    const seguros = calcularSeguros(banco, idade, saldoDevedor, tipoImovel);
-    const seguroMensalMIP = seguros.mip / 12;
-    const seguroMensalDFI = seguros.dfi / 12;
+    const seguros = calcularSeguros(banco, idade, saldoDevedor, tipoImovel, valorImovel, n);
+    const seguroMensalMIP = seguros.mip;
+    const seguroMensalDFI = seguros.dfi;
     
     const parcelaTotal = parcelaPrincipal + seguroMensalMIP + seguroMensalDFI;
     
@@ -446,9 +491,9 @@ function calcularTabelaPrice(valorFinanciado, taxaMensal, numeroParcelas, banco,
     const amortizacao = parcelaFixaPrincipal - juros;
     
     // Calcular seguros mensais
-    const seguros = calcularSeguros(banco, idade, saldoDevedor, tipoImovel);
-    const seguroMensalMIP = seguros.mip / 12;
-    const seguroMensalDFI = seguros.dfi / 12;
+    const seguros = calcularSeguros(banco, idade, saldoDevedor, tipoImovel, valorImovel, n);
+    const seguroMensalMIP = seguros.mip;
+    const seguroMensalDFI = seguros.dfi;
     
     const parcelaTotal = parcelaFixaPrincipal + seguroMensalMIP + seguroMensalDFI;
     
@@ -487,20 +532,6 @@ const SimuladorCGI = () => {
   const [sistema, setSistema] = useState('PRICE');
   const [indexador, setIndexador] = useState('TR');
   const [tipoFinanciamento, setTipoFinanciamento] = useState('PRICE_TR');
-  const [nomeCliente, setNomeCliente] = useState('');
-  const [nomeConjuge, setNomeConjuge] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [cpfConjuge, setCpfConjuge] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [email, setEmail] = useState('');
-  const [endereco, setEndereco] = useState('');
-  const [cidade, setCidade] = useState('');
-  const [estado, setEstado] = useState('');
-  const [cep, setCep] = useState('');
-  const [enderecoImovel, setEnderecoImovel] = useState('');
-  const [cidadeImovel, setCidadeImovel] = useState('');
-  const [estadoImovel, setEstadoImovel] = useState('');
-  const [cepImovel, setCepImovel] = useState('');
 
   // Estados dos resultados
   const [resultados, setResultados] = useState(null);
@@ -517,8 +548,6 @@ const SimuladorCGI = () => {
   const [mostrarTabela, setMostrarTabela] = useState(false);
   const [tabelaAtual, setTabelaAtual] = useState(null);
 
-  // Estado para o modal de dados pessoais
-  const [mostrarModalDados, setMostrarModalDados] = useState(false);
 
   // Função para alternar seleção de banco
   const toggleBanco = (codigoBanco) => {
@@ -527,16 +556,51 @@ const SimuladorCGI = () => {
         ? prev.filter(b => b !== codigoBanco)
         : [...prev, codigoBanco];
       
+      // Definir padrão do sistema baseado no banco selecionado
+      if (!prev.includes(codigoBanco)) { // Se está selecionando o banco
+        if (codigoBanco === 'itau' || codigoBanco === 'santander') {
+          setTipoFinanciamento('PRICE_TR');
+        } else if (codigoBanco === 'bari' || codigoBanco === 'galleria' || codigoBanco === 'inter') {
+          setTipoFinanciamento('PRICE_IPCA');
+        }
+      }
+      
+      // Se foi selecionado um banco (não desselecionado) e é o primeiro banco, rolar para o formulário
+      if (!prev.includes(codigoBanco) && prev.length === 0) {
+        setTimeout(() => {
+          scroller.scrollTo('formulario', {
+            duration: 800,
+            delay: 300, // Aguardar a animação do formulário aparecer
+            smooth: 'easeInOutQuart',
+            offset: -50 // Offset para centralizar melhor
+          });
+        }, 100);
+      }
+      
       return novosBancos;
     });
   };
 
   // Função para selecionar/desselecionar todos os bancos
   const toggleAllBancos = () => {
+    const estaVazio = bancosEscolhidos.length === 0;
+    
     if (bancosEscolhidos.length === Object.keys(BANCOS_CONFIG).length) {
       setBancosEscolhidos([]);
     } else {
       setBancosEscolhidos(Object.keys(BANCOS_CONFIG));
+      
+      // Se estava vazio e agora vai selecionar todos, rolar para o formulário
+      if (estaVazio) {
+        setTimeout(() => {
+          scroller.scrollTo('formulario', {
+            duration: 800,
+            delay: 300,
+            smooth: 'easeInOutQuart',
+            offset: -50
+          });
+        }, 100);
+      }
     }
   };
 
@@ -558,10 +622,6 @@ const SimuladorCGI = () => {
     const idade = calcularIdade(dataNasc);
     const idadeMaxima = 80;
     const prazoMaximo = (idadeMaxima - idade) * 12;
-    
-    if (bancoKey === 'inter') {
-      return Math.min(180, prazoMaximo);
-    }
     
     return Math.min(240, prazoMaximo);
   };
@@ -602,6 +662,24 @@ const SimuladorCGI = () => {
     const numero = limparFormatacao(valor);
     if (numero === 0) return '';
     return numero.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
+  // Função para formatar valor monetário durante a digitação
+  const formatarMoedaDigitacao = (valor) => {
+    // Remove tudo que não é dígito
+    const apenasNumeros = valor.replace(/\D/g, '');
+    
+    // Se vazio, retorna vazio
+    if (!apenasNumeros) return '';
+    
+    // Converte para número (centavos)
+    const numero = parseInt(apenasNumeros, 10);
+    
+    // Formata como moeda brasileira
+    return (numero / 100).toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
@@ -691,7 +769,22 @@ const SimuladorCGI = () => {
     // Calcular para cada banco selecionado
     bancosEscolhidos.forEach(bancoKey => {
       const banco = BANCOS_CONFIG[bancoKey];
-      const chaveIndexador = `PRICE_${indexador}`;  // Sempre usar PRICE
+      
+      // Validar compatibilidade banco x sistema/correção
+      let chaveIndexador = tipoFinanciamento;
+      let sistemaAdaptado = false;
+      
+      // Se selecionou PRICE_TR mas o banco só trabalha com IPCA
+      if (tipoFinanciamento === 'PRICE_TR' && (bancoKey === 'bari' || bancoKey === 'galleria' || bancoKey === 'inter')) {
+        chaveIndexador = 'PRICE_IPCA';
+        sistemaAdaptado = true;
+      }
+      // Se selecionou PRICE_IPCA mas o banco trabalha com TR
+      else if (tipoFinanciamento === 'PRICE_IPCA' && (bancoKey === 'itau' || bancoKey === 'santander')) {
+        chaveIndexador = 'PRICE_TR';
+        sistemaAdaptado = true;
+      }
+      
       const taxaAnual = banco.taxas[chaveIndexador];
       
       if (!taxaAnual) return;
@@ -699,9 +792,7 @@ const SimuladorCGI = () => {
       const taxaMensal = Math.pow(1 + taxaAnual / 100, 1/12) - 1;
 
       // Verificar prazo máximo específico do banco
-      const prazoMaximoBanco = bancoKey === 'inter' ? 
-        Math.min(180, calcularPrazoMaximo(dataNascimento)) : 
-        calcularPrazoMaximo(dataNascimento);
+      const prazoMaximoBanco = calcularPrazoMaximo(dataNascimento);
 
       if (prazo > prazoMaximoBanco) {
         resultadosBancos[bancoKey] = {
@@ -751,7 +842,9 @@ const SimuladorCGI = () => {
         observacao: banco.observacaoEspecial,
         valorFinanciado: valorFinanciado,
         valorEntrada: valorEntrada,
-        parcelas: parcelas.length
+        parcelas: parcelas.length,
+        sistemaAdaptado: sistemaAdaptado,
+        sistemaUsado: chaveIndexador
       };
 
       tabelasBanco[bancoKey] = parcelas;
@@ -781,105 +874,289 @@ const SimuladorCGI = () => {
     setMostrarTabela(true);
   };
 
+  // Função para fechar card individual
+  const fecharCard = (codigoBanco) => {
+    const novosResultados = { ...resultados };
+    delete novosResultados[codigoBanco];
+    
+    // Remove a seleção do banco correspondente
+    const novosBancosEscolhidos = bancosEscolhidos.filter(banco => banco !== codigoBanco);
+    setBancosEscolhidos(novosBancosEscolhidos);
+    
+    // Se não sobrar nenhum card, reset completo da página
+    if (Object.keys(novosResultados).length === 0) {
+      setResultados({});
+      setTabelasAmortizacao({});
+      setMostrarResultados(false);
+    } else {
+      setResultados(novosResultados);
+      
+      // Remove também da tabela de amortização
+      const novasTabelasAmortizacao = { ...tabelasAmortizacao };
+      delete novasTabelasAmortizacao[codigoBanco];
+      setTabelasAmortizacao(novasTabelasAmortizacao);
+    }
+  };
+
   // Função para gerar PDF
   const gerarPDF = async (bancoKey = null) => {
+    console.log('Iniciando geração de PDF...', { bancoKey, resultados });
+    
+    // Verificar se há dados para gerar o PDF
+    if (!resultados || Object.keys(resultados).length === 0) {
+      alert('Execute uma simulação antes de gerar o PDF.');
+      return;
+    }
+    
+    // Verificar se há incompatibilidade de correção monetária
+    const temIncompatibilidade = Object.values(resultados || {}).some(r => r.sistemaAdaptado);
+    
+    if (temIncompatibilidade) {
+      const confirmar = window.confirm(
+        '⚠️ ATENÇÃO - CORREÇÃO MONETÁRIA\n\n' +
+        'Alguns bancos da simulação foram adaptados automaticamente:\n\n' +
+        '• Itaú e Santander: Trabalham principalmente com TR\n' +
+        '• Bari, Galleria e Inter: Trabalham principalmente com IPCA\n\n' +
+        'As taxas e condições apresentadas podem variar conforme a correção monetária disponível em cada banco.\n\n' +
+        'Deseja continuar com o download do relatório?'
+      );
+      
+      if (!confirmar) return;
+    }
+    
     try {
+      console.log('Criando documento PDF...');
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
       
-      // Configurações de cores
-      const corPrimaria = hexToRgb('#001F3F');
-      const corSecundaria = hexToRgb('#0066CC');
+      // Configurações de cores (seguindo padrão do SimuladorFinanciamento)
+      const corVentusHub = '#001f3f';
+      const rgbVentusHub = hexToRgb(corVentusHub);
       
-      // Cabeçalho com logo
+      const formatCurrency = (value) => {
+        return new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }).format(value);
+      };
+
+      const formatPercent = (value) => {
+        return `${value.toFixed(2)}%`;
+      };
+
+      // Carregar logo VentusHub com dimensões
+      let logoVentusHubData = null;
+      
       try {
-        const logoData = await imageToBase64(logoVentusHub);
-        const logoHeight = 15;
-        const logoWidth = logoHeight * logoData.aspectRatio;
-        doc.addImage(logoData.dataUrl, 'PNG', 20, 15, logoWidth, logoHeight);
+        console.log('Carregando logo...');
+        logoVentusHubData = await imageToBase64(logoVentusHub);
+        console.log('Logo carregado com sucesso');
       } catch (error) {
-        console.warn('Erro ao carregar logo:', error);
+        console.warn('Erro ao carregar logo VentusHub:', error);
       }
       
-      // Título
-      doc.setFontSize(20);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(corPrimaria.r, corPrimaria.g, corPrimaria.b);
-      doc.text('Simulação de Financiamento CGI', pageWidth / 2, 25, { align: 'center' });
+      // PÁGINA 1 - CONFORME WIREFRAME DO SIMULADOR FINANCIAMENTO
       
-      // Informações da simulação
-      let yPos = 45;
+      // Cabeçalho branco (sem cor de fundo)
+      doc.setFillColor(255, 255, 255);
+      doc.rect(0, 0, pageWidth, 35, 'F');
       
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(corSecundaria.r, corSecundaria.g, corSecundaria.b);
-      doc.text('DADOS DA SIMULAÇÃO', 20, yPos);
-      
-      yPos += 10;
-      doc.setFont('helvetica', 'normal');
+      // Logo do Bari + Título centralizado (preto sobre fundo branco)
       doc.setTextColor(0, 0, 0);
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
       
+      // Calcular posição para centralizar logo + texto
+      const textoTitulo = 'SIMULAÇÃO DE FINANCIAMENTO CGI';
+      const larguraTexto = doc.getTextWidth(textoTitulo);
+      const logoWidth = 25; // Largura estimada da logo
+      const espacoEntreLogo = 5;
+      const larguraTotal = logoWidth + espacoEntreLogo + larguraTexto;
+      const inicioX = (pageWidth - larguraTotal) / 2;
+      
+      // Adicionar logo do Bari
+      try {
+        const logoData = await imageToBase64(logoBari);
+        const logoHeight = 15;
+        const logoWidthReal = logoHeight * logoData.aspectRatio;
+        doc.addImage(logoData.dataUrl, 'PNG', inicioX, 12, logoWidthReal, logoHeight, undefined, 'FAST');
+        
+        // Texto ao lado da logo
+        doc.text(textoTitulo, inicioX + logoWidthReal + espacoEntreLogo, 20);
+      } catch (error) {
+        console.warn('Erro ao carregar logo do Bari:', error);
+        // Fallback: apenas o texto centralizado
+        doc.text(textoTitulo, pageWidth/2, 20, { align: 'center' });
+      }
+      
+      // Faixa azul VentusHub
+      doc.setFillColor(rgbVentusHub.r, rgbVentusHub.g, rgbVentusHub.b);
+      doc.rect(0, 35, pageWidth, 8, 'F');
+      
+      // Logo VentusHub na faixa azul (direita)
+      if (logoVentusHubData) {
+        try {
+          const alturaFaixa = 6;
+          const larguraFaixa = alturaFaixa * logoVentusHubData.aspectRatio;
+          doc.addImage(logoVentusHubData.dataUrl, 'PNG', pageWidth - larguraFaixa - 10, 36, larguraFaixa, alturaFaixa, undefined, 'FAST');
+        } catch (error) {
+          // Fallback texto se logo não carregar
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'bold');
+          doc.text('ventus', pageWidth - 25, 40, { align: 'center' });
+        }
+      }
+      
+      doc.setTextColor(0, 0, 0);
+      let currentY = 60;
+      
+      // Dados da simulação (seguindo estrutura do SimuladorFinanciamento)
       const valor = limparFormatacao(valorImovel);
-      const entrada = parseFloat(percentualEntrada) / 100;
-      const valorEntrada = valor * entrada;
-      const valorFinanciado = valor - valorEntrada;
+      const valorFinanciado = limparFormatacao(valorFinanciamento);
+      const valorEntrada = valor - valorFinanciado;
+      const percentualEntrada = ((valorEntrada / valor) * 100).toFixed(1);
+      const prazo = parseInt(prazoMeses);
       
-      const dadosSimulacao = [
-        ['Valor do Imóvel:', formatarMoeda(valor)],
-        ['Entrada:', `${formatarMoeda(valorEntrada)} (${percentualEntrada}%)`],
-        ['Valor Financiado:', formatarMoeda(valorFinanciado)],
-        ['Prazo:', `${prazoMeses} meses`],
-        ['Sistema:', sistema],
-        ['Indexador:', indexador],
-        ['Tipo do Imóvel:', tipoImovel === 'residencial' ? 'Residencial' : 'Comercial']
+      // Resumo (seguindo estilo do SimuladorFinanciamento)
+      // Buscar dados do primeiro banco para taxa e CET (assumindo que é sempre Bari)
+      const primeiroBanco = Object.keys(resultados)[0];
+      const dadosPrimeiroBanco = resultados[primeiroBanco];
+      
+      const resumoData = [
+        ['Tipo do Imóvel', tipoImovel === 'residencial' ? 'Residencial' : 'Comercial'],
+        ['Valor do Imóvel', formatCurrency(valor)],
+        ['Valor Financiado', formatCurrency(valorFinanciado)],
+        ['Prazo', `${prazo} meses`],
+        ['Sistema/Correção', tipoFinanciamento.replace('_', ' + ')],
+        ['Taxa de juros efetivos', formatPercent(dadosPrimeiroBanco?.taxaJuros || 0) + ' a.a.'],
+        ['CET', formatPercent(dadosPrimeiroBanco?.cetAnual || 0) + ' a.a.']
       ];
       
-      dadosSimulacao.forEach(([label, value]) => {
-        doc.text(label, 20, yPos);
-        doc.text(value, 80, yPos);
-        yPos += 7;
+      // Desenhar título manualmente sem tabela para o cabeçalho
+      const tituloY = currentY;
+      const larguraTitulo = 180;
+      const alturaTitulo = 20;
+      
+      // Desenhar fundo azul para o título
+      doc.setFillColor(rgbVentusHub.r, rgbVentusHub.g, rgbVentusHub.b);
+      doc.rect(16, tituloY, larguraTitulo, alturaTitulo, 'F');
+      
+      // Desenhar borda
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.1);
+      doc.rect(16, tituloY, larguraTitulo, alturaTitulo, 'S');
+      
+      // Texto do título centralizado
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('QUADRO RESUMO DA SIMULAÇÃO', 16 + larguraTitulo / 2, tituloY + alturaTitulo / 2 + 2, { align: 'center' });
+      
+      // Ajustar currentY para a tabela de dados
+      currentY += alturaTitulo;
+      
+      // Tabela apenas com os dados (sem cabeçalho)
+      autoTable(doc, {
+        startY: currentY,
+        body: resumoData,
+        theme: 'grid',
+        bodyStyles: {
+          fontSize: 10,
+          textColor: 50
+        },
+        alternateRowStyles: { fillColor: '#f8f9fa' },
+        styles: { 
+          fontSize: 10,
+          cellPadding: 4,
+          lineColor: [200, 200, 200],
+          lineWidth: 0.1
+        },
+        columnStyles: {
+          0: { halign: 'left', fontStyle: 'normal', cellWidth: 100 },
+          1: { halign: 'right', fontStyle: 'normal', cellWidth: 80 }
+        },
+        margin: { left: 16, right: 5 }
       });
       
-      yPos += 10;
+      currentY = (doc as any).lastAutoTable.finalY + 15;
       
-      // Dados pessoais se fornecidos
-      if (nomeCliente || email || telefone) {
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(corSecundaria.r, corSecundaria.g, corSecundaria.b);
-        doc.text('DADOS PESSOAIS', 20, yPos);
-        yPos += 10;
-        
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(0, 0, 0);
-        
-        if (nomeCliente) {
-          doc.text('Nome:', 20, yPos);
-          doc.text(nomeCliente, 80, yPos);
-          yPos += 7;
-        }
-        
-        if (email) {
-          doc.text('E-mail:', 20, yPos);
-          doc.text(email, 80, yPos);
-          yPos += 7;
-        }
-        
-        if (telefone) {
-          doc.text('Telefone:', 20, yPos);
-          doc.text(telefone, 80, yPos);
-          yPos += 7;
-        }
-        
-        yPos += 10;
+      // Verificar se precisa de nova página para resultados
+      if (currentY > pageHeight - 100) {
+        doc.addPage();
+        currentY = 20;
       }
       
-      // Resultados por banco
-      if (resultados) {
+      // Aviso importante sobre IPCA para bancos específicos
+      const bancosIPCA = ['bari', 'galleria', 'inter'];
+      const bancosParaPDF = bancoKey ? [bancoKey] : Object.keys(resultados);
+      const temBancoIPCA = bancosParaPDF.some(key => bancosIPCA.includes(key) && resultados[key] && !resultados[key].erro);
+      
+      if (temBancoIPCA) {
+        // Calcular altura necessária para o bloco de aviso
+        const margemLateral = 16;
+        const larguraBloco = pageWidth - (margemLateral * 2);
+        const alturaBloco = 35; // Altura suficiente para todo o conteúdo
+        
+        // Desenhar retângulo amarelo de fundo
+        doc.setFillColor(255, 235, 59); // Amarelo
+        doc.rect(margemLateral, currentY - 2, larguraBloco, alturaBloco, 'F');
+        
+        // Desenhar borda preta
+        doc.setDrawColor(0, 0, 0);
+        doc.setLineWidth(0.5);
+        doc.rect(margemLateral, currentY - 2, larguraBloco, alturaBloco, 'S');
+        
+        // Configurar texto preto
+        doc.setTextColor(0, 0, 0); // Preto
+        
+        // Ícone de exclamação simulado com círculo e texto
+        const iconeX = margemLateral + 8;
+        const iconeY = currentY + 6;
+        
+        // Desenhar círculo do ícone
+        doc.setFillColor(0, 0, 0); // Preto
+        doc.circle(iconeX, iconeY, 3, 'F');
+        
+        // Desenhar exclamação branca no círculo
+        doc.setTextColor(255, 255, 255); // Branco para o !
+        doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(corSecundaria.r, corSecundaria.g, corSecundaria.b);
-        doc.text('RESULTADOS DA SIMULAÇÃO', 20, yPos);
-        yPos += 15;
+        doc.text('!', iconeX, iconeY + 1, { align: 'center' });
+        
+        // Voltar para texto preto
+        doc.setTextColor(0, 0, 0);
+        
+        // Título do aviso
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('INFORMAÇÃO IMPORTANTE - CORREÇÃO IPCA', iconeX + 8, currentY + 8);
+        
+        // Conteúdo do aviso
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        
+        const textoCompleto = 'Os valores apresentados para este banco NÃO inclui a projeção do IPCA atual na correção monetária das parcelas. Importante: As parcelas reais podem ser maiores devido à variação do IPCA. Consulte sempre as condições atualizadas diretamente com o banco.';
+        
+        // Quebrar texto para caber na largura do bloco
+        const linhasTexto = doc.splitTextToSize(textoCompleto, larguraBloco - 10);
+        
+        let yTexto = currentY + 18;
+        linhasTexto.forEach(linha => {
+          doc.text(linha, margemLateral + 5, yTexto);
+          yTexto += 4;
+        });
+        
+        // Ajustar posição Y após o bloco
+        currentY += alturaBloco + 10;
+        
+        // Resetar cor do texto para preto
+        doc.setTextColor(0, 0, 0);
+      }
+      
+      // Resultados por banco (seguindo estrutura do SimuladorFinanciamento)
+      if (resultados) {
         
         const bancosParaPDF = bancoKey ? [bancoKey] : Object.keys(resultados);
         
@@ -889,66 +1166,118 @@ const SimuladorCGI = () => {
           if (resultado.erro) continue;
           
           // Verificar se precisa de nova página
-          if (yPos > pageHeight - 60) {
+          if (currentY > pageHeight - 80) {
             doc.addPage();
-            yPos = 20;
+            currentY = 20;
           }
           
-          // Nome do banco
-          doc.setFontSize(14);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(corSecundaria.r, corSecundaria.g, corSecundaria.b);
-          doc.text(resultado.banco, 20, yPos);
-          yPos += 10;
+          // Definir cor do banco para as tabelas
+          const corBanco = resultado.cor ? hexToRgb(resultado.cor) : rgbVentusHub;
           
-          // Logo do banco se disponível
-          if (resultado.logo) {
-            try {
-              const logoData = await imageToBase64(resultado.logo);
-              const logoHeight = 12;
-              const logoWidth = logoHeight * logoData.aspectRatio;
-              doc.addImage(logoData.dataUrl, 'PNG', pageWidth - logoWidth - 20, yPos - 15, logoWidth, logoHeight);
-            } catch (error) {
-              console.warn('Erro ao carregar logo do banco:', error);
+          // Verificar se precisa de nova página para tabela de parcelas
+          if (currentY > pageHeight - 100) {
+            doc.addPage();
+            currentY = 20;
+          }
+          
+          // Preparar dados das parcelas (todas as parcelas)
+          let parcelasData = [];
+          
+          // Buscar parcelas na tabela de amortização
+          const parcelasArray = tabelasAmortizacao && tabelasAmortizacao[key] ? tabelasAmortizacao[key] : null;
+          
+          if (Array.isArray(parcelasArray) && parcelasArray.length > 0) {
+            parcelasData = parcelasArray.map(parcela => [
+              parcela.numero.toString(),
+              formatCurrency(parcela.parcela || 0),
+              formatCurrency(parcela.amortizacao || 0),
+              formatCurrency(parcela.juros || 0),
+              formatCurrency(parcela.seguroMIP || 0),
+              formatCurrency(parcela.seguroDFI || 0),
+              formatCurrency(parcela.saldoDevedor || 0)
+            ]);
+          } else {
+            console.warn('Parcelas não encontradas para o banco:', key);
+            // Gerar tabela básica se não houver parcelas detalhadas
+            const prazoNum = parseInt(prazo) || 240;
+            const valorParcela = resultado.primeiraParcela || 0;
+            for (let i = 1; i <= Math.min(prazoNum, 12); i++) { // Mostrar apenas 12 primeiras se não houver dados
+              parcelasData.push([
+                i.toString(),
+                formatCurrency(valorParcela),
+                formatCurrency(0),
+                formatCurrency(0), 
+                formatCurrency(0),
+                formatCurrency(0),
+                formatCurrency(0)
+              ]);
             }
           }
           
-          doc.setFontSize(10);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(0, 0, 0);
+          // Tabela completa de parcelas PRICE (seguindo padrão SimuladorFinanciamento)
+          if (parcelasData.length > 0) {
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text('TABELA DE AMORTIZAÇÃO COMPLETA', 16, currentY);
+            currentY += 5;
           
-          const dadosBanco = [
-            ['Taxa de Juros:', formatarPorcentagem(resultado.taxaJuros)],
-            ['CET (a.a.):', formatarPorcentagem(resultado.cetAnual)],
-            ['Primeira Parcela:', formatarMoeda(resultado.primeiraParcela)],
-            ['Última Parcela:', formatarMoeda(resultado.ultimaParcela)],
-            ['Total Pago:', formatarMoeda(resultado.totalPago)],
-            ['Total Juros:', formatarMoeda(resultado.totalJuros)],
-            ['Total Seguros:', formatarMoeda(resultado.totalSeguros)],
-            ['Comprometimento:', formatarPorcentagem(resultado.comprometimentoRenda)],
-            ['Status:', resultado.aprovado ? 'Pré-aprovado' : 'Acima de 30% da renda']
-          ];
-          
-          dadosBanco.forEach(([label, value]) => {
-            doc.text(label, 25, yPos);
-            doc.text(value, 85, yPos);
-            yPos += 6;
+          autoTable(doc, {
+            startY: currentY,
+            head: [['Parcela', 'Prestação', 'Amortização', 'Juros', 'Seguro MIP', 'Seguro DFI', 'Saldo Devedor']],
+            body: parcelasData,
+            theme: 'grid',
+            headStyles: { 
+              fillColor: [0, 0, 0], // Preto sólido
+              textColor: 255, // Branco
+              fontSize: 8,
+              fontStyle: 'bold'
+            },
+            bodyStyles: {
+              fontSize: 7,
+              textColor: 50
+            },
+            alternateRowStyles: { fillColor: '#f8f9fa' },
+            styles: { 
+              fontSize: 7,
+              cellPadding: 2,
+              lineColor: [200, 200, 200],
+              lineWidth: 0.1
+            },
+            columnStyles: {
+              0: { halign: 'center', cellWidth: 20 },
+              1: { halign: 'right', cellWidth: 25 },
+              2: { halign: 'right', cellWidth: 25 },
+              3: { halign: 'right', cellWidth: 25 },
+              4: { halign: 'right', cellWidth: 25 },
+              5: { halign: 'right', cellWidth: 25 },
+              6: { halign: 'right', cellWidth: 30 }
+            },
+            margin: { left: 16, right: 5 }
           });
           
-          if (resultado.observacao) {
-            yPos += 3;
+          currentY = (doc as any).lastAutoTable.finalY + 10;
+          } else {
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'italic');
-            doc.setFontSize(8);
-            const observacaoLinhas = doc.splitTextToSize(resultado.observacao, pageWidth - 40);
-            doc.text(observacaoLinhas, 25, yPos);
-            yPos += observacaoLinhas.length * 4;
+            doc.setTextColor(100, 100, 100);
+            doc.text('Tabela de parcelas não disponível para este banco.', 16, currentY);
+            currentY += 10;
           }
           
-          yPos += 10;
+          // Observação se existir
+          if (resultado.observacao) {
+            doc.setFont('helvetica', 'italic');
+            doc.setFontSize(8);
+            doc.setTextColor(100, 100, 100);
+            const observacaoLinhas = doc.splitTextToSize(resultado.observacao, pageWidth - 40);
+            doc.text(observacaoLinhas, 16, currentY);
+            currentY += observacaoLinhas.length * 4 + 5;
+          }
         }
       }
       
-      // Rodapé
+      // Rodapé (seguindo padrão SimuladorFinanciamento)
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 100, 100);
@@ -960,11 +1289,185 @@ const SimuladorCGI = () => {
         ? `simulacao-cgi-${BANCOS_CONFIG[bancoKey].nome.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`
         : `simulacao-cgi-completa-${new Date().toISOString().split('T')[0]}.pdf`;
       
+      console.log('Salvando PDF:', nomeArquivo);
+      doc.save(nomeArquivo);
+      console.log('PDF gerado com sucesso!');
+      
+    } catch (error) {
+      console.error('Erro detalhado ao gerar PDF:', error);
+      console.error('Stack trace:', error.stack);
+      alert(`Erro ao gerar PDF: ${error.message}. Verifique o console para mais detalhes.`);
+    }
+  };
+
+  // Função para gerar PDF comparativo
+  const gerarPDFComparativo = async () => {
+    try {
+      // Verificar se há pelo menos 2 bancos nos resultados
+      const bancosComResultado = Object.entries(resultados).filter(([_, resultado]) => !resultado.erro);
+      if (bancosComResultado.length < 2) {
+        alert('É necessário ter pelo menos 2 bancos com resultados válidos para gerar o comparativo.');
+        return;
+      }
+
+      const doc = new jsPDF('portrait');
+      const pageWidth = doc.internal.pageSize.width;
+      const pageHeight = doc.internal.pageSize.height;
+      
+      const corVentusHub = '#001f3f';
+      const rgbVentusHub = hexToRgb(corVentusHub);
+      
+      const formatCurrency = (value) => {
+        return new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }).format(value);
+      };
+
+      const formatPercent = (value) => {
+        return `${value.toFixed(2)}%`;
+      };
+
+      // Dados da simulação
+      const valor = limparFormatacao(valorImovel);
+      const valorFinanciado = limparFormatacao(valorFinanciamento);
+      const prazo = parseInt(prazoMeses);
+      
+      // Filtrar e ordenar bancos por primeira parcela
+      const bancosParaComparar = bancosComResultado
+        .sort(([_, a], [__, b]) => a.primeiraParcela - b.primeiraParcela);
+      
+      // Carregar logo VentusHub
+      let logoVentusHubData = null;
+      try {
+        logoVentusHubData = await imageToBase64(logoVentusHub);
+      } catch (error) {
+        console.warn('Erro ao carregar logo VentusHub:', error);
+      }
+      
+      // Cabeçalho VentusHub
+      doc.setFillColor(rgbVentusHub.r, rgbVentusHub.g, rgbVentusHub.b);
+      doc.rect(0, 0, pageWidth, 25, 'F');
+      
+      // Logo VentusHub
+      if (logoVentusHubData) {
+        const logoWidth = 25;
+        const logoHeight = logoWidth / logoVentusHubData.aspectRatio;
+        const logoY = 12.5 - (logoHeight / 2);
+        doc.addImage(logoVentusHubData.dataUrl, 'PNG', 15, logoY, logoWidth, logoHeight);
+      }
+      
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      const titleX = 15 + 25 + 10;
+      doc.text('COMPARATIVO DE FINANCIAMENTO CGI', titleX, 16, { align: 'left' });
+      
+      let currentY = 40;
+      
+      // Texto introdutório
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('Comparativo entre bancos para financiamento com garantia de imóvel próprio (CGI).', 15, currentY);
+      doc.text('Os valores apresentados são estimativas baseadas nos dados informados.', 15, currentY + 5);
+      
+      currentY += 20;
+      
+      // Seção de resultados
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Resultado da simulação:', 15, currentY);
+      
+      currentY += 15;
+      
+      // Tabela comparativa
+      const headerComparativo = ['Item', ...bancosParaComparar.map(([_, resultado]) => resultado.banco)];
+      
+      const linhasComparativo = [
+        ['Valor do imóvel', ...bancosParaComparar.map(() => formatCurrency(valor))],
+        ['Valor financiado', ...bancosParaComparar.map(([_, r]) => formatCurrency(r.valorFinanciado))],
+        ['Primeira parcela', ...bancosParaComparar.map(([_, r]) => formatCurrency(r.primeiraParcela))],
+        ['Taxa de juros', ...bancosParaComparar.map(([_, r]) => formatPercent(r.taxaJuros) + ' a.a.')],
+        ['Sistema/Correção', ...bancosParaComparar.map(() => tipoFinanciamento.replace('_', ' + '))],
+        ['CET', ...bancosParaComparar.map(([_, r]) => formatPercent(r.cetAnual) + ' a.a.')],
+        ['Total pago', ...bancosParaComparar.map(([_, r]) => formatCurrency(r.totalPago))],
+        ['Prazo', ...bancosParaComparar.map(() => prazo + ' meses')],
+        ['Comprometimento', ...bancosParaComparar.map(([_, r]) => formatPercent(r.comprometimentoRenda))]
+      ];
+      
+      autoTable(doc, {
+        startY: currentY,
+        head: [headerComparativo],
+        body: linhasComparativo,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [rgbVentusHub.r, rgbVentusHub.g, rgbVentusHub.b],
+          textColor: 255,
+          fontSize: 10,
+          fontStyle: 'bold'
+        },
+        bodyStyles: {
+          fontSize: 9,
+          textColor: 50
+        },
+        alternateRowStyles: { fillColor: '#f8f9fa' },
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+          lineColor: [200, 200, 200],
+          lineWidth: 0.1
+        },
+        columnStyles: {
+          0: { halign: 'left', fontStyle: 'bold', cellWidth: 40 },
+          ...Object.fromEntries(
+            bancosParaComparar.map((_, index) => [
+              index + 1,
+              { halign: 'right', cellWidth: (pageWidth - 60) / bancosParaComparar.length }
+            ])
+          )
+        },
+        margin: { left: 15, right: 15 }
+      });
+      
+      currentY = (doc as any).lastAutoTable.finalY + 20;
+      
+      // Observações importantes
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Observações importantes:', 15, currentY);
+      
+      currentY += 8;
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      const observacoes = [
+        '• Esta é uma simulação baseada nos dados informados.',
+        '• Apenas o banco pode aprovar ou negar um crédito após análise completa.',
+        '• Taxas e condições podem variar conforme relacionamento bancário.',
+        '• Para bancos IPCA: parcelas podem variar conforme índice de correção.',
+        '• CGI: Crédito com Garantia de Imóvel permite financiar até 60% do valor do imóvel.'
+      ];
+      
+      observacoes.forEach(obs => {
+        doc.text(obs, 15, currentY);
+        currentY += 5;
+      });
+      
+      // Rodapé
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(100, 100, 100);
+      doc.text('VentusHub - Sistema de Gestão Imobiliária', pageWidth / 2, pageHeight - 15, { align: 'center' });
+      doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+      
+      // Salvar PDF
+      const nomeArquivo = `comparativo-cgi-${bancosParaComparar.length}-bancos-${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(nomeArquivo);
       
     } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      alert('Erro ao gerar PDF. Tente novamente.');
+      console.error('Erro ao gerar PDF comparativo:', error);
+      alert(`Erro ao gerar PDF comparativo: ${error.message}`);
     }
   };
 
@@ -1051,8 +1554,9 @@ const SimuladorCGI = () => {
         </div>
 
       {/* Formulário - só aparece quando há bancos selecionados */}
-      {bancosEscolhidos.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm">
+      <Element name="formulario">
+        {bancosEscolhidos.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
               <Building className="h-5 w-5 mr-2 text-blue-600" />
@@ -1079,20 +1583,6 @@ const SimuladorCGI = () => {
                     </select>
                   </div>
 
-                  {/* Opção de Financiamento */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Building className="h-4 w-4 inline mr-1" />
-                      Opção de Financiamento
-                    </label>
-                    <select
-                      className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      value="imovel-pronto"
-                      disabled
-                    >
-                      <option value="imovel-pronto">Imóvel Pronto</option>
-                    </select>
-                  </div>
 
                   {/* Valor do Imóvel */}
                   <div>
@@ -1106,14 +1596,20 @@ const SimuladorCGI = () => {
                         type="text"
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="500.000,00"
-                        value={formatarEntradaMoeda(valorImovel)}
+                        value={valorImovel}
                         onChange={(e) => {
-                          setValorImovel(e.target.value);
+                          // Formatar como moeda durante a digitação
+                          const valorFormatado = formatarMoedaDigitacao(e.target.value);
+                          setValorImovel(valorFormatado);
+                          
                           // Auto-ajustar valor do financiamento para 60% do valor do imóvel
-                          const valor = limparFormatacao(e.target.value);
-                          if (valor > 0) {
-                            const maxFinanciamento = valor * 0.6;
-                            setValorFinanciamento(formatarEntradaMoeda(maxFinanciamento.toString()));
+                          const valorNumerico = limparFormatacao(valorFormatado);
+                          if (valorNumerico > 0) {
+                            const maxFinanciamento = valorNumerico * 0.6;
+                            const financiamentoFormatado = formatarMoedaDigitacao((maxFinanciamento * 100).toString());
+                            setValorFinanciamento(financiamentoFormatado);
+                          } else if (valorFormatado === '') {
+                            setValorFinanciamento('');
                           }
                         }}
                       />
@@ -1132,12 +1628,15 @@ const SimuladorCGI = () => {
                         type="text"
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="400.000,00"
-                        value={formatarEntradaMoeda(valorFinanciamento)}
+                        value={valorFinanciamento}
                         onChange={(e) => {
-                          const valor = limparFormatacao(e.target.value);
+                          // Formatar como moeda durante a digitação
+                          const valorFormatado = formatarMoedaDigitacao(e.target.value);
+                          const valorNumerico = limparFormatacao(valorFormatado);
                           const maxFinanciamento = limparFormatacao(valorImovel) * 0.6;
-                          if (valor <= maxFinanciamento) {
-                            setValorFinanciamento(e.target.value);
+                          
+                          if (valorNumerico <= maxFinanciamento || valorFormatado === '') {
+                            setValorFinanciamento(valorFormatado);
                           }
                         }}
                       />
@@ -1161,8 +1660,11 @@ const SimuladorCGI = () => {
                         type="text"
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="10.000,00"
-                        value={formatarEntradaMoeda(rendaBruta)}
-                        onChange={(e) => setRendaBruta(e.target.value)}
+                        value={rendaBruta}
+                        onChange={(e) => {
+                          const valorFormatado = formatarMoedaDigitacao(e.target.value);
+                          setRendaBruta(valorFormatado);
+                        }}
                       />
                     </div>
                   </div>
@@ -1178,7 +1680,17 @@ const SimuladorCGI = () => {
                       className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="dd/mm/aaaa"
                       value={dataNascimento}
-                      onChange={(e) => setDataNascimento(e.target.value)}
+                      onChange={(e) => {
+                        setDataNascimento(e.target.value);
+                        
+                        // Auto-preencher prazo máximo baseado na idade
+                        if (e.target.value) {
+                          const prazoMaximo = calcularPrazoMaximo(e.target.value);
+                          setPrazoMeses(prazoMaximo.toString());
+                        } else {
+                          setPrazoMeses('');
+                        }
+                      }}
                       max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
                       min={new Date(new Date().setFullYear(new Date().getFullYear() - 75)).toISOString().split('T')[0]}
                     />
@@ -1228,28 +1740,21 @@ const SimuladorCGI = () => {
                       onChange={(e) => setTipoFinanciamento(e.target.value)}
                     >
                       <option value="PRICE_TR">PRICE + TR</option>
-                      <option value="PRICE_SAC">PRICE + SAC</option>
+                      <option value="PRICE_IPCA">PRICE + IPCA</option>
                     </select>
                   </div>
                 </div>
 
 
                 {/* Botões de Ação */}
-                <div className="border-t pt-6 flex flex-col sm:flex-row gap-4">
+                <div className="border-t pt-6">
                   <button
                     onClick={calcularSimulacao}
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 flex items-center justify-center space-x-2"
+                    disabled={bancosEscolhidos.length === 0}
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 flex items-center justify-center space-x-2 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed"
                   >
                     <Calculator className="h-5 w-5" />
-                    <span>Calcular Simulação</span>
-                  </button>
-
-                  <button
-                    onClick={() => setMostrarModalDados(true)}
-                    className="bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition-all duration-200 flex items-center justify-center space-x-2"
-                  >
-                    <User className="h-5 w-5" />
-                    <span>Dados para Relatório</span>
+                    <span>Simular {bancosEscolhidos.length} Banco(s) Selecionado(s)</span>
                   </button>
                 </div>
 
@@ -1268,7 +1773,8 @@ const SimuladorCGI = () => {
                 )}
           </div>
         </div>
-      )}
+        )}
+      </Element>
 
       {/* Seção de Resultados */}
       <Element name="resultados">
@@ -1289,18 +1795,37 @@ const SimuladorCGI = () => {
                 </div>
 
                   <div className="p-6">
+                    {/* Cabeçalho do Comparativo */}
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold">📊 Comparativo de Resultados</h3>
+                    </div>
+                    
+                    {/* Aviso importante e botão PDF */}
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800 flex-1 mr-4">
+                        <strong>💡 Importante:</strong> Esta é uma simulação baseada nos dados informados. Apenas o banco pode aprovar ou negar um crédito após análise completa da documentação e perfil do cliente.
+                      </div>
+                      <button
+                        onClick={() => gerarPDFComparativo()}
+                        disabled={Object.keys(resultados).length < 2}
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 text-sm font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      >
+                        <FileDown className="h-4 w-4" />
+                        PDF Comparativo
+                      </button>
+                    </div>
+                    
                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                      <AnimatePresence mode="popLayout">
                       {Object.entries(resultados).map(([bancoKey, resultado]) => (
                         <motion.div
                           key={bancoKey}
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.1 }}
-                          className={`border-2 rounded-xl p-6 transition-all duration-300 ${
-                            resultado.aprovado 
-                              ? 'border-green-200 bg-green-50' 
-                              : 'border-red-200 bg-red-50'
-                          }`}
+                          initial={{ opacity: 1, scale: 1, x: 0 }}
+                          exit={{ opacity: 0, scale: 0.9, x: -100 }}
+                          transition={{ duration: 0.4, ease: "easeInOut" }}
+                          layout
+                          className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 relative"
+                          style={{borderLeftColor: resultado.cor, borderLeftWidth: '4px'}}
                         >
                           {resultado.erro ? (
                             <div className="text-center">
@@ -1312,114 +1837,128 @@ const SimuladorCGI = () => {
                             </div>
                           ) : (
                             <>
-                              <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center space-x-3">
-                                  {resultado.logo ? (
-                                    <img 
-                                      src={resultado.logo} 
-                                      alt={resultado.banco}
-                                      className="h-8 object-contain"
-                                    />
+                              {/* Botões X e PDF */}
+                              <div className="absolute top-4 right-4 flex gap-2">
+                                <button
+                                  onClick={() => fecharCard(bancoKey)}
+                                  className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
+                                  title="Fechar card"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => gerarPDF(bancoKey)}
+                                  className="p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                                  title="Gerar PDF individual"
+                                >
+                                  <FileDown className="h-4 w-4" />
+                                </button>
+                              </div>
+
+                              <div className="flex items-center gap-3 mb-4 pr-20">
+                                {resultado.logo ? (
+                                  <img 
+                                    src={resultado.logo} 
+                                    alt={resultado.banco}
+                                    className="h-8 object-contain"
+                                  />
+                                ) : (
+                                  <div 
+                                    className="h-8 w-16 rounded flex items-center justify-center text-white text-xs font-bold"
+                                    style={{ backgroundColor: resultado.cor }}
+                                  >
+                                    {resultado.banco}
+                                  </div>
+                                )}
+                                <div>
+                                  <h4 className="font-semibold">{resultado.banco}</h4>
+                                  {resultado.aprovado ? (
+                                    <span className="text-green-600 text-sm">✅ Cenário favorável</span>
                                   ) : (
-                                    <div 
-                                      className="h-8 w-16 rounded flex items-center justify-center text-white text-xs font-bold"
-                                      style={{ backgroundColor: resultado.cor }}
-                                    >
-                                      {resultado.banco}
-                                    </div>
+                                    <span className="text-red-600 text-sm">❌ Não atende critérios</span>
                                   )}
-                                  <h3 className="font-semibold text-gray-900">{resultado.banco}</h3>
-                                </div>
-                                <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  resultado.aprovado 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : 'bg-red-100 text-red-800'
-                                }`}>
-                                  {resultado.aprovado ? 'Pré-aprovado' : 'Acima 30%'}
                                 </div>
                               </div>
 
-                              <div className="space-y-3">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm text-gray-600">Taxa de Juros:</span>
-                                  <span className="font-medium">{formatarPorcentagem(resultado.taxaJuros)} a.a.</span>
+                              <div className="space-y-3 text-sm">
+                                <div className="flex justify-between">
+                                  <span>Valor financiado:</span>
+                                  <strong>{formatarMoeda(resultado.valorFinanciado)}</strong>
                                 </div>
-                                
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm text-gray-600">CET:</span>
-                                  <span className="font-medium">{formatarPorcentagem(resultado.cetAnual)} a.a.</span>
+                                <div className="flex justify-between">
+                                  <span>Primeira parcela:</span>
+                                  <strong className={resultado.aprovado ? 'text-green-600' : 'text-red-600'}>
+                                    {formatarMoeda(resultado.primeiraParcela)}
+                                  </strong>
                                 </div>
-
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm text-gray-600">1ª Parcela:</span>
-                                  <span className="font-medium text-lg">{formatarMoeda(resultado.primeiraParcela)}</span>
+                                <div className="flex justify-between">
+                                  <span>Taxa de juros:</span>
+                                  <strong>{formatarPorcentagem(resultado.taxaJuros)} a.a.</strong>
                                 </div>
-
-                                {sistema === 'SAC' && (
-                                  <div className="flex justify-between items-center">
-                                    <span className="text-sm text-gray-600">Última Parcela:</span>
-                                    <span className="font-medium">{formatarMoeda(resultado.ultimaParcela)}</span>
-                                  </div>
-                                )}
-
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm text-gray-600">Total Pago:</span>
-                                  <span className="font-medium">{formatarMoeda(resultado.totalPago)}</span>
+                                <div className="flex justify-between">
+                                  <span>Sistema:</span>
+                                  <strong>{tipoFinanciamento.replace('_', ' + ')}</strong>
                                 </div>
-
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm text-gray-600">Total Juros:</span>
-                                  <span className="font-medium text-red-600">{formatarMoeda(resultado.totalJuros)}</span>
+                                <div className="flex justify-between">
+                                  <span>CET:</span>
+                                  <strong>{formatarPorcentagem(resultado.cetAnual)} a.a.</strong>
                                 </div>
-
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm text-gray-600">Comprometimento:</span>
-                                  <span className={`font-medium ${
-                                    resultado.comprometimentoRenda <= 30 ? 'text-green-600' : 'text-red-600'
-                                  }`}>
-                                    {formatarPorcentagem(resultado.comprometimentoRenda)}
-                                  </span>
+                                <div className="flex justify-between">
+                                  <span>Total pago:</span>
+                                  <strong>{formatarMoeda(resultado.totalPago)}</strong>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Prazo:</span>
+                                  <strong>{resultado.prazo || prazoMeses} meses</strong>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Comprometimento:</span>
+                                  <strong className={resultado.comprometimentoRenda <= 30 ? 'text-green-600' : 'text-red-600'}>
+                                    {formatarPorcentagem(resultado.comprometimentoRenda)} da renda
+                                  </strong>
                                 </div>
                               </div>
 
                               {resultado.observacao && (
-                                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                  <p className="text-xs text-blue-700">{resultado.observacao}</p>
+                                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+                                  <strong>💡</strong> {resultado.observacao}
                                 </div>
                               )}
 
-                              <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                              {resultado.sistemaAdaptado && (
+                                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                  <p className="text-xs text-yellow-700 flex items-center">
+                                    <Info className="h-3 w-3 mr-1" />
+                                    Sistema adaptado para {resultado.sistemaUsado.replace('_', ' + ')}
+                                  </p>
+                                </div>
+                              )}
+
+                              {!resultado.aprovado && (
+                                <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                                  <p className="text-xs text-orange-700 flex items-center">
+                                    <Info className="h-3 w-3 mr-1" />
+                                    Parcela compromete {formatarPorcentagem(resultado.comprometimentoRenda)} da renda (máx. 30%)
+                                  </p>
+                                </div>
+                              )}
+
+                              <div className="mt-4">
                                 <button
                                   onClick={() => visualizarTabela(bancoKey)}
-                                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-1"
+                                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center space-x-1"
                                 >
                                   <FileText className="h-4 w-4" />
-                                  <span>Ver Tabela</span>
-                                </button>
-                                <button
-                                  onClick={() => gerarPDF(bancoKey)}
-                                  className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center justify-center space-x-1"
-                                >
-                                  <Download className="h-4 w-4" />
-                                  <span>PDF</span>
+                                  <span>Ver Tabela de Amortização</span>
                                 </button>
                               </div>
                             </>
                           )}
                         </motion.div>
                       ))}
+                      </AnimatePresence>
                     </div>
 
-                    {/* Botão para gerar PDF completo */}
-                    <div className="mt-8 text-center">
-                      <button
-                        onClick={() => gerarPDF()}
-                        className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 px-8 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 flex items-center space-x-2 mx-auto"
-                      >
-                        <FileDown className="h-5 w-5" />
-                        <span>Baixar Relatório Completo (PDF)</span>
-                      </button>
-                    </div>
                   </div>
                 </div>
             </motion.div>
@@ -1427,233 +1966,6 @@ const SimuladorCGI = () => {
         </AnimatePresence>
       </Element>
 
-      {/* Modal de Dados Pessoais */}
-      <AnimatePresence>
-        {mostrarModalDados && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-            >
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
-                <h2 className="text-xl font-semibold text-white flex items-center">
-                  <User className="h-5 w-5 mr-2" />
-                  Dados para Relatório
-                </h2>
-              </div>
-
-              <div className="p-6 space-y-6">
-                {/* Dados Pessoais do Titular */}
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Dados do Titular</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
-                      <input
-                        type="text"
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="João da Silva"
-                        value={nomeCliente}
-                        onChange={(e) => setNomeCliente(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">CPF</label>
-                      <input
-                        type="text"
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="000.000.000-00"
-                        value={cpf}
-                        onChange={(e) => setCpf(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Telefone</label>
-                      <input
-                        type="text"
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="(11) 99999-9999"
-                        value={telefone}
-                        onChange={(e) => setTelefone(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
-                      <input
-                        type="email"
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="joao@email.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Dados do Cônjuge */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Dados do Cônjuge (opcional)</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Nome Completo</label>
-                      <input
-                        type="text"
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Maria da Silva"
-                        value={nomeConjuge}
-                        onChange={(e) => setNomeConjuge(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">CPF</label>
-                      <input
-                        type="text"
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="000.000.000-00"
-                        value={cpfConjuge}
-                        onChange={(e) => setCpfConjuge(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Endereço Residencial */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <MapPin className="h-5 w-5 mr-2 text-blue-600" />
-                    Endereço Residencial
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Endereço</label>
-                      <input
-                        type="text"
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Rua das Flores, 123, Apto 45"
-                        value={endereco}
-                        onChange={(e) => setEndereco(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Cidade</label>
-                      <input
-                        type="text"
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="São Paulo"
-                        value={cidade}
-                        onChange={(e) => setCidade(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
-                      <select
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        value={estado}
-                        onChange={(e) => setEstado(e.target.value)}
-                      >
-                        <option value="">Selecione o estado</option>
-                        {ESTADOS_BRASIL.map((est) => (
-                          <option key={est.sigla} value={est.sigla}>{est.nome}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">CEP</label>
-                      <input
-                        type="text"
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="00000-000"
-                        value={cep}
-                        onChange={(e) => setCep(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Endereço do Imóvel */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <Home className="h-5 w-5 mr-2 text-blue-600" />
-                    Endereço do Imóvel
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Endereço</label>
-                      <input
-                        type="text"
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Rua dos Sonhos, 456, Casa 2"
-                        value={enderecoImovel}
-                        onChange={(e) => setEnderecoImovel(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Cidade</label>
-                      <input
-                        type="text"
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="São Paulo"
-                        value={cidadeImovel}
-                        onChange={(e) => setCidadeImovel(e.target.value)}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Estado</label>
-                      <select
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        value={estadoImovel}
-                        onChange={(e) => setEstadoImovel(e.target.value)}
-                      >
-                        <option value="">Selecione o estado</option>
-                        {ESTADOS_BRASIL.map((est) => (
-                          <option key={est.sigla} value={est.sigla}>{est.nome}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">CEP</label>
-                      <input
-                        type="text"
-                        className="w-full py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="00000-000"
-                        value={cepImovel}
-                        onChange={(e) => setCepImovel(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Botões */}
-                <div className="border-t pt-6 flex flex-col sm:flex-row gap-4">
-                  <button
-                    onClick={() => setMostrarModalDados(false)}
-                    className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-                  >
-                    Salvar e Fechar
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Modal de Tabela de Amortização */}
       <AnimatePresence>
@@ -1670,7 +1982,7 @@ const SimuladorCGI = () => {
               exit={{ scale: 0.95, opacity: 0 }}
               className="bg-white rounded-xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
             >
-              <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4 flex items-center justify-between">
+              <div className="bg-black px-6 py-4 flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-white flex items-center">
                   <FileText className="h-5 w-5 mr-2" />
                   Tabela de Amortização - {tabelaAtual.nome}

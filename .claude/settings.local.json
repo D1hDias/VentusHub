@@ -50,8 +50,30 @@
       "Bash(git commit:*)",
       "Bash(echo:*)",
       "Bash(cd:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(./install.sh:*)",
+      "Bash(claude mcp:*)",
+      "Bash(npm search:*)",
+      "Bash(npm info:*)",
+      "Bash(gemini-mcp:*)",
+      "Bash(export NVM_DIR=\"$HOME/.nvm\")",
+      "Bash([ -s \"$NVM_DIR/nvm.sh\" ])",
+      "Bash(. \"$NVM_DIR/nvm.sh\")",
+      "Bash(nvm install:*)",
+      "Bash(npm:*)",
+      "Bash(\"/mnt/c/Users/diego/AppData/Roaming/npm/gemini-mcp\" --help)",
+      "Bash(GEMINI_API_KEY=\"$GEMINI_API_KEY\" \"/mnt/c/Program Files/nodejs/node.exe\" \"/mnt/c/Users/diego/AppData/Roaming/npm/node_modules/gemini-mcp-tool/dist/index.js\" --help)",
+      "Bash(gh auth:*)",
+      "mcp__gemini-cli__ask-gemini",
+      "Bash(\"/mnt/c/Program Files/nodejs/node.exe\" --version)",
+      "Bash(\"/mnt/c/Program Files/nodejs/node.exe\" \"/mnt/c/Program Files/nodejs/npm.cmd\" install -g gemini-mcp-tool)",
+      "Bash(npx gemini-mcp-tool:*)",
+      "mcp__gemini-cli__ping"
     ],
     "deny": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "gemini-cli"
+  ]
 }

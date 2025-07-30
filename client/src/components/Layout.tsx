@@ -65,6 +65,202 @@ const navigationItems = [
   { href: "/timeline", label: "Acompanhamento", icon: Clock },
 ];
 
+// Lista completa de simuladores com suas configurações
+const simulatorsConfig = [
+  {
+    id: 'simulador-valor-registro',
+    href: '/simulador-valor-registro',
+    label: 'Valor de Registro',
+    icon: FileText,
+    bgColor: 'from-blue-50 to-indigo-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-blue-700',
+    darkTextColor: 'text-blue-400',
+    iconBg: 'bg-blue-100',
+    darkIconBg: 'bg-blue-900/50',
+    iconBgHover: 'bg-blue-200',
+    darkIconBgHover: 'bg-blue-800/50',
+    iconColor: 'text-blue-600',
+    darkIconColor: 'text-blue-400'
+  },
+  {
+    id: 'simulador-financiamento',
+    href: '/simulador-financiamento',
+    label: 'Financiamento Imobiliário',
+    icon: Home,
+    bgColor: 'from-green-50 to-emerald-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-green-700',
+    darkTextColor: 'text-green-400',
+    iconBg: 'bg-green-100',
+    darkIconBg: 'bg-green-900/50',
+    iconBgHover: 'bg-green-200',
+    darkIconBgHover: 'bg-green-800/50',
+    iconColor: 'text-green-600',
+    darkIconColor: 'text-green-400'
+  },
+  {
+    id: 'simulador-valor-imovel',
+    href: '/simulador-valor-imovel',
+    label: 'Avaliação Imobiliária',
+    icon: Search,
+    bgColor: 'from-purple-50 to-indigo-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-purple-700',
+    darkTextColor: 'text-purple-400',
+    iconBg: 'bg-purple-100',
+    darkIconBg: 'bg-purple-900/50',
+    iconBgHover: 'bg-purple-200',
+    darkIconBgHover: 'bg-purple-800/50',
+    iconColor: 'text-purple-600',
+    darkIconColor: 'text-purple-400'
+  },
+  {
+    id: 'simulador-poder-de-compra',
+    href: '/simulador-poder-de-compra',
+    label: 'Poder de Compra',
+    icon: DollarSign,
+    bgColor: 'from-orange-50 to-red-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-orange-700',
+    darkTextColor: 'text-orange-400',
+    iconBg: 'bg-orange-100',
+    darkIconBg: 'bg-orange-900/50',
+    iconBgHover: 'bg-orange-200',
+    darkIconBgHover: 'bg-orange-800/50',
+    iconColor: 'text-orange-600',
+    darkIconColor: 'text-orange-400'
+  },
+  {
+    id: 'simulador-aluguel-x-compra',
+    href: '/simulador-aluguel-x-compra',
+    label: 'Aluguel x Compra',
+    icon: ArrowRightLeft,
+    bgColor: 'from-cyan-50 to-blue-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-cyan-700',
+    darkTextColor: 'text-cyan-400',
+    iconBg: 'bg-cyan-100',
+    darkIconBg: 'bg-cyan-900/50',
+    iconBgHover: 'bg-cyan-200',
+    darkIconBgHover: 'bg-cyan-800/50',
+    iconColor: 'text-cyan-600',
+    darkIconColor: 'text-cyan-400'
+  },
+  {
+    id: 'simulador-consorcio-x-financiamento',
+    href: '/simulador-consorcio-x-financiamento',
+    label: 'Consórcio x Financiamento',
+    icon: Scale,
+    bgColor: 'from-teal-50 to-green-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-teal-700',
+    darkTextColor: 'text-teal-400',
+    iconBg: 'bg-teal-100',
+    darkIconBg: 'bg-teal-900/50',
+    iconBgHover: 'bg-teal-200',
+    darkIconBgHover: 'bg-teal-800/50',
+    iconColor: 'text-teal-600',
+    darkIconColor: 'text-teal-400'
+  },
+  {
+    id: 'simulador-sac-x-price',
+    href: '/simulador-sac-x-price',
+    label: 'SAC x PRICE',
+    icon: Repeat,
+    bgColor: 'from-yellow-50 to-orange-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-yellow-700',
+    darkTextColor: 'text-yellow-400',
+    iconBg: 'bg-yellow-100',
+    darkIconBg: 'bg-yellow-900/50',
+    iconBgHover: 'bg-yellow-200',
+    darkIconBgHover: 'bg-yellow-800/50',
+    iconColor: 'text-yellow-600',
+    darkIconColor: 'text-yellow-400'
+  },
+  {
+    id: 'simulador-roi-flipping',
+    href: '/simulador-roi-flipping',
+    label: 'ROI Flipping',
+    icon: BarChart2,
+    bgColor: 'from-rose-50 to-pink-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-rose-700',
+    darkTextColor: 'text-rose-400',
+    iconBg: 'bg-rose-100',
+    darkIconBg: 'bg-rose-900/50',
+    iconBgHover: 'bg-rose-200',
+    darkIconBgHover: 'bg-rose-800/50',
+    iconColor: 'text-rose-600',
+    darkIconColor: 'text-rose-400'
+  },
+  {
+    id: 'simulador-potencial-de-valorizacao',
+    href: '/simulador-potencial-de-valorizacao',
+    label: 'Potencial de Valorização',
+    icon: TrendingUp,
+    bgColor: 'from-emerald-50 to-teal-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-emerald-700',
+    darkTextColor: 'text-emerald-400',
+    iconBg: 'bg-emerald-100',
+    darkIconBg: 'bg-emerald-900/50',
+    iconBgHover: 'bg-emerald-200',
+    darkIconBgHover: 'bg-emerald-800/50',
+    iconColor: 'text-emerald-600',
+    darkIconColor: 'text-emerald-400'
+  },
+  {
+    id: 'simulador-comissao-e-metas',
+    href: '/simulador-comissao-e-metas',
+    label: 'Comissão e Metas',
+    icon: Target,
+    bgColor: 'from-indigo-50 to-purple-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-indigo-700',
+    darkTextColor: 'text-indigo-400',
+    iconBg: 'bg-indigo-100',
+    darkIconBg: 'bg-indigo-900/50',
+    iconBgHover: 'bg-indigo-200',
+    darkIconBgHover: 'bg-indigo-800/50',
+    iconColor: 'text-indigo-600',
+    darkIconColor: 'text-indigo-400'
+  },
+  {
+    id: 'simulador-renda-passiva',
+    href: '/simulador-renda-passiva',
+    label: 'Renda Passiva (Aluguéis)',
+    icon: PiggyBank,
+    bgColor: 'from-violet-50 to-purple-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-violet-700',
+    darkTextColor: 'text-violet-400',
+    iconBg: 'bg-violet-100',
+    darkIconBg: 'bg-violet-900/50',
+    iconBgHover: 'bg-violet-200',
+    darkIconBgHover: 'bg-violet-800/50',
+    iconColor: 'text-violet-600',
+    darkIconColor: 'text-violet-400'
+  },
+  {
+    id: 'simulador-cgi',
+    href: '/simulador-cgi',
+    label: 'Crédito com Garantia de Imóvel',
+    icon: Shield,
+    bgColor: 'from-amber-50 to-orange-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-amber-700',
+    darkTextColor: 'text-amber-400',
+    iconBg: 'bg-amber-100',
+    darkIconBg: 'bg-amber-900/50',
+    iconBgHover: 'bg-amber-200',
+    darkIconBgHover: 'bg-amber-800/50',
+    iconColor: 'text-amber-600',
+    darkIconColor: 'text-amber-400'
+  }
+];
+
 interface LayoutProps {
   children: React.ReactNode;
 }
@@ -79,6 +275,77 @@ export default function Layout({ children }: LayoutProps) {
   const { theme, toggleTheme } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(1, 5);
   const [isSimulatorsOpen, setIsSimulatorsOpen] = useState(false);
+
+  // Função para obter a chave de uso no localStorage baseada no usuário
+  const getUsageKey = () => user?.id ? `simulator_usage_${user.id}` : 'simulator_usage_guest';
+
+  // Função para carregar dados de uso do localStorage
+  const loadUsageData = () => {
+    try {
+      const data = localStorage.getItem(getUsageKey());
+      return data ? JSON.parse(data) : {};
+    } catch (error) {
+      console.error('Erro ao carregar dados de uso:', error);
+      return {};
+    }
+  };
+
+  // Função para salvar dados de uso no localStorage
+  const saveUsageData = (usageData) => {
+    try {
+      localStorage.setItem(getUsageKey(), JSON.stringify(usageData));
+    } catch (error) {
+      console.error('Erro ao salvar dados de uso:', error);
+    }
+  };
+
+  // Função para registrar uso de um simulador
+  const trackSimulatorUsage = (simulatorId) => {
+    const usageData = loadUsageData();
+    const currentTime = Date.now();
+    
+    if (!usageData[simulatorId]) {
+      usageData[simulatorId] = {
+        count: 0,
+        lastUsed: currentTime,
+        firstUsed: currentTime
+      };
+    }
+    
+    usageData[simulatorId].count += 1;
+    usageData[simulatorId].lastUsed = currentTime;
+    
+    saveUsageData(usageData);
+  };
+
+  // Função para ordenar simuladores baseado no uso
+  const getSortedSimulators = () => {
+    const usageData = loadUsageData();
+    
+    return [...simulatorsConfig].sort((a, b) => {
+      const aUsage = usageData[a.id] || { count: 0, lastUsed: 0 };
+      const bUsage = usageData[b.id] || { count: 0, lastUsed: 0 };
+      
+      // Primeiro critério: número de usos (decrescente)
+      if (aUsage.count !== bUsage.count) {
+        return bUsage.count - aUsage.count;
+      }
+      
+      // Segundo critério: último uso (mais recente primeiro)
+      if (aUsage.lastUsed !== bUsage.lastUsed) {
+        return bUsage.lastUsed - aUsage.lastUsed;
+      }
+      
+      // Terceiro critério: ordem alfabética (fallback)
+      return a.label.localeCompare(b.label);
+    });
+  };
+
+  // Função para lidar com clique em simulador
+  const handleSimulatorClick = (simulatorId) => {
+    trackSimulatorUsage(simulatorId);
+    setIsSimulatorsOpen(false); // Fechar dropdown após clique
+  };
 
   // Auto-abrir sidebar de crédito quando estivermos nas rotas de crédito
   React.useEffect(() => {
@@ -596,162 +863,28 @@ export default function Layout({ children }: LayoutProps) {
               <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none"></div>
               
               <div className="relative space-y-1">
-                <DropdownMenuItem asChild className="p-0">
-                  <Link href="/simulador-valor-registro" className="group">
-                    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-blue-700 dark:hover:text-blue-400">
-                      <div className="p-1 rounded-full bg-blue-100 dark:bg-blue-900/50 mr-2 transition-all duration-300 group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50">
-                        <FileText className="h-2.5 w-2.5 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <span className="font-medium text-xs">Valor de Registro</span>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <ChevronRight className="h-2.5 w-2.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="p-0">
-                  <Link href="/simulador-financiamento" className="group">
-                    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-green-700 dark:hover:text-green-400">
-                      <div className="p-1 rounded-full bg-green-100 dark:bg-green-900/50 mr-2 transition-all duration-300 group-hover:bg-green-200 dark:group-hover:bg-green-800/50">
-                        <Home className="h-2.5 w-2.5 text-green-600 dark:text-green-400" />
-                      </div>
-                      <span className="font-medium text-xs">Financiamento Imobiliário</span>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <ChevronRight className="h-2.5 w-2.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="p-0">
-                  <Link href="/simulador-valor-imovel" className="group">
-                    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-purple-700 dark:hover:text-purple-400">
-                      <div className="p-1 rounded-full bg-purple-100 dark:bg-purple-900/50 mr-2 transition-all duration-300 group-hover:bg-purple-200 dark:group-hover:bg-purple-800/50">
-                        <Search className="h-2.5 w-2.5 text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <span className="font-medium text-xs">Avaliação Imobiliária</span>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <ChevronRight className="h-2.5 w-2.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="p-0">
-                  <Link href="/simulador-poder-de-compra" className="group">
-                    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-orange-50 hover:to-red-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-orange-700 dark:hover:text-orange-400">
-                      <div className="p-1 rounded-full bg-orange-100 dark:bg-orange-900/50 mr-2 transition-all duration-300 group-hover:bg-orange-200 dark:group-hover:bg-orange-800/50">
-                        <DollarSign className="h-2.5 w-2.5 text-orange-600 dark:text-orange-400" />
-                      </div>
-                      <span className="font-medium text-xs">Poder de Compra</span>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <ChevronRight className="h-2.5 w-2.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="p-0">
-                  <Link href="/simulador-aluguel-x-compra" className="group">
-                    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-cyan-700 dark:hover:text-cyan-400">
-                      <div className="p-1 rounded-full bg-cyan-100 dark:bg-cyan-900/50 mr-2 transition-all duration-300 group-hover:bg-cyan-200 dark:group-hover:bg-cyan-800/50">
-                        <ArrowRightLeft className="h-2.5 w-2.5 text-cyan-600 dark:text-cyan-400" />
-                      </div>
-                      <span className="font-medium text-xs">Aluguel x Compra</span>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <ChevronRight className="h-2.5 w-2.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="p-0">
-                  <Link href="/simulador-consorcio-x-financiamento" className="group">
-                    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-teal-50 hover:to-green-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-teal-700 dark:hover:text-teal-400">
-                      <div className="p-1 rounded-full bg-teal-100 dark:bg-teal-900/50 mr-2 transition-all duration-300 group-hover:bg-teal-200 dark:group-hover:bg-teal-800/50">
-                        <Scale className="h-2.5 w-2.5 text-teal-600 dark:text-teal-400" />
-                      </div>
-                      <span className="font-medium text-xs">Consórcio x Financiamento</span>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <ChevronRight className="h-2.5 w-2.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="p-0">
-                  <Link href="/simulador-sac-x-price" className="group">
-                    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-orange-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-yellow-700 dark:hover:text-yellow-400">
-                      <div className="p-1 rounded-full bg-yellow-100 dark:bg-yellow-900/50 mr-2 transition-all duration-300 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50">
-                        <Repeat className="h-2.5 w-2.5 text-yellow-600 dark:text-yellow-400" />
-                      </div>
-                      <span className="font-medium text-xs">SAC x PRICE</span>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <ChevronRight className="h-2.5 w-2.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="p-0">
-                  <Link href="/simulador-roi-flipping" className="group">
-                    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-rose-50 hover:to-pink-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-rose-700 dark:hover:text-rose-400">
-                      <div className="p-1 rounded-full bg-rose-100 dark:bg-rose-900/50 mr-2 transition-all duration-300 group-hover:bg-rose-200 dark:group-hover:bg-rose-800/50">
-                        <BarChart2 className="h-2.5 w-2.5 text-rose-600 dark:text-rose-400" />
-                      </div>
-                      <span className="font-medium text-xs">ROI Flipping</span>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <ChevronRight className="h-2.5 w-2.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="p-0">
-                  <Link href="/simulador-potencial-de-valorizacao" className="group">
-                    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-emerald-700 dark:hover:text-emerald-400">
-                      <div className="p-1 rounded-full bg-emerald-100 dark:bg-emerald-900/50 mr-2 transition-all duration-300 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-800/50">
-                        <TrendingUp className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" />
-                      </div>
-                      <span className="font-medium text-xs">Potencial de Valorização</span>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <ChevronRight className="h-2.5 w-2.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="p-0">
-                  <Link href="/simulador-comissao-e-metas" className="group">
-                    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-indigo-700 dark:hover:text-indigo-400">
-                      <div className="p-1 rounded-full bg-indigo-100 dark:bg-indigo-900/50 mr-2 transition-all duration-300 group-hover:bg-indigo-200 dark:group-hover:bg-indigo-800/50">
-                        <Target className="h-2.5 w-2.5 text-indigo-600 dark:text-indigo-400" />
-                      </div>
-                      <span className="font-medium text-xs">Comissão e Metas</span>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <ChevronRight className="h-2.5 w-2.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="p-0">
-                  <Link href="/simulador-renda-passiva" className="group">
-                    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-violet-50 hover:to-purple-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-violet-700 dark:hover:text-violet-400">
-                      <div className="p-1 rounded-full bg-violet-100 dark:bg-violet-900/50 mr-2 transition-all duration-300 group-hover:bg-violet-200 dark:group-hover:bg-violet-800/50">
-                        <PiggyBank className="h-2.5 w-2.5 text-violet-600 dark:text-violet-400" />
-                      </div>
-                      <span className="font-medium text-xs">Renda Passiva (Aluguéis)</span>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <ChevronRight className="h-2.5 w-2.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="p-0">
-                  <Link href="/simulador-cgi" className="group">
-                    <div className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-amber-50 hover:to-orange-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-amber-700 dark:hover:text-amber-400">
-                      <div className="p-1 rounded-full bg-amber-100 dark:bg-amber-900/50 mr-2 transition-all duration-300 group-hover:bg-amber-200 dark:group-hover:bg-amber-800/50">
-                        <Shield className="h-2.5 w-2.5 text-amber-600 dark:text-amber-400" />
-                      </div>
-                      <span className="font-medium text-xs">Crédito com Garantia de Imóvel</span>
-                      <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <ChevronRight className="h-2.5 w-2.5" />
-                      </div>
-                    </div>
-                  </Link>
-                </DropdownMenuItem>
+                {getSortedSimulators().map((simulator) => {
+                  const Icon = simulator.icon;
+                  return (
+                    <DropdownMenuItem key={simulator.id} asChild className="p-0">
+                      <Link 
+                        href={simulator.href} 
+                        className="group"
+                        onClick={() => handleSimulatorClick(simulator.id)}
+                      >
+                        <div className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:${simulator.bgColor} dark:hover:${simulator.darkBgColor} hover:${simulator.textColor} dark:hover:${simulator.darkTextColor}`}>
+                          <div className={`p-1 rounded-full ${simulator.iconBg} dark:${simulator.darkIconBg} mr-2 transition-all duration-300 group-hover:${simulator.iconBgHover} dark:group-hover:${simulator.darkIconBgHover}`}>
+                            <Icon className={`h-2.5 w-2.5 ${simulator.iconColor} dark:${simulator.darkIconColor}`} />
+                          </div>
+                          <span className="font-medium text-xs">{simulator.label}</span>
+                          <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <ChevronRight className="h-2.5 w-2.5" />
+                          </div>
+                        </div>
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
