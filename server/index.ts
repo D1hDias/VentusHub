@@ -30,7 +30,8 @@ log(`
   // 2. Configuração de CORS (deve vir antes da sessão e das rotas)
   const allowedOrigins = [
     'https://www.ventushub.com.br',
-    'http://localhost:5000' // Adicionado para desenvolvimento local
+    'http://localhost:5000', // Adicionado para desenvolvimento local
+    'https://ventus-hub.onrender.com' // Adicione a URL do seu deploy aqui
   ];
 
   const corsOptions = {
@@ -87,4 +88,3 @@ log(`
   });
 
 })();
-

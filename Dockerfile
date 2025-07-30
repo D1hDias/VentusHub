@@ -50,7 +50,6 @@ COPY --from=builder --chown=ventushub:nodejs /app/dist ./dist
 # Copy necessary runtime files
 COPY --chown=ventushub:nodejs migrations/ ./migrations/
 COPY --chown=ventushub:nodejs shared/ ./shared/
-COPY --chown=ventushub:nodejs server/ ./server/
 COPY --chown=ventushub:nodejs drizzle.config.ts ./
 
 # Create uploads directory

@@ -2,10 +2,10 @@ import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage.js";
 import { isAuthenticated } from "./auth.js";
-import { insertProposalSchema } from "@shared/schema";
+import { insertProposalSchema } from "../shared/schema.js";
 import { z } from "zod";
 import { db } from "./db.js";
-import { documents as propertyDocuments, properties } from "@shared/schema";
+import { documents as propertyDocuments, properties } from "../shared/schema.js";
 import { eq } from "drizzle-orm";
 
 export function registerApiRoutes(app: Express): void {

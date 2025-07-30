@@ -8,7 +8,7 @@ import {
   proposals,
   contracts,
   timelineEntries
-} from "@shared/schema";
+} from "../shared/schema.js";
 
 export const storage = {
   // USER METHODS
