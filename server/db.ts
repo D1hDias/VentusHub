@@ -1,12 +1,10 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
 import * as schema from "../shared/schema.js";
 
-neonConfig.webSocketConstructor = ws;
+// Usar sempre Neon PostgreSQL (configuração original)
+console.log("🔧 Usando Neon PostgreSQL");
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -14,19 +12,26 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Configurar pool com tratamento de erros aprimorado
-export const pool = new Pool({ 
+const { Pool, neonConfig } = await import('@neondatabase/serverless');
+const { drizzle } = await import('drizzle-orm/neon-serverless');
+const ws = await import("ws");
+
+neonConfig.webSocketConstructor = ws.default;
+
+const pool = new Pool({ 
   connectionString: process.env.DATABASE_URL,
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,
 });
 
+const db = drizzle(pool, { schema });
+
 // Adicionar tratamento de erros do pool
-pool.on('error', (err) => {
+pool.on('error', (err: any) => {
   if (process.env.NODE_ENV === 'development') {
     console.warn('Database pool error:', err.message);
   }
 });
 
-export const db = drizzle({ client: pool, schema });
+export { db, pool };

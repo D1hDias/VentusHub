@@ -70,7 +70,10 @@
       "Bash(npx gemini-mcp-tool:*)",
       "mcp__gemini-cli__ping",
       "Bash(docker-compose exec app ls:*)",
-      "Bash(docker-compose logs:*)"
+      "Bash(docker-compose logs:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker exec:*)",
+      "Bash(npx drizzle-kit introspect:*)"
     ],
     "deny": []
   },
