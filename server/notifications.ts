@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { db } from "./db";
+import { db } from "./db.js";
 import { eq, desc, and, count } from "drizzle-orm";
 import { notifications, users } from "@shared/schema";
 

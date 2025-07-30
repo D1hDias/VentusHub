@@ -1,10 +1,10 @@
 import type { Express } from "express";
 import { createServer } from "http";
-import { storage } from "./storage";
-import { isAuthenticated } from "./auth";
+import { storage } from "./storage.js";
+import { isAuthenticated } from "./auth.js";
 import { insertProposalSchema } from "@shared/schema";
 import { z } from "zod";
-import { db } from "./db";
+import { db } from "./db.js";
 import { documents as propertyDocuments, properties } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
