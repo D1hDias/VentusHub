@@ -73,7 +73,14 @@
       "Bash(docker-compose logs:*)",
       "Bash(docker-compose:*)",
       "Bash(docker exec:*)",
-      "Bash(npx drizzle-kit introspect:*)"
+      "Bash(npx drizzle-kit introspect:*)",
+      "Bash(GEMINI_API_KEY=AIzaSyBZ9scOwZoUBejV_V-bhSNgKd0wQT17fNw npx gemini-mcp-tool)",
+      "Bash(pip install:*)",
+      "Bash(python3 -m pip install:*)",
+      "Bash(python3:*)",
+      "Bash(source:*)",
+      "Bash(pipx:*)",
+      "Bash(export PATH=$PATH:/home/diego/.local/bin)"
     ],
     "deny": []
   },

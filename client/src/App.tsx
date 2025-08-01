@@ -35,9 +35,10 @@ import SimuladorCGI from "./pages/SimuladorCGI";
 import CreditoFinanciamento from "./pages/CreditoFinanciamento";
 import CreditoConsorcio from "./pages/CreditoConsorcio";
 import CreditoCGI from "./pages/CreditoCGI";
+import CreditoPJ from "./pages/CreditoPJ";
 
 // Components
-import Layout from "./components/Layout.tsx";
+import Layout from "./components/Layout";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -155,6 +156,12 @@ function AppRoutes() {
       <Route path="/credito/cgi">
         <ProtectedRoute>
           <CreditoCGI />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/credito/pj">
+        <ProtectedRoute>
+          <CreditoPJ />
         </ProtectedRoute>
       </Route>
 

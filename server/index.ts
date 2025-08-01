@@ -30,8 +30,7 @@ log(`
     log("✅ Express criado");
 
     // 1. Confiar no proxy reverso (essencial para o secure cookie em produção)
-    app.set('trust proxy', 1);
-    log("✅ Proxy configurado");
+    'http://localhost:5000' // Adicionado para desenvolvimento local
 
   // 2. Configuração de CORS (deve vir antes da sessão e das rotas)
   const allowedOrigins = [
@@ -88,6 +87,7 @@ log(`
       const { setupVite } = await import("./vite.js");
       await setupVite(app, httpServer);
     } catch (error) {
+
       console.warn("Vite não disponível, usando modo simples:", error.message);
       // Modo desenvolvimento simples sem Vite
       app.get("*", (req, res) => {

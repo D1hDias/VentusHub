@@ -4,6 +4,7 @@ import { Calculator, Download, Building, CreditCard, FileText, TrendingUp, Home,
 import { scroller, Element } from 'react-scroll';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { LoadingModal } from '@/components/LoadingModal';
 import logoBB from '@/assets/logo-bb.png';
 import logoBradesco from '@/assets/logo-bradesco.png';
 import logoBRB from '@/assets/logo-brb.png';
@@ -403,6 +404,7 @@ export default function SimuladorComparativo() {
   const [showRelatorio, setShowRelatorio] = useState(false);
   const [relatorioContent, setRelatorioContent] = useState('');
   const [resultados, setResultados] = useState({});
+  const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
 
   // Helper para obter configuração correta dos bancos
   const getBancosConfig = () => minhaCasaMinhaVida ? BANCOS_MCMV_CONFIG : BANCOS_CONFIG;
@@ -894,6 +896,12 @@ export default function SimuladorComparativo() {
       return;
     }
 
+    // Abrir modal de carregamento
+    setIsLoadingModalOpen(true);
+  };
+
+  // Função para processar simulação após o modal
+  const processarSimulacao = () => {
     const novosResultados = {};
     bancosEscolhidos.forEach(codigoBanco => {
       novosResultados[codigoBanco] = calcularFinanciamentoBanco(codigoBanco);
@@ -2241,6 +2249,17 @@ export default function SimuladorComparativo() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Modal de Carregamento */}
+      <LoadingModal
+        isOpen={isLoadingModalOpen}
+        onClose={() => {
+          setIsLoadingModalOpen(false);
+          processarSimulacao();
+        }}
+        selectedBanks={bancosEscolhidos.length}
+        duration={6000}
+      />
     </div>
   );
 }

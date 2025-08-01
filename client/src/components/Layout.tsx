@@ -34,7 +34,12 @@ import {
   Target,
   PiggyBank,
   Repeat,
-  BadgeCent
+  BadgeCent,
+  CalculatorIcon,
+  Users,
+  ScrollText,
+  FileSearch,
+  PenTool
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -268,6 +273,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarHovered, setSidebarHovered] = useState(false);
   const [showFinanciamentoSubmenu, setShowFinanciamentoSubmenu] = useState(false);
   const [showCreditoSidebar, setShowCreditoSidebar] = useState(false);
   const [location] = useLocation();
@@ -291,7 +297,7 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   // Função para salvar dados de uso no localStorage
-  const saveUsageData = (usageData) => {
+  const saveUsageData = (usageData: Record<string, any>) => {
     try {
       localStorage.setItem(getUsageKey(), JSON.stringify(usageData));
     } catch (error) {
@@ -300,7 +306,7 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   // Função para registrar uso de um simulador
-  const trackSimulatorUsage = (simulatorId) => {
+  const trackSimulatorUsage = (simulatorId: string) => {
     const usageData = loadUsageData();
     const currentTime = Date.now();
     
@@ -342,19 +348,37 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   // Função para lidar com clique em simulador
-  const handleSimulatorClick = (simulatorId) => {
+  const handleSimulatorClick = (simulatorId: string) => {
     trackSimulatorUsage(simulatorId);
     setIsSimulatorsOpen(false); // Fechar dropdown após clique
   };
 
-  // Auto-abrir sidebar de crédito quando estivermos nas rotas de crédito
+  // Auto-abrir sidebar de crédito para financiamento, CGI e simulador
   React.useEffect(() => {
-    if (location === "/credito/financiamento" || location === "/credito/consorcio") {
+    if (location === "/credito/financiamento") {
+      // Para a página de Financiamento: sempre colapsar sidebar principal e abrir sidebar branca se não estiver aberta
+      setSidebarCollapsed(true);
       if (!showCreditoSidebar) {
-        setSidebarCollapsed(true);
+        setShowCreditoSidebar(true);
+      }
+    } else if (location === "/credito/cgi") {
+      // Para a página de CGI: sempre colapsar sidebar principal e abrir sidebar branca se não estiver aberta
+      setSidebarCollapsed(true);
+      if (!showCreditoSidebar) {
+        setShowCreditoSidebar(true);
+      }
+    } else if (location === "/simulador-financiamento") {
+      // Para o Simulador: abrir sidebar branca se não estiver aberta
+      if (!showCreditoSidebar) {
+        setShowCreditoSidebar(true);
+      }
+    } else if (location === "/simulador-cgi") {
+      // Para o Simulador CGI: abrir sidebar branca se não estiver aberta
+      if (!showCreditoSidebar) {
         setShowCreditoSidebar(true);
       }
     } else {
+      // Para outras rotas: fechar sidebar branca e expandir sidebar principal
       if (showCreditoSidebar) {
         setSidebarCollapsed(false);
         setShowCreditoSidebar(false);
@@ -364,7 +388,7 @@ export default function Layout({ children }: LayoutProps) {
 
   // Função para obter as cores baseadas na rota atual
   const getCurrentTheme = () => {
-    if (location === "/credito/financiamento") {
+    if (location === "/credito/financiamento" || location === "/simulador-financiamento") {
       return {
         primary: "#3b82f6",
         primaryRgb: "59, 130, 246",
@@ -410,6 +434,52 @@ export default function Layout({ children }: LayoutProps) {
           footerDots: "bg-red-400"
         }
       };
+    } else if (location === "/credito/cgi" || location === "/simulador-cgi") {
+      return {
+        primary: "#10b981",
+        primaryRgb: "16, 185, 129",
+        name: "CGI",
+        classes: {
+          border: "border-emerald-200",
+          headerBg: "from-emerald-50 to-white",
+          buttonText: "text-emerald-600",
+          buttonHover: "hover:bg-emerald-100",
+          dotBg: "bg-emerald-500",
+          titleGradient: "from-emerald-600 to-emerald-800",
+          itemActive: "from-emerald-500 to-emerald-600 border-emerald-500",
+          itemHover: "hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300",
+          iconBg: "bg-emerald-100 hover:bg-emerald-200",
+          iconText: "text-emerald-600",
+          footerBg: "from-emerald-50 to-emerald-100",
+          footerBorder: "border-emerald-200",
+          footerText: "text-emerald-700",
+          footerSubtext: "text-emerald-500",
+          footerDots: "bg-emerald-400"
+        }
+      };
+    } else if (location === "/credito/pj") {
+      return {
+        primary: "#eab308",
+        primaryRgb: "234, 179, 8",
+        name: "Crédito PJ",
+        classes: {
+          border: "border-yellow-200",
+          headerBg: "from-yellow-50 to-white",
+          buttonText: "text-yellow-600",
+          buttonHover: "hover:bg-yellow-100",
+          dotBg: "bg-yellow-500",
+          titleGradient: "from-yellow-600 to-yellow-800",
+          itemActive: "from-yellow-500 to-yellow-600 border-yellow-500",
+          itemHover: "hover:bg-yellow-50 hover:text-yellow-700 hover:border-yellow-300",
+          iconBg: "bg-yellow-100 hover:bg-yellow-200",
+          iconText: "text-yellow-600",
+          footerBg: "from-yellow-50 to-yellow-100",
+          footerBorder: "border-yellow-200",
+          footerText: "text-yellow-700",
+          footerSubtext: "text-yellow-500",
+          footerDots: "bg-yellow-400"
+        }
+      };
     }
     // Default (financiamento)
     return {
@@ -438,17 +508,31 @@ export default function Layout({ children }: LayoutProps) {
 
   const currentTheme = getCurrentTheme();
 
-  // Items da nova sidebar de Crédito
-  const creditoItems = [
-    { href: "/credito/financiamento", label: "Visão geral", icon: Home },
-    { href: "/credito/clientes", label: "Clientes", icon: User },
-    { href: "/credito/imoveis", label: "Imóveis", icon: Building2 },
-    { href: "/credito/propostas", label: "Propostas", icon: HandHeart },
-    { href: "/credito/usuarios", label: "Usuários", icon: User },
-    { href: "/credito/bancos", label: "Bancos", icon: CreditCard },
-    { href: "/credito/imobiliarias", label: "Imobiliárias", icon: Store },
-    { href: "/credito/relatorios", label: "Relatórios", icon: FileText },
-  ];
+  // Items da nova sidebar de Crédito baseados na rota
+  const getCreditoItems = () => {
+    if (location === "/credito/financiamento" || location === "/simulador-financiamento") {
+      return [
+        { href: "/credito/financiamento", label: "Visão geral", icon: Home },
+        { href: "/simulador-financiamento", label: "Simulação", icon: Calculator },
+        { href: "/credito/Aprovação", label: "Aprovação", icon: FileCheck },
+        { href: "/credito/propostas", label: "Propostas", icon: PenTool },
+        { href: "/credito/usuarios", label: "Acompanhamento", icon: FileSearch },
+        { href: "/credito/imobiliarias", label: "Equipe", icon: Users },
+        { href: "/credito/relatorios", label: "Relatórios", icon: ScrollText },
+      ];
+    } else if (location === "/credito/cgi" || location === "/simulador-cgi") {
+      return [
+        { href: "/credito/cgi", label: "Visão geral", icon: Home },
+        { href: "/simulador-cgi", label: "Simulação", icon: Calculator },
+        { href: "/credito/cgi/aprovacao", label: "Aprovação", icon: FileCheck },
+        { href: "/credito/cgi/propostas", label: "Propostas", icon: PenTool },
+        { href: "/credito/cgi/acompanhamento", label: "Acompanhamento", icon: FileSearch },
+        { href: "/credito/cgi/equipe", label: "Equipe", icon: Users },
+        { href: "/credito/cgi/relatorios", label: "Relatórios", icon: ScrollText },
+      ];
+    }
+    return [];
+  };
 
   const getNotificationIcon = (type: string, category: string) => {
     if (category === 'property') return Building2;
@@ -487,19 +571,29 @@ export default function Layout({ children }: LayoutProps) {
         className={`fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-[#001f3f] to-[#004286] transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } ${
-        sidebarCollapsed ? "w-14 shadow-2xl shadow-black/40" : "w-60 shadow-lg"
+        sidebarCollapsed && !sidebarHovered ? "w-14 shadow-2xl shadow-black/40" : "w-60 shadow-lg"
         }`}
-        style={sidebarCollapsed ? {
+        style={(sidebarCollapsed && !sidebarHovered) ? {
           boxShadow: '6px 0 25px rgba(0, 0, 0, 0.5), 3px 0 15px rgba(0, 0, 0, 0.3), 1px 0 5px rgba(0, 0, 0, 0.2)',
           zIndex: 60
         } : {}}
+        onMouseEnter={() => {
+          if (sidebarCollapsed && window.innerWidth >= 1024) {
+            setSidebarHovered(true);
+          }
+        }}
+        onMouseLeave={() => {
+          if (sidebarCollapsed && window.innerWidth >= 1024) {
+            setSidebarHovered(false);
+          }
+        }}
       >
-        <div className={`flex items-center h-16 border-b border-white/10 ${sidebarCollapsed ? "px-2" : "px-3"}`}>
-          {sidebarCollapsed ? (
+        <div className={`flex items-center h-16 border-b border-white/10 ${sidebarCollapsed && !sidebarHovered ? "px-2" : "px-3"}`}>
+          {sidebarCollapsed && !sidebarHovered ? (
             <Button
               variant="ghost"
               size="icon"
-              className="text-white hover:bg-white/20 w-full flex justify-center hover:shadow-lg transition-all duration-200"
+              className="text-white hover:bg-white/20 w-full flex justify-center hover:shadow-lg transition-all duration-200 lg:hidden"
               style={{ 
                 filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
               }}
@@ -512,7 +606,7 @@ export default function Layout({ children }: LayoutProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:bg-white/10 shrink-0"
+                className="text-white hover:bg-white/10 shrink-0 lg:hidden"
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               >
                 <Menu className="h-5 w-5" />
@@ -526,7 +620,7 @@ export default function Layout({ children }: LayoutProps) {
           )}
         </div>
 
-        <nav className={`mt-6 ${sidebarCollapsed ? "px-1" : "px-3"}`}>
+        <nav className={`mt-6 ${sidebarCollapsed && !sidebarHovered ? "px-1" : "px-3"}`}>
           <div className="space-y-1">
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -538,19 +632,31 @@ export default function Layout({ children }: LayoutProps) {
                   <div key={item.href}>
                     {/* Crédito Button */}
                     <div
-                      className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${sidebarCollapsed ? "px-2" : "px-3"} ${
+                      className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${sidebarCollapsed && !sidebarHovered ? "px-2" : "px-3"} ${
                         isActive || location.startsWith("/credito")
                           ? "bg-white/20 text-white border-r-2 border-white"
                           : "text-white/80 hover:bg-white/10 hover:text-white"
-                      } ${sidebarCollapsed ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""}`}
-                      style={sidebarCollapsed ? { 
+                      } ${sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""}`}
+                      style={sidebarCollapsed && !sidebarHovered ? { 
                         filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
                       } : {}}
-                      title={sidebarCollapsed ? item.label : ""}
-                      onClick={() => setShowFinanciamentoSubmenu(!showFinanciamentoSubmenu)}
+                      title={sidebarCollapsed && !sidebarHovered ? item.label : ""}
+                      onClick={() => {
+                        if (showFinanciamentoSubmenu) {
+                          // Se o submenu já está aberto, fecha completamente (igual ao botão X)
+                          setShowFinanciamentoSubmenu(false);
+                          if (showCreditoSidebar) {
+                            setSidebarCollapsed(false);
+                            setShowCreditoSidebar(false);
+                          }
+                        } else {
+                          // Se está fechado, abre o submenu
+                          setShowFinanciamentoSubmenu(true);
+                        }
+                      }}
                     >
-                      <Icon className={`h-5 w-5 ${sidebarCollapsed ? "" : "mr-3"}`} />
-                      {!sidebarCollapsed && (
+                      <Icon className={`h-5 w-5 ${sidebarCollapsed && !sidebarHovered ? "" : "mr-3"}`} />
+                      {(!sidebarCollapsed || sidebarHovered) && (
                         <>
                           <span className="flex-1">{item.label}</span>
                           {showFinanciamentoSubmenu ? (
@@ -563,7 +669,7 @@ export default function Layout({ children }: LayoutProps) {
                     </div>
 
                     {/* Submenu - Efeito Moderno */}
-                    {!sidebarCollapsed && (
+                    {(!sidebarCollapsed || sidebarHovered) && (
                       <div
                         className={`overflow-hidden transition-all duration-500 ease-out transform ${
                           showFinanciamentoSubmenu 
@@ -595,7 +701,11 @@ export default function Layout({ children }: LayoutProps) {
                                   onClick={() => {
                                     // Fechar o submenu após clique
                                     setShowFinanciamentoSubmenu(false);
-                                    // A sidebar será aberta automaticamente pelo useEffect quando a rota mudar
+                                    // Forçar colapso da sidebar principal e abertura da sidebar branca
+                                    setTimeout(() => {
+                                      setSidebarCollapsed(true);
+                                      setShowCreditoSidebar(true);
+                                    }, 0);
                                   }}
                                 >
                                   <div className={`p-1 rounded-md mr-2 transition-all duration-300 ${
@@ -644,6 +754,15 @@ export default function Layout({ children }: LayoutProps) {
                                       : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-emerald-700 dark:hover:text-emerald-400"
                                   }`}
                                   title="Crédito com Garantia de Imóvel"
+                                  onClick={() => {
+                                    // Fechar o submenu após clique
+                                    setShowFinanciamentoSubmenu(false);
+                                    // Forçar colapso da sidebar principal e abertura da sidebar branca
+                                    setTimeout(() => {
+                                      setSidebarCollapsed(true);
+                                      setShowCreditoSidebar(true);
+                                    }, 0);
+                                  }}
                                 >
                                   <div className={`p-1 rounded-md mr-2 transition-all duration-300 ${
                                     location === "/credito/cgi"
@@ -658,6 +777,31 @@ export default function Layout({ children }: LayoutProps) {
                                   </div>
                                 </div>
                               </Link>
+
+                              {/* Crédito PJ */}
+                              <Link href="/credito/pj">
+                                <div
+                                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] ${
+                                    location === "/credito/pj"
+                                      ? "bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-lg shadow-yellow-500/25"
+                                      : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-amber-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-yellow-700 dark:hover:text-yellow-400"
+                                  }`}
+                                  title="Crédito Pessoa Jurídica"
+                                >
+                                  <div className={`p-1 rounded-md mr-2 transition-all duration-300 ${
+                                    location === "/credito/pj"
+                                      ? "bg-white/20"
+                                      : "bg-yellow-100 dark:bg-gray-700 group-hover:bg-yellow-200 dark:group-hover:bg-gray-600"
+                                  }`}>
+                                    <Building2 className="h-3 w-3" />
+                                  </div>
+                                  <span className="font-medium text-xs">Crédito PJ</span>
+                                  <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <ChevronRight className="h-2.5 w-2.5" />
+                                  </div>
+                                </div>
+                              </Link>
+
                             </div>
                             
                             {/* Indicador de submenu ativo */}
@@ -676,20 +820,20 @@ export default function Layout({ children }: LayoutProps) {
               return (
                 <Link key={item.href} href={item.href}>
                   <div
-                    className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${sidebarCollapsed ? "px-2" : "px-3"} ${
+                    className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${sidebarCollapsed && !sidebarHovered ? "px-2" : "px-3"} ${
                     isActive
                         ? "bg-white/20 text-white border-r-2 border-white"
                         : "text-white/80 hover:bg-white/10 hover:text-white"
                     } ${
-                    sidebarCollapsed ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
+                    sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
                     }`}
-                    style={sidebarCollapsed ? { 
+                    style={sidebarCollapsed && !sidebarHovered ? { 
                       filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
                     } : {}}
-                    title={sidebarCollapsed ? item.label : ""}
+                    title={sidebarCollapsed && !sidebarHovered ? item.label : ""}
                   >
-                    <Icon className={`h-5 w-5 ${sidebarCollapsed ? "" : "mr-3"}`} />
-                    {!sidebarCollapsed && item.label}
+                    <Icon className={`h-5 w-5 ${sidebarCollapsed && !sidebarHovered ? "" : "mr-3"}`} />
+                    {(!sidebarCollapsed || sidebarHovered) && item.label}
                   </div>
                 </Link>
               );
@@ -697,17 +841,17 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </nav>
 
-        <div className={`absolute bottom-4 left-0 right-0 ${sidebarCollapsed ? "px-1" : "px-3"}`}>
-          <div className={`flex items-center py-2 text-sm text-white/80 cursor-pointer hover:bg-white/10 rounded-md ${sidebarCollapsed ? "px-2" : "px-3"} ${
-            sidebarCollapsed ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
+        <div className={`absolute bottom-4 left-0 right-0 ${sidebarCollapsed && !sidebarHovered ? "px-1" : "px-3"}`}>
+          <div className={`flex items-center py-2 text-sm text-white/80 cursor-pointer hover:bg-white/10 rounded-md ${sidebarCollapsed && !sidebarHovered ? "px-2" : "px-3"} ${
+            sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
           }`}
-          style={sidebarCollapsed ? { 
+          style={sidebarCollapsed && !sidebarHovered ? { 
             filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
           } : {}}
-          title={sidebarCollapsed ? "Configurações" : ""}
+          title={sidebarCollapsed && !sidebarHovered ? "Configurações" : ""}
           >
-            <Settings className={`h-5 w-5 ${sidebarCollapsed ? "" : "mr-3"}`} />
-            {!sidebarCollapsed && "Configurações"}
+            <Settings className={`h-5 w-5 ${sidebarCollapsed && !sidebarHovered ? "" : "mr-3"}`} />
+            {(!sidebarCollapsed || sidebarHovered) && "Configurações"}
           </div>
         </div>
       </div>
@@ -747,7 +891,7 @@ export default function Layout({ children }: LayoutProps) {
             {/* Navegação da sidebar de crédito */}
             <nav className="mt-6 px-3">
               <div className="space-y-1">
-                {creditoItems.map((item) => {
+                {getCreditoItems().map((item) => {
                   const Icon = item.icon;
                   const isActive = location === item.href;
                   
@@ -810,7 +954,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main content */}
       {/* Header */}
       <header className={cn("fixed top-0 right-0 z-40 bg-gradient-to-r from-[#001f3f] to-[#004286] border-b border-white/10 shadow-sm transition-all duration-300 ease-in-out h-16", 
-        showCreditoSidebar ? "lg:left-[280px]" : (sidebarCollapsed ? "lg:left-14" : "lg:left-60")
+        showCreditoSidebar ? "lg:left-[280px]" : (sidebarCollapsed && !sidebarHovered ? "lg:left-14" : "lg:left-60")
       )}>
         <div className="flex items-center justify-between h-full px-6">
           <div className="flex items-center">
@@ -1048,7 +1192,7 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Page content */}
       <main className={cn("flex-1 overflow-auto pt-16 transition-all duration-300", 
-        showCreditoSidebar ? "lg:ml-[280px]" : (sidebarCollapsed ? "lg:ml-14" : "lg:ml-60")
+        showCreditoSidebar ? "lg:ml-[280px]" : (sidebarCollapsed && !sidebarHovered ? "lg:ml-14" : "lg:ml-60")
       )}>
         {children}
       </main>

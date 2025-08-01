@@ -4,6 +4,7 @@ import { Calculator, Download, Building, CreditCard, FileText, TrendingUp, Home,
 import { scroller, Element } from 'react-scroll';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { LoadingModal } from '@/components/LoadingModal';
 import logoInter from '@/assets/logo-inter.png';
 import logoItau from '@/assets/logo-itau.png';
 import logoSantander from '@/assets/logo-santander.png';
@@ -543,6 +544,9 @@ const SimuladorCGI = () => {
 
   // Estado para armazenar as tabelas de amortização
   const [tabelasAmortizacao, setTabelasAmortizacao] = useState({});
+  
+  // Estado para controlar o modal de carregamento
+  const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
 
   // Estado para controlar a exibição da tabela de amortização
   const [mostrarTabela, setMostrarTabela] = useState(false);
@@ -741,6 +745,13 @@ const SimuladorCGI = () => {
   // Função principal de cálculo
   const calcularSimulacao = () => {
     if (!validarFormulario()) return;
+
+    // Abrir modal de carregamento
+    setIsLoadingModalOpen(true);
+  };
+
+  // Função para processar simulação após o modal
+  const processarSimulacaoCGI = () => {
 
     const valor = limparFormatacao(valorImovel);
     const valorFinanciado = limparFormatacao(valorFinanciamento);
@@ -2041,6 +2052,17 @@ const SimuladorCGI = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Modal de Carregamento */}
+      <LoadingModal
+        isOpen={isLoadingModalOpen}
+        onClose={() => {
+          setIsLoadingModalOpen(false);
+          processarSimulacaoCGI();
+        }}
+        selectedBanks={bancosEscolhidos.length}
+        duration={6000}
+      />
     </div>
   );
 };
