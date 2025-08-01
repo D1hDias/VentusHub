@@ -21,8 +21,8 @@ COPY postcss.config.js ./
 COPY components.json ./
 COPY drizzle.config.ts ./
 
-# Instalar dependências de produção
-RUN npm ci --only=production && npm cache clean --force
+# Instalar todas as dependências (incluindo dev para build)
+RUN npm ci && npm cache clean --force
 
 # Copiar código fonte
 COPY client/ ./client/
