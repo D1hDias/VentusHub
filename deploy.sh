@@ -1,31 +1,55 @@
 #!/bin/bash
 
+# Script de Deploy Automático VentusHub
+# Uso: ./deploy.sh "mensagem do commit"
+
+set -e
+
 echo "🚀 Iniciando deploy do VentusHub..."
 
-# Verificar se há mudanças para commitar
-if [[ -n $(git status --porcelain) ]]; then
-    echo "📝 Commitando mudanças locais..."
-    git add .
-    read -p "Digite a mensagem do commit: " commit_message
-    git commit -m "$commit_message"
+# Verificar se mensagem foi fornecida
+if [ -z "$1" ]; then
+    echo "❌ Erro: Forneça uma mensagem de commit"
+    echo "Uso: ./deploy.sh \"sua mensagem aqui\""
+    exit 1
 fi
 
-# Push para GitHub
-echo "📤 Enviando para GitHub..."
+COMMIT_MSG="$1"
+VPS_HOST="root@31.97.245.82"
+VPS_PATH="/var/www/VentusHub"
+
+echo "📝 Commit: $COMMIT_MSG"
+
+# 1. Adicionar todas as mudanças
+echo "📦 Adicionando arquivos ao Git..."
+git add .
+
+# 2. Verificar se há mudanças
+if git diff --cached --quiet; then
+    echo "ℹ️  Nenhuma mudança para commitar"
+else
+    # 3. Fazer commit
+    echo "💾 Fazendo commit..."
+    git commit -m "$COMMIT_MSG"
+fi
+
+# 4. Push para GitHub
+echo "⬆️  Enviando para GitHub..."
 git push origin main
 
-# Deploy no servidor
-echo "🌐 Fazendo deploy no servidor..."
-ssh root@31.97.245.82 << 'EOF'
-    cd /var/www/VentusHub
-    echo "📥 Baixando atualizações..."
-    git pull origin main
-    echo "🔄 Reconstruindo containers..."
-    docker-compose down
-    docker-compose up -d --build
-    echo "✅ Deploy concluído!"
-    docker-compose ps
-EOF
+# 5. Deploy no VPS
+echo "🌐 Fazendo deploy no VPS..."
+ssh $VPS_HOST "cd $VPS_PATH && \
+    echo '📥 Puxando mudanças do GitHub...' && \
+    git pull origin main && \
+    echo '🐳 Rebuilding containers...' && \
+    docker-compose build --no-cache ventushub && \
+    echo '🔄 Reiniciando aplicação...' && \
+    docker-compose up -d && \
+    echo '✅ Deploy concluído!' && \
+    docker ps --format 'table {{.Names}}\t{{.Status}}' | grep ventushub"
 
-echo "🎉 Deploy finalizado com sucesso!"
-echo "🌐 Aplicação disponível em: http://31.97.245.82:3000"
+echo ""
+echo "🎉 Deploy completo!"
+echo "🌐 Acesse: https://ventushub.com.br"
+echo "📊 IP: http://31.97.245.82"

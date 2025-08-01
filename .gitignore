@@ -72,6 +72,15 @@ temp/
 # SuperClaude dados sensíveis
 SuperClaude/config/
 SuperClaude/secrets/
+superclaude-env/
+superclaude-*/
+
+# Ambientes virtuais Python
+venv/
+env/
+.venv/
+.env/
+*-env/
 
 # Docker secrets
 docker-compose.override.yml

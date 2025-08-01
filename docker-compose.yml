@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Aplicação VentusHub
   ventushub:
@@ -111,13 +109,5 @@ networks:
 volumes:
   postgres_data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /var/lib/ventushub/postgres
   redis_data:
     driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /var/lib/ventushub/redis
