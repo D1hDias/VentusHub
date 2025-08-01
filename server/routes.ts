@@ -43,10 +43,6 @@ export function registerApiRoutes(app: Express): void {
   });
 
   app.post("/api/properties", isAuthenticated, async (req: any, res) => {
-    console.log("=== DADOS RECEBIDOS ===");
-    console.log("Body:", JSON.stringify(req.body, null, 2));
-    console.log("User ID:", req.session.user.id);
-    console.log("========================");
 
     try {
       const userId = parseInt(req.session.user.id);

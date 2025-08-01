@@ -38,9 +38,9 @@ export function setupAuth(app: Express) {
         secure: isProduction,
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 horas
-        sameSite: "lax",
+        sameSite: isProduction ? "none" : "lax", // 'none' para HTTPS cross-site
         path: "/",
-        // Não definir domínio para usar o domínio da requisição automaticamente
+        domain: isProduction ? ".ventushub.com.br" : undefined, // Domain para produção
       },
     })
   );
@@ -56,6 +56,16 @@ export function isAuthenticated(req: any, res: any, next: any) {
 
 // Rotas de autenticação
 export function setupAuthRoutes(app: Express) {
+  // Health check para autenticação
+  app.get("/api/auth/status", (req: any, res: any) => {
+    const isLoggedIn = !!(req.session && req.session.user);
+    res.json({ 
+      authenticated: isLoggedIn,
+      user: isLoggedIn ? req.session.user : null,
+      sessionId: req.sessionID || null
+    });
+  });
+
   // Registro
   app.post("/api/auth/register", async (req: any, res: any) => {
     try {

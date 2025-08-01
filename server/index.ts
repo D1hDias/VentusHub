@@ -30,11 +30,12 @@ log(`
     log("✅ Express criado");
 
     // 1. Confiar no proxy reverso (essencial para o secure cookie em produção)
-    'http://localhost:5000' // Adicionado para desenvolvimento local
+    app.set('trust proxy', 1);
 
   // 2. Configuração de CORS (deve vir antes da sessão e das rotas)
   const allowedOrigins = [
     'https://www.ventushub.com.br',
+    'https://ventushub.com.br',
     'http://localhost:5000',
     'https://ventus-hub.onrender.com'
   ];

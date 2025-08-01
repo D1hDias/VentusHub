@@ -172,21 +172,7 @@ export const storage = {
   },
 
   async deleteDocument(id: number) {
-    console.log("Storage: ANTES de deletar documento ID:", id);
-    
-    // Verificar se existe antes de deletar
-    const existsBefore = await db.select().from(documents).where(eq(documents.id, id));
-    console.log("Documento existe antes do delete:", existsBefore);
-    
-    // Deletar
-    const result = await db.delete(documents).where(eq(documents.id, id));
-    console.log("Delete result:", result);
-    
-    // Verificar se ainda existe depois de deletar
-    const existsAfter = await db.select().from(documents).where(eq(documents.id, id));
-    console.log("Documento existe depois do delete:", existsAfter);
-    
-    return result;
+    return await db.delete(documents).where(eq(documents.id, id));
   },
 
   // PROPOSAL METHODS
