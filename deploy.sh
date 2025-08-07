@@ -42,12 +42,12 @@ echo "🌐 Fazendo deploy no VPS..."
 ssh $VPS_HOST "cd $VPS_PATH && \
     echo '📥 Puxando mudanças do GitHub...' && \
     git pull origin main && \
-    echo '🐳 Rebuilding containers...' && \
-    docker-compose build --no-cache ventushub && \
+    echo '🔨 Fazendo build da aplicação...' && \
+    export \$(cat .env | xargs) && npm run build && \
     echo '🔄 Reiniciando aplicação...' && \
-    docker-compose up -d && \
+    pm2 restart ventushub && \
     echo '✅ Deploy concluído!' && \
-    docker ps --format 'table {{.Names}}\t{{.Status}}' | grep ventushub"
+    pm2 status ventushub"
 
 echo ""
 echo "🎉 Deploy completo!"
