@@ -10,6 +10,7 @@ import { Target, TrendingUp, AlertTriangle, Award, Plus, Trash2, DollarSign, Bar
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { INDICADORES_MERCADO } from "@/lib/indicadores-mercado";
 import IndicadoresMercado from '@/components/IndicadoresMercado';
+import { LoadingModal } from "@/components/LoadingModal";
 
 interface CommissionTier {
   id: string;
@@ -75,6 +76,7 @@ export default function SimuladorComissaoEMetas() {
 
   const [resultado, setResultado] = useState<ResultadoComissaoMetas | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
 
   const meses = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -193,26 +195,30 @@ export default function SimuladorComissaoEMetas() {
     setFormData(prev => ({ ...prev, vendas_reais_mensais: newVendas }));
   };
 
-  const calcularSimulacao = () => {
+  const calcularSimulacao = async () => {
+    const metaAnual = parseMonetaryValue(formData.meta_anual_faturamento);
+    const ticketMedio = parseMonetaryValue(formData.ticket_medio);
+    
+    if (metaAnual <= 0 || ticketMedio <= 0) {
+      alert('Por favor, preencha o ticket médio e a meta anual');
+      return;
+    }
+
+    // Validar se soma da sazonalidade é 100%
+    if (formData.toggle_sazonalidade) {
+      const somaSazonalidade = formData.sazonalidade_percent.reduce((a, b) => a + b, 0);
+      if (Math.abs(somaSazonalidade - 100) > 0.1) {
+        alert('A soma da sazonalidade deve ser 100%');
+        return;
+      }
+    }
+
+    setIsLoadingModalOpen(true);
     setLoading(true);
     
     try {
-      const metaAnual = parseMonetaryValue(formData.meta_anual_faturamento);
-      const ticketMedio = parseMonetaryValue(formData.ticket_medio);
-      
-      if (metaAnual <= 0 || ticketMedio <= 0) {
-        alert('Por favor, preencha o ticket médio e a meta anual');
-        return;
-      }
-
-      // Validar se soma da sazonalidade é 100%
-      if (formData.toggle_sazonalidade) {
-        const somaSazonalidade = formData.sazonalidade_percent.reduce((a, b) => a + b, 0);
-        if (Math.abs(somaSazonalidade - 100) > 0.1) {
-          alert('A soma da sazonalidade deve ser 100%');
-          return;
-        }
-      }
+      // Simular processamento assíncrono
+      await new Promise(resolve => setTimeout(resolve, 3500));
 
       // Calcular metas mensais
       const metasMensais = formData.toggle_sazonalidade
@@ -287,6 +293,7 @@ export default function SimuladorComissaoEMetas() {
       alert("Erro ao calcular simulação. Verifique os dados inseridos.");
     } finally {
       setLoading(false);
+      setIsLoadingModalOpen(false);
     }
   };
 
@@ -763,6 +770,13 @@ export default function SimuladorComissaoEMetas() {
           )}
         </div>
       </div>
+      
+      <LoadingModal
+        isOpen={isLoadingModalOpen}
+        onClose={() => setIsLoadingModalOpen(false)}
+        message="Processando simulação de comissão e metas..."
+        duration={4000}
+      />
     </div>
   );
 }

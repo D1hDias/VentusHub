@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Calculator, TrendingDown, TrendingUp, DollarSign, Calendar, BarChart3 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LoadingModal } from "@/components/LoadingModal";
 
 interface FormData {
   valor_financiado: string;
@@ -45,6 +46,7 @@ export default function SimuladorSacXPrice() {
 
   const [resultado, setResultado] = useState<ResultadoComparativo | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
 
   const calcularTaxaMensal = (taxaAnual: number): number => {
     return Math.pow(1 + taxaAnual / 100, 1 / 12) - 1; // Taxa efetiva mensal
@@ -99,7 +101,7 @@ export default function SimuladorSacXPrice() {
     };
   };
 
-  const calcularComparativo = () => {
+  const calcularComparativo = async () => {
     const valorFinanciado = parseFloat(formData.valor_financiado.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     const rendaMensal = parseFloat(formData.renda_mensal.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     
@@ -108,9 +110,12 @@ export default function SimuladorSacXPrice() {
       return;
     }
 
+    setIsLoadingModalOpen(true);
     setLoading(true);
     
     try {
+      // Simular processamento assíncrono
+      await new Promise(resolve => setTimeout(resolve, 3500));
       
       const taxaMensal = calcularTaxaMensal(formData.taxa_efetiva_anual);
       
@@ -161,6 +166,7 @@ export default function SimuladorSacXPrice() {
       console.error("Erro no cálculo:", error);
     } finally {
       setLoading(false);
+      setIsLoadingModalOpen(false);
     }
   };
 
@@ -468,6 +474,13 @@ export default function SimuladorSacXPrice() {
           )}
         </div>
       </div>
+      
+      <LoadingModal
+        isOpen={isLoadingModalOpen}
+        onClose={() => setIsLoadingModalOpen(false)}
+        message="Processando cálculo comparativo..."
+        duration={4000}
+      />
     </div>
   );
 }

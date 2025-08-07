@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import logoImage from "@/assets/logo.png";
@@ -54,6 +54,7 @@ import {
 import { useTheme } from "@/contexts/ThemeContext";
 import { Avatar, AvatarFallback, AvatarImage  } from "@/components/ui/avatar";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useDeviceInfo } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -263,6 +264,38 @@ const simulatorsConfig = [
     darkIconBgHover: 'bg-amber-800/50',
     iconColor: 'text-amber-600',
     darkIconColor: 'text-amber-400'
+  },
+  {
+    id: 'simulador-metro-quadrado',
+    href: '/simulador-metro-quadrado',
+    label: 'Preço por Metro Quadrado',
+    icon: BarChart3,
+    bgColor: 'from-slate-50 to-zinc-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-slate-700',
+    darkTextColor: 'text-slate-400',
+    iconBg: 'bg-slate-100',
+    darkIconBg: 'bg-slate-900/50',
+    iconBgHover: 'bg-slate-200',
+    darkIconBgHover: 'bg-slate-800/50',
+    iconColor: 'text-slate-600',
+    darkIconColor: 'text-slate-400'
+  },
+  {
+    id: 'simulador-liquidez-imovel',
+    href: '/simulador-liquidez-imovel',
+    label: 'Liquidez do Imóvel',
+    icon: Circle,
+    bgColor: 'from-sky-50 to-blue-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-sky-700',
+    darkTextColor: 'text-sky-400',
+    iconBg: 'bg-sky-100',
+    darkIconBg: 'bg-sky-900/50',
+    iconBgHover: 'bg-sky-200',
+    darkIconBgHover: 'bg-sky-800/50',
+    iconColor: 'text-sky-600',
+    darkIconColor: 'text-sky-400'
   }
 ];
 
@@ -276,11 +309,14 @@ export default function Layout({ children }: LayoutProps) {
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [showFinanciamentoSubmenu, setShowFinanciamentoSubmenu] = useState(false);
   const [showCreditoSidebar, setShowCreditoSidebar] = useState(false);
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(1, 5);
   const [isSimulatorsOpen, setIsSimulatorsOpen] = useState(false);
+  const { isMobile, isSmallMobile, isTouchDevice } = useDeviceInfo();
+  const calculatorButtonRef = useRef<HTMLButtonElement>(null);
+  const mouseLeaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Função para obter a chave de uso no localStorage baseada no usuário
   const getUsageKey = () => user?.id ? `simulator_usage_${user.id}` : 'simulator_usage_guest';
@@ -350,8 +386,17 @@ export default function Layout({ children }: LayoutProps) {
   // Função para lidar com clique em simulador
   const handleSimulatorClick = (simulatorId: string) => {
     trackSimulatorUsage(simulatorId);
-    setIsSimulatorsOpen(false); // Fechar dropdown após clique
   };
+
+  // Limpar timeout ao desmontar
+  React.useEffect(() => {
+    return () => {
+      if (mouseLeaveTimeoutRef.current) {
+        clearTimeout(mouseLeaveTimeoutRef.current);
+      }
+    };
+  }, []);
+
 
   // Auto-abrir sidebar de crédito para financiamento, CGI e simulador
   React.useEffect(() => {
@@ -368,15 +413,11 @@ export default function Layout({ children }: LayoutProps) {
         setShowCreditoSidebar(true);
       }
     } else if (location === "/simulador-financiamento") {
-      // Para o Simulador: abrir sidebar branca se não estiver aberta
-      if (!showCreditoSidebar) {
-        setShowCreditoSidebar(true);
-      }
+      // Para o Simulador: não abrir sidebar branca
+      // Mantém comportamento padrão sem sidebar
     } else if (location === "/simulador-cgi") {
-      // Para o Simulador CGI: abrir sidebar branca se não estiver aberta
-      if (!showCreditoSidebar) {
-        setShowCreditoSidebar(true);
-      }
+      // Para o Simulador CGI: não abrir sidebar branca  
+      // Mantém comportamento padrão sem sidebar
     } else {
       // Para outras rotas: fechar sidebar branca e expandir sidebar principal
       if (showCreditoSidebar) {
@@ -842,17 +883,19 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         <div className={`absolute bottom-4 left-0 right-0 ${sidebarCollapsed && !sidebarHovered ? "px-1" : "px-3"}`}>
-          <div className={`flex items-center py-2 text-sm text-white/80 cursor-pointer hover:bg-white/10 rounded-md ${sidebarCollapsed && !sidebarHovered ? "px-2" : "px-3"} ${
-            sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
-          }`}
-          style={sidebarCollapsed && !sidebarHovered ? { 
-            filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
-          } : {}}
-          title={sidebarCollapsed && !sidebarHovered ? "Configurações" : ""}
-          >
-            <Settings className={`h-5 w-5 ${sidebarCollapsed && !sidebarHovered ? "" : "mr-3"}`} />
-            {(!sidebarCollapsed || sidebarHovered) && "Configurações"}
-          </div>
+          <Link href="/configuracoes">
+            <div className={`flex items-center py-2 text-sm text-white/80 cursor-pointer hover:bg-white/10 rounded-md ${sidebarCollapsed && !sidebarHovered ? "px-2" : "px-3"} ${
+              sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
+            }`}
+            style={sidebarCollapsed && !sidebarHovered ? { 
+              filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
+            } : {}}
+            title={sidebarCollapsed && !sidebarHovered ? "Configurações" : ""}
+            >
+              <Settings className={`h-5 w-5 ${sidebarCollapsed && !sidebarHovered ? "" : "mr-3"}`} />
+              {(!sidebarCollapsed || sidebarHovered) && "Configurações"}
+            </div>
+          </Link>
         </div>
       </div>
 
@@ -974,12 +1017,39 @@ export default function Layout({ children }: LayoutProps) {
 
           <div className="flex items-center space-x-4">
           {/* Simulators Dropdown */}
-          <DropdownMenu onOpenChange={setIsSimulatorsOpen}>
+          <div 
+            onMouseEnter={() => {
+              // Cancelar timeout se o mouse voltar
+              if (mouseLeaveTimeoutRef.current) {
+                clearTimeout(mouseLeaveTimeoutRef.current);
+                mouseLeaveTimeoutRef.current = null;
+              }
+            }}
+            onMouseLeave={() => {
+              // Só fechar se o dropdown estiver aberto, com delay
+              if (isSimulatorsOpen) {
+                mouseLeaveTimeoutRef.current = setTimeout(() => {
+                  setIsSimulatorsOpen(false);
+                }, 800); // 800ms de delay para dar tempo do usuário entrar no menu
+              }
+            }}
+          >
+          <DropdownMenu open={isSimulatorsOpen} onOpenChange={(open) => {
+            // Permitir apenas abertura manual via clique do botão
+            if (!open) {
+              setIsSimulatorsOpen(false);
+            }
+          }}>
             <DropdownMenuTrigger asChild>
               <Button
+                ref={calculatorButtonRef}
                 variant="ghost"
-                size="sm"
-                className="h-8 w-auto px-2 text-white hover:bg-white/10 flex items-center gap-2"
+                size={isMobile ? "default" : "sm"}
+                className={`${isMobile ? 'h-10 min-w-[44px]' : 'h-8'} w-auto px-2 text-white hover:bg-white/10 flex items-center gap-2 ${isTouchDevice ? 'touch-target' : ''}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsSimulatorsOpen(!isSimulatorsOpen);
+                }}
               >
                 <motion.div layout>
                   <Calculator className="h-4 w-4" />
@@ -993,7 +1063,7 @@ export default function Layout({ children }: LayoutProps) {
                       transition={{ duration: 0.3 }}
                       className="text-sm font-medium whitespace-nowrap"
                     >
-                      SIMULADORES DE
+                      SIMULADORES
                     </motion.span>
                   )}
                 </AnimatePresence>
@@ -1001,44 +1071,64 @@ export default function Layout({ children }: LayoutProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent 
               align="end" 
-              className="w-64 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 shadow-xl rounded-xl p-2 relative"
+              className="w-80 max-h-[600px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 shadow-xl rounded-xl p-1 relative"
             >
               {/* Efeito de brilho */}
               <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none"></div>
               
-              <div className="relative space-y-1">
+              <div className="relative space-y-0.5">
                 {getSortedSimulators().map((simulator) => {
                   const Icon = simulator.icon;
                   return (
-                    <DropdownMenuItem key={simulator.id} asChild className="p-0">
-                      <Link 
-                        href={simulator.href} 
-                        className="group"
-                        onClick={() => handleSimulatorClick(simulator.id)}
+                    <DropdownMenuItem 
+                      key={simulator.id} 
+                      className="p-0 focus:bg-transparent"
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        handleSimulatorClick(simulator.id);
+                        setIsSimulatorsOpen(false);
+                        // Navegar após fechar
+                        setTimeout(() => {
+                          setLocation(simulator.href);
+                        }, 100);
+                      }}
+                    >
+                      <div className="group w-full"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleSimulatorClick(simulator.id);
+                          setIsSimulatorsOpen(false);
+                          // Navegar após fechar
+                          setTimeout(() => {
+                            setLocation(simulator.href);
+                          }, 100);
+                        }}
                       >
-                        <div className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:${simulator.bgColor} dark:hover:${simulator.darkBgColor} hover:${simulator.textColor} dark:hover:${simulator.darkTextColor}`}>
+                        <div className={`flex items-center px-2 py-1.5 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer transform hover:scale-[1.01] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:${simulator.bgColor} dark:hover:${simulator.darkBgColor} hover:${simulator.textColor} dark:hover:${simulator.darkTextColor} hover:shadow-sm`}>
                           <div className={`p-1 rounded-full ${simulator.iconBg} dark:${simulator.darkIconBg} mr-2 transition-all duration-300 group-hover:${simulator.iconBgHover} dark:group-hover:${simulator.darkIconBgHover}`}>
                             <Icon className={`h-2.5 w-2.5 ${simulator.iconColor} dark:${simulator.darkIconColor}`} />
                           </div>
-                          <span className="font-medium text-xs">{simulator.label}</span>
-                          <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <span className="font-medium text-xs flex-1">{simulator.label}</span>
+                          <div className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                             <ChevronRight className="h-2.5 w-2.5" />
                           </div>
                         </div>
-                      </Link>
+                      </div>
                     </DropdownMenuItem>
                   );
                 })}
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
 
           {/* Theme toggle */}
           <Button
               variant="ghost"
-              size="sm"
+              size={isMobile ? "default" : "sm"}
               onClick={toggleTheme}
-              className="h-8 w-8 text-white hover:bg-white/10"
+              className={`${isMobile ? 'h-10 w-10 min-w-[44px]' : 'h-8 w-8'} text-white hover:bg-white/10 ${isTouchDevice ? 'touch-target' : ''}`}
           >
               {theme === "dark" ? (
               <Sun className="h-4 w-4" />
@@ -1050,7 +1140,11 @@ export default function Layout({ children }: LayoutProps) {
             {/* Notifications */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="relative text-white hover:bg-white/10">
+                <Button 
+                  variant="ghost" 
+                  size={isMobile ? "default" : "sm"} 
+                  className={`relative ${isMobile ? 'h-10 w-10 min-w-[44px]' : 'h-8 w-8'} text-white hover:bg-white/10 ${isTouchDevice ? 'touch-target' : ''}`}
+                >
                   <Bell className="h-5 w-5" />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
@@ -1139,7 +1233,10 @@ export default function Layout({ children }: LayoutProps) {
           {/* User menu - atualizado para mostrar avatar */}
           <DropdownMenu>
           <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full hover:bg-white/10">
+              <Button 
+                variant="ghost" 
+                className={`relative ${isMobile ? 'h-10 w-10 min-w-[44px]' : 'h-8 w-8'} rounded-full hover:bg-white/10 ${isTouchDevice ? 'touch-target' : ''}`}
+              >
               <Avatar className="h-8 w-8">
                   {user?.avatarUrl ? (
                   <AvatarImage src={user.avatarUrl} alt={`${user.firstName} ${user.lastName}`} />
@@ -1192,9 +1289,12 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Page content */}
       <main className={cn("flex-1 overflow-auto pt-16 transition-all duration-300", 
-        showCreditoSidebar ? "lg:ml-[280px]" : (sidebarCollapsed && !sidebarHovered ? "lg:ml-14" : "lg:ml-60")
+        showCreditoSidebar ? "lg:ml-[280px]" : (sidebarCollapsed && !sidebarHovered ? "lg:ml-14" : "lg:ml-60"),
+        isMobile ? "mobile-padding" : ""
       )}>
-        {children}
+        <div className={isMobile ? "mobile-bottom-safe" : ""}>
+          {children}
+        </div>
       </main>
     </div>
   );

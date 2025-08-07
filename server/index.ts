@@ -87,9 +87,11 @@ log(`
     try {
       const { setupVite } = await import("./vite.js");
       await setupVite(app, httpServer);
+      log("✅ Vite configurado com sucesso");
     } catch (error) {
-
-      console.warn("Vite não disponível, usando modo simples:", error.message);
+      console.error("❌ Erro no Vite:", error.message);
+      console.error("Stack:", error.stack);
+      
       // Modo desenvolvimento simples sem Vite
       app.get("*", (req, res) => {
         res.send(`
@@ -99,6 +101,7 @@ log(`
               <h1>VentusHub - Servidor de Desenvolvimento</h1>
               <p>APIs disponíveis em <a href="/api/">/api/</a></p>
               <p>Para frontend completo, configure o Vite.</p>
+              <p>Erro: ${error.message}</p>
             </body>
           </html>
         `);

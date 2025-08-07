@@ -4,7 +4,8 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "node -e \"require('fs').copyFileSync('.env.development', '.env')\" && tsx server/index.ts",
+    "dev": "node -e \"require('fs').copyFileSync('.env.local', '.env')\" && NODE_ENV=development tsx server/index.ts",
+    "dev:no-vite": "node -e \"require('fs').copyFileSync('.env.development', '.env')\" && NODE_ENV=production tsx server/index.ts",
     "dev:simple": "tsx server/index.ts",
     "dev:db": "docker-compose -f docker-compose.dev.yml up -d",
     "dev:stop": "docker-compose -f docker-compose.dev.yml down",
@@ -49,6 +50,7 @@
     "@radix-ui/react-tooltip": "^1.2.0",
     "@replit/vite-plugin-cartographer": "^0.2.7",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
+    "@rollup/rollup-linux-x64-gnu": "^4.46.2",
     "@supabase/supabase-js": "^2.39.0",
     "@tanstack/react-query": "^5.60.5",
     "@types/cors": "^2.8.19",
@@ -95,7 +97,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tw-animate-css": "^1.2.5",
     "vaul": "^1.1.2",
-    "vite": "^7.0.0",
+    "vite": "5.4.0",
     "wouter": "^3.3.5",
     "ws": "^8.18.0",
     "zod": "^3.24.2",
@@ -112,6 +114,7 @@
     "@types/passport-local": "^1.0.38",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
+    "@types/react-scroll": "^1.8.10",
     "@types/ws": "^8.5.13",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
@@ -121,5 +124,13 @@
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
+  },
+  "overrides": {
+    "@rollup/rollup-win32-x64-msvc": "npm:@rollup/rollup-linux-x64-gnu@^4.46.2",
+    "@rollup/rollup-darwin-x64": "npm:@rollup/rollup-linux-x64-gnu@^4.46.2",
+    "@rollup/rollup-darwin-arm64": "npm:@rollup/rollup-linux-x64-gnu@^4.46.2"
+  },
+  "resolutions": {
+    "@rollup/rollup-win32-x64-msvc": "npm:@rollup/rollup-linux-x64-gnu@^4.46.2"
   }
 }

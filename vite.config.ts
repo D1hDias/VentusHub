@@ -37,6 +37,9 @@ export default defineConfig(async () => {
     build: {
       outDir: path.resolve(__dirname, "dist/public"),
       emptyOutDir: true,
+      rollupOptions: {
+        external: ['@rollup/rollup-win32-x64-msvc']
+      }
     },
     server: {
       fs: {
@@ -47,6 +50,15 @@ export default defineConfig(async () => {
         usePolling: true,
         interval: 100,
       },
+      hmr: {
+        overlay: true
+      }
+    },
+    esbuild: {
+      target: 'es2020'
+    },
+    optimizeDeps: {
+      force: true
     },
   };
 });

@@ -11,39 +11,49 @@ import { pool } from "./db.js"; // Importar o pool de conexão do Neon
 // Configuração da sessão
 export function setupAuth(app: Express) {
   const isProduction = process.env.NODE_ENV === 'production';
-  const PgSession = connectPgSimple(session);
+  const isDevelopment = process.env.NODE_ENV === 'development';
 
-  const store = new PgSession({
-    pool: pool,
-    tableName: 'user_sessions',
-    createTableIfMissing: false, // Tabela já foi criada manualmente
-    pruneSessionInterval: false, // Desabilitar limpeza automática
-    errorLog: (error: any) => {
-      // Logar erros da sessão de forma silenciosa em produção
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('Session store warning:', error.message);
-      }
+  let sessionConfig: any = {
+    secret: process.env.SESSION_SECRET || "default-secret-key-that-is-long-and-secure",
+    resave: false,
+    saveUninitialized: false,
+    name: "connect.sid",
+    genid: () => randomBytes(16).toString('hex'),
+    cookie: {
+      secure: isProduction,
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 horas
+      sameSite: isProduction ? "none" : "lax",
+      path: "/",
+      domain: isProduction ? ".ventushub.com.br" : undefined,
+    },
+  };
+
+  // Usar store do PostgreSQL apenas se o pool estiver disponível
+  if (pool) {
+    try {
+      const PgSession = connectPgSimple(session);
+      const store = new PgSession({
+        pool: pool,
+        tableName: 'user_sessions',
+        createTableIfMissing: false,
+        pruneSessionInterval: false,
+        errorLog: (error: any) => {
+          if (isDevelopment) {
+            console.warn('Session store warning:', error.message);
+          }
+        }
+      });
+      sessionConfig.store = store;
+      console.log("✅ Sessão usando PostgreSQL store");
+    } catch (error) {
+      console.log("⚠️ Usando sessão em memória (desenvolvimento)");
     }
-  });
+  } else {
+    console.log("⚠️ Usando sessão em memória (sem banco)");
+  }
 
-  app.use(
-    session({
-      store: store,
-      secret: process.env.SESSION_SECRET || "default-secret-key-that-is-long-and-secure",
-      resave: false,
-      saveUninitialized: false,
-      name: "connect.sid",
-      genid: () => randomBytes(16).toString('hex'), // Fix crypto import issue
-      cookie: {
-        secure: isProduction,
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000, // 24 horas
-        sameSite: isProduction ? "none" : "lax", // 'none' para HTTPS cross-site
-        path: "/",
-        domain: isProduction ? ".ventushub.com.br" : undefined, // Domain para produção
-      },
-    })
-  );
+  app.use(session(sessionConfig));
 }
 
 // Middleware de autenticação

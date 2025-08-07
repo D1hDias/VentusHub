@@ -2259,6 +2259,11 @@ export default function SimuladorComparativo() {
         }}
         selectedBanks={bancosEscolhidos.length}
         duration={6000}
+        customMessages={[
+          "Fazendo contato com o(s) Banco(s) de sua escolha",
+          "Calculando de acordo com suas informações",
+          "Trazendo os melhores resultados"
+        ]}
       />
     </div>
   );

@@ -207,7 +207,7 @@
 }
 
 @layer utilities {
-  /* Responsive utilities */
+  /* Mobile-first responsive utilities */
   @media (max-width: 768px) {
     .sidebar-expanded {
       @apply transform translate-x-0;
@@ -220,6 +220,54 @@
     .main-content-expanded,
     .main-content-collapsed {
       @apply ml-0;
+    }
+    
+    /* Mobile spacing improvements */
+    .mobile-padding {
+      @apply px-4 py-3;
+    }
+    
+    .mobile-form-spacing {
+      @apply space-y-4;
+    }
+    
+    /* Touch-friendly elements */
+    .touch-target {
+      @apply min-h-[44px] min-w-[44px];
+    }
+    
+    /* Mobile tables */
+    .mobile-table-wrapper {
+      @apply overflow-x-auto -mx-4 px-4;
+    }
+    
+    /* Mobile cards */
+    .mobile-card {
+      @apply rounded-lg border p-4 space-y-3 bg-card;
+    }
+    
+    /* Bottom safe area for mobile browsers */
+    .mobile-bottom-safe {
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+  }
+  
+  /* Mobile-specific breakpoints */
+  @media (max-width: 480px) {
+    .text-mobile-sm {
+      @apply text-sm;
+    }
+    
+    .text-mobile-xs {
+      @apply text-xs;
+    }
+    
+    .grid-mobile-1 {
+      @apply grid-cols-1;
+    }
+    
+    .gap-mobile-tight {
+      @apply gap-2;
     }
   }
   

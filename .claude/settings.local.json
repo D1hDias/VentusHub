@@ -80,7 +80,15 @@
       "Bash(python3:*)",
       "Bash(source:*)",
       "Bash(pipx:*)",
-      "Bash(export PATH=$PATH:/home/diego/.local/bin)"
+      "Bash(export PATH=$PATH:/home/diego/.local/bin)",
+      "mcp__gemini-cli__brainstorm",
+      "Bash(cd:*)",
+      "WebFetch(domain:www.ibge.gov.br)",
+      "WebFetch(domain:servicodados.ibge.gov.br)",
+      "Bash(timeout 10 npm run dev)",
+      "Bash(PORT=5001 npm run dev)",
+      "Bash(mv:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   },

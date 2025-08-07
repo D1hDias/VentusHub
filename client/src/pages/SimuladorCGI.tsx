@@ -145,7 +145,7 @@ const BANCOS_CONFIG = {
     prazoMaximoEspecial: 240,
     observacaoEspecial: "Taxa de juros pode variar de acordo com o seu relacionamento com o banco e o prazo escolhido.",
     taxas: {
-      PRICE_IPCA: 14.40
+      PRICE_IPCA: 19.44  // 1.19% a.m. + IPCA (4.2%) = 19.44% a.a.
     },
     seguros: {
       mip: { 18: 0.00021028, 30: 0.00021028, 40: 0.00021028, 50: 0.00021028, 60: 0.00021028, 70: 0.00021028, 80: 0.00021028 },
@@ -161,7 +161,9 @@ const BANCOS_CONFIG = {
     prazoMaximoEspecial: 240,
     observacaoEspecial: "Percentual de financiamento e taxa de juros podem variar de acordo com o seu relacionamento com o banco.",
     taxas: {
-      PRICE_IPCA: 12.68
+      PRICE_TR: 22.41,     // 1.70% a.m. efetiva = 22.41% a.a.
+      SAC_TR: 22.41,       // 1.70% a.m. efetiva = 22.41% a.a.
+      PRICE_IPCA: 19.44    // 1.19% a.m. + IPCA (4.2%) = 19.44% a.a.
     },
     seguros: {
       mip: [
@@ -181,8 +183,8 @@ const BANCOS_CONFIG = {
     prazoMaximoEspecial: 240,
     observacaoEspecial: "Taxa de juros pode variar de acordo com o seu relacionamento com o banco.",
     taxas: {
-      PRICE_TR: 26.40,
-      PRICE_IPCA: 26.40
+      PRICE_TR: 22.41,     // 1.70% a.m. efetiva = 22.41% a.a.
+      SAC_TR: 22.41        // 1.70% a.m. efetiva = 22.41% a.a.
     },
     seguros: {
       mip: [
@@ -202,7 +204,7 @@ const BANCOS_CONFIG = {
     prazoMaximoEspecial: 240,
     observacaoEspecial: "Percentual de financiamento e taxa de juros podem variar de acordo com o seu relacionamento com o banco.",
     taxas: {
-      PRICE_IPCA: 14.28
+      PRICE_IPCA: 19.44  // 1.19% a.m. + IPCA (4.2%) = 19.44% a.a.
     },
     seguros: {
       mip: [
@@ -222,8 +224,8 @@ const BANCOS_CONFIG = {
     prazoMaximoEspecial: 240,
     observacaoEspecial: "Percentual de financiamento e taxa de juros podem variar de acordo com o seu relacionamento com o banco.",
     taxas: {
-      PRICE_TR: 22.28,
-      PRICE_IPCA: 22.28
+      PRICE_TR: 22.41,     // 1.70% a.m. efetiva = 22.41% a.a.
+      SAC_TR: 22.41        // 1.70% a.m. efetiva = 22.41% a.a.
     },
     seguros: {
       mip: [
@@ -564,8 +566,13 @@ const SimuladorCGI = () => {
       if (!prev.includes(codigoBanco)) { // Se está selecionando o banco
         if (codigoBanco === 'itau' || codigoBanco === 'santander') {
           setTipoFinanciamento('PRICE_TR');
-        } else if (codigoBanco === 'bari' || codigoBanco === 'galleria' || codigoBanco === 'inter') {
+        } else if (codigoBanco === 'bari' || codigoBanco === 'galleria') {
           setTipoFinanciamento('PRICE_IPCA');
+        } else if (codigoBanco === 'inter') {
+          // Inter aceita todos os sistemas, manter o atual ou usar PRICE_TR como padrão
+          if (!tipoFinanciamento || tipoFinanciamento === 'PRICE_IPCA') {
+            setTipoFinanciamento('PRICE_TR');
+          }
         }
       }
       
@@ -785,8 +792,8 @@ const SimuladorCGI = () => {
       let chaveIndexador = tipoFinanciamento;
       let sistemaAdaptado = false;
       
-      // Se selecionou PRICE_TR mas o banco só trabalha com IPCA
-      if (tipoFinanciamento === 'PRICE_TR' && (bancoKey === 'bari' || bancoKey === 'galleria' || bancoKey === 'inter')) {
+      // Se selecionou PRICE_TR ou SAC_TR mas o banco só trabalha com IPCA
+      if ((tipoFinanciamento === 'PRICE_TR' || tipoFinanciamento === 'SAC_TR') && (bancoKey === 'bari' || bancoKey === 'galleria')) {
         chaveIndexador = 'PRICE_IPCA';
         sistemaAdaptado = true;
       }
@@ -794,6 +801,11 @@ const SimuladorCGI = () => {
       else if (tipoFinanciamento === 'PRICE_IPCA' && (bancoKey === 'itau' || bancoKey === 'santander')) {
         chaveIndexador = 'PRICE_TR';
         sistemaAdaptado = true;
+      }
+      // Para banco Inter que trabalha com ambos, manter a seleção do usuário
+      else if (bancoKey === 'inter') {
+        // Inter aceita todos os sistemas, usar como solicitado
+        chaveIndexador = tipoFinanciamento;
       }
       
       const taxaAnual = banco.taxas[chaveIndexador];
@@ -821,8 +833,10 @@ const SimuladorCGI = () => {
         return;
       }
 
-      // Calcular parcelas (sempre PRICE)
-      const parcelas = calcularTabelaPrice(valorFinanciado, taxaMensal, prazo, bancoKey, idadeInt, valor, tipoImovel);
+      // Calcular parcelas baseado no sistema selecionado
+      const parcelas = chaveIndexador.startsWith('SAC') 
+        ? calcularTabelaSAC(valorFinanciado, taxaMensal, prazo, bancoKey, idadeInt, valor, tipoImovel)
+        : calcularTabelaPrice(valorFinanciado, taxaMensal, prazo, bancoKey, idadeInt, valor, tipoImovel);
 
       const primeiraParcela = parcelas[0];
       const ultimaParcela = parcelas[parcelas.length - 1];
@@ -926,8 +940,9 @@ const SimuladorCGI = () => {
       const confirmar = window.confirm(
         '⚠️ ATENÇÃO - CORREÇÃO MONETÁRIA\n\n' +
         'Alguns bancos da simulação foram adaptados automaticamente:\n\n' +
-        '• Itaú e Santander: Trabalham principalmente com TR\n' +
-        '• Bari, Galleria e Inter: Trabalham principalmente com IPCA\n\n' +
+        '• Itaú e Santander: Trabalham com PRICE + TR e SAC + TR\n' +
+        '• Bari e Galleria: Trabalham com PRICE + IPCA\n' +
+        '• Inter: Trabalha com ambos os sistemas\n\n' +
         'As taxas e condições apresentadas podem variar conforme a correção monetária disponível em cada banco.\n\n' +
         'Deseja continuar com o download do relatório?'
       );
@@ -1751,6 +1766,7 @@ const SimuladorCGI = () => {
                       onChange={(e) => setTipoFinanciamento(e.target.value)}
                     >
                       <option value="PRICE_TR">PRICE + TR</option>
+                      <option value="SAC_TR">SAC + TR</option>
                       <option value="PRICE_IPCA">PRICE + IPCA</option>
                     </select>
                   </div>
@@ -2062,6 +2078,11 @@ const SimuladorCGI = () => {
         }}
         selectedBanks={bancosEscolhidos.length}
         duration={6000}
+        customMessages={[
+          "Fazendo contato com o(s) Banco(s) de sua escolha",
+          "Calculando de acordo com suas informações",
+          "Trazendo os melhores resultados"
+        ]}
       />
     </div>
   );

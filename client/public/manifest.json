@@ -1,0 +1,59 @@
+{
+  "name": "VentusHub - Sistema Imobiliário",
+  "short_name": "VentusHub",
+  "description": "Sistema completo para corretores de imóveis com simuladores financeiros e gestão de negócios",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#001f3f",
+  "theme_color": "#001f3f",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt-BR",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Acesso rápido ao painel principal",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/favicon.ico",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Simuladores",
+      "short_name": "Simuladores",
+      "description": "Simuladores financeiros",
+      "url": "/simulador-financiamento",
+      "icons": [
+        {
+          "src": "/favicon.ico", 
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Captação",
+      "short_name": "Captação",
+      "description": "Captação de imóveis",
+      "url": "/captacao",
+      "icons": [
+        {
+          "src": "/favicon.ico",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": []
+}
