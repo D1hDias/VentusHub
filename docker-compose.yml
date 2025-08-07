@@ -48,15 +48,7 @@ services:
       - ventushub-network
     security_opt:
       - no-new-privileges:true
-    command: [
-      "postgres",
-      "-c", "log_statement=all",
-      "-c", "log_destination=stderr",
-      "-c", "logging_collector=on",
-      "-c", "max_connections=100",
-      "-c", "shared_buffers=256MB",
-      "-c", "effective_cache_size=1GB"
-    ]
+    command: [ "postgres", "-c", "log_statement=all", "-c", "log_destination=stderr", "-c", "logging_collector=on", "-c", "max_connections=100", "-c", "shared_buffers=256MB", "-c", "effective_cache_size=1GB" ]
     labels:
       - "com.docker.compose.service=database"
 
