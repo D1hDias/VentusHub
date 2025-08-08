@@ -1,0 +1,71 @@
+services:
+  # Aplicação VentusHub
+  ventushub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+        - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+        - VITE_REGISTRO_IMOVEIS_API_KEY=${VITE_REGISTRO_IMOVEIS_API_KEY}
+    container_name: ventushub-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=${DATABASE_URL}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_REGISTRO_IMOVEIS_API_KEY=${VITE_REGISTRO_IMOVEIS_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      - ./uploads:/app/uploads:rw
+      - ./logs:/app/logs:rw
+    networks:
+      - ventushub-network
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    labels:
+      - "com.docker.compose.service=ventushub"
+      - "com.ventushub.version=1.0"
+    expose:
+      - "3000"
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: ventushub-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/sites-available:/etc/nginx/sites-available:ro
+      - ./nginx/logs:/var/log/nginx:rw
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/certbot:/var/www/certbot:ro
+    networks:
+      - ventushub-network
+    depends_on:
+      - ventushub
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "com.docker.compose.service=proxy"
+
+networks:
+  ventushub-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-ventushub
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
