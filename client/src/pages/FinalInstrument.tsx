@@ -201,77 +201,87 @@ export default function FinalInstrument() {
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
-                <Stamp className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
+                  <Stamp className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total</p>
+                  <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{statsData.total}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold text-blue-600">{statsData.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
-                <Clock className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#d47c16'}}>
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Preparando</p>
+                  <p className="text-2xl font-bold" style={{color: '#d47c16'}}>{statsData.preparing}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Preparando</p>
-                <p className="text-2xl font-bold text-gray-600">{statsData.preparing}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-xl flex items-center justify-center">
-                <AlertCircle className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#d47c16'}}>
+                  <AlertCircle className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Prontos</p>
+                  <p className="text-2xl font-bold" style={{color: '#d47c16'}}>{statsData.ready}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Prontos</p>
-                <p className="text-2xl font-bold text-yellow-600">{statsData.ready}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-xl flex items-center justify-center">
-                <Building className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
+                  <Building className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">No Cartório</p>
+                  <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{statsData.inRegistry}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">No Cartório</p>
-                <p className="text-2xl font-bold text-purple-600">{statsData.inRegistry}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-xl flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#1ea475'}}>
+                  <CheckCircle className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Concluídos</p>
+                  <p className="text-2xl font-bold" style={{color: '#1ea475'}}>{statsData.completed}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Concluídos</p>
-                <p className="text-2xl font-bold text-green-600">{statsData.completed}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -327,7 +337,7 @@ export default function FinalInstrument() {
               </TableHeader>
               <TableBody>
                 {filteredInstruments.map((instrument: any) => (
-                  <TableRow key={instrument.id}>
+                  <TableRow key={instrument.id} className="hover:bg-accent/50 hover:shadow-md hover:border-primary/20 hover:scale-[1.02] cursor-pointer transition-all duration-300 ease-in-out">
                     <TableCell>
                       <div className="font-mono text-sm text-muted-foreground">
                         {instrument.sequenceNumber}

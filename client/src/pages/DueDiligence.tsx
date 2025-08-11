@@ -237,16 +237,15 @@ export default function DueDiligence() {
   const hasActiveFilters = filters.status.length > 0 || filters.progress !== "all";
 
   return (
-    <div className="min-h-screen">
-      <div className="mx-auto px-6 py-4 space-y-6">
+    <div className="p-6 space-y-6">
         
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-          <div className="space-y-1">
-            <p className="text-base text-gray-600">
-              Emissão de certidões e pré-análise jurídica com IA
-            </p>
-          </div>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-muted-foreground">
+            Emissão de certidões e pré-análise jurídica com IA
+          </p>
+        </div>
           <Button className="bg-orange-500 hover:bg-orange-600 text-white shadow-sm">
             <Bot className="h-4 w-4 mr-2" />
             Análise IA
@@ -255,83 +254,89 @@ export default function DueDiligence() {
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-white" />
+          <div className="cursor-pointer transition-transform hover:scale-105">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
+                    <Clock className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Em Andamento</p>
+                    <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{stats.inProgress}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-blue-600">Em Andamento</p>
-                  <p className="text-2xl font-bold text-blue-700">{stats.inProgress}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card className="border-orange-200 bg-orange-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
-                  <AlertTriangle className="h-6 w-6 text-white" />
+          <div className="cursor-pointer transition-transform hover:scale-105">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#d47c16'}}>
+                    <AlertTriangle className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
+                    <p className="text-2xl font-bold" style={{color: '#d47c16'}}>{stats.pending}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-orange-600">Pendentes</p>
-                  <p className="text-2xl font-bold text-orange-700">{stats.pending}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card className="border-green-200 bg-green-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
-                  <CheckCircle className="h-6 w-6 text-white" />
+          <div className="cursor-pointer transition-transform hover:scale-105">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#1ea475'}}>
+                    <CheckCircle className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Concluídas</p>
+                    <p className="text-2xl font-bold" style={{color: '#1ea475'}}>{stats.completed}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-green-600">Concluídas</p>
-                  <p className="text-2xl font-bold text-green-700">{stats.completed}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card className="border-gray-200 bg-gray-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gray-500 rounded-xl flex items-center justify-center">
-                  <Users className="h-6 w-6 text-white" />
+          <div className="cursor-pointer transition-transform hover:scale-105">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
+                    <Users className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total</p>
+                    <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{stats.total}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total</p>
-                  <p className="text-2xl font-bold text-gray-700">{stats.total}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         {/* Search and Filters */}
-        <Card className="shadow-sm border-gray-200">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Buscar por número, endereço ou proprietário..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por número, endereço ou proprietário..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
               
               <div className="flex gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="border-gray-300 hover:bg-gray-50">
+                    <Button variant="outline">
                       <Filter className="h-4 w-4 mr-2" />
                       Filtros
                       {hasActiveFilters && (
@@ -358,9 +363,9 @@ export default function DueDiligence() {
         </Card>
 
         {/* Properties List */}
-        <Card className="shadow-sm border-gray-200">
-          <CardHeader className="px-6 py-4 border-b border-gray-200">
-            <CardTitle className="text-xl font-semibold text-gray-900">
+        <Card>
+          <CardHeader>
+            <CardTitle>
               Imóveis em Due Diligence ({filteredProperties.length})
             </CardTitle>
           </CardHeader>
@@ -535,8 +540,8 @@ export default function DueDiligence() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <Card className="shadow-sm border-gray-200">
-            <CardContent className="p-4">
+          <Card>
+            <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600">
                   Mostrando {startIndex + 1} a {Math.min(endIndex, filteredProperties.length)} de {filteredProperties.length} imóveis
@@ -597,7 +602,6 @@ export default function DueDiligence() {
           />
         )}
 
-      </div>
     </div>
   );
 }

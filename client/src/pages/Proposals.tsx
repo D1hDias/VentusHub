@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { KPICard } from "@/components/KPICard";
 import {
   Table,
   TableBody,
@@ -154,77 +155,48 @@ export default function Proposals() {
         </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
-                <Eye className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold text-blue-600">{statsData.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-xl flex items-center justify-center">
-                <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
-                <p className="text-2xl font-bold text-yellow-600">{statsData.pending}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-xl flex items-center justify-center">
-                <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Aceitas</p>
-                <p className="text-2xl font-bold text-green-600">{statsData.accepted}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-xl flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Negociando</p>
-                <p className="text-2xl font-bold text-purple-600">{statsData.negotiating}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-xl flex items-center justify-center">
-                <X className="h-6 w-6 text-red-600 dark:text-red-400" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Rejeitadas</p>
-                <p className="text-2xl font-bold text-red-600">{statsData.rejected}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <KPICard
+            title="Total"
+            value={statsData.total}
+            icon={Eye}
+            iconBgColor="#001f3f"
+          />
+        </div>
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <KPICard
+            title="Pendentes"
+            value={statsData.pending}
+            icon={Clock}
+            iconBgColor="#d47c16"
+          />
+        </div>
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <KPICard
+            title="Aceitas"
+            value={statsData.accepted}
+            icon={Check}
+            iconBgColor="#1ea475"
+          />
+        </div>
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <KPICard
+            title="Negociando"
+            value={statsData.negotiating}
+            icon={DollarSign}
+            iconBgColor="#001f3f"
+          />
+        </div>
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <KPICard
+            title="Rejeitadas"
+            value={statsData.rejected}
+            icon={X}
+            iconBgColor="#dc2828"
+          />
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -245,8 +217,8 @@ export default function Proposals() {
               Filtros
             </Button>
           </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
       {/* Proposals Table */}
       <Card>
@@ -265,66 +237,66 @@ export default function Proposals() {
               </p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-20">#</TableHead>
-                  <TableHead>Imóvel</TableHead>
-                  <TableHead>Comprador</TableHead>
-                  <TableHead>Valor Proposto</TableHead>
-                  <TableHead>Pagamento</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProposals.map((proposal: any) => (
-                  <TableRow key={proposal.id}>
-                    <TableCell>
-                      <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        {proposal.sequenceNumber || String(proposal.propertyId).padStart(5, '0')}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{proposal.property}</div>
-                        <div className="text-sm text-muted-foreground">
-                          Valor: R$ {proposal.propertyValue.toLocaleString('pt-BR')}
-                        </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-20">#</TableHead>
+                <TableHead>Imóvel</TableHead>
+                <TableHead>Comprador</TableHead>
+                <TableHead>Valor Proposto</TableHead>
+                <TableHead>Pagamento</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredProposals.map((proposal: any) => (
+                <TableRow key={proposal.id} className="hover:bg-accent/50 hover:shadow-md hover:border-primary/20 hover:scale-[1.02] cursor-pointer transition-all duration-300 ease-in-out">
+                  <TableCell>
+                    <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      {proposal.sequenceNumber || String(proposal.propertyId).padStart(5, '0')}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{proposal.property}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Valor: R$ {proposal.propertyValue.toLocaleString('pt-BR')}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{proposal.buyerName}</div>
-                        <div className="text-sm text-muted-foreground">{proposal.buyerPhone}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{proposal.buyerName}</div>
+                      <div className="text-sm text-muted-foreground">{proposal.buyerPhone}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium text-primary">
+                        R$ {proposal.proposedValue.toLocaleString('pt-BR')}
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium text-primary">
-                          R$ {proposal.proposedValue.toLocaleString('pt-BR')}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {((proposal.proposedValue / proposal.propertyValue) * 100).toFixed(1)}% do valor
-                        </div>
+                      <div className="text-sm text-muted-foreground">
+                        {((proposal.proposedValue / proposal.propertyValue) * 100).toFixed(1)}% do valor
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">{proposal.paymentMethod}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(proposal.status)}
-                        {getStatusBadge(proposal.status)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {new Date(proposal.createdAt).toLocaleDateString('pt-BR')}
-                      </div>
-                    </TableCell>
-                    <TableCell>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">{proposal.paymentMethod}</div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(proposal.status)}
+                      {getStatusBadge(proposal.status)}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">
+                      {new Date(proposal.createdAt).toLocaleDateString('pt-BR')}
+                    </div>
+                  </TableCell>
+                  <TableCell>
                       <div className="flex gap-2">
                         <Button 
                           variant="outline" 
@@ -350,10 +322,10 @@ export default function Proposals() {
                         )}
                       </div>
                     </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
           )}
         </CardContent>
       </Card>

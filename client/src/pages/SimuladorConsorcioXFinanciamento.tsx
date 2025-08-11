@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calculator, Download, Building, CreditCard, FileText, TrendingUp, TrendingDown, BarChart3, PieChart, Users, DollarSign, Target, Calendar } from "lucide-react";
+import { Calculator, Download, Building, CreditCard, FileText, TrendingUp, TrendingDown, BarChart3, PieChart, Users, DollarSign, Target, Calendar, Shield, AlertTriangle, CheckCircle, Clock } from "lucide-react";
 import { scroller, Element } from 'react-scroll';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -139,6 +139,28 @@ export default function SimuladorConsorcioXFinanciamento() {
 
   const [resultado, setResultado] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Função para controlar a sidebar secundária - desabilitar quando acessado diretamente
+  useEffect(() => {
+    // Verificar se chegou diretamente na página do simulador
+    const isDirectAccess = window.location.pathname === '/simulador-consorcio-financiamento';
+
+    if (isDirectAccess) {
+      // Criar um evento customizado para comunicar com o Layout
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: true }
+      });
+      window.dispatchEvent(event);
+    }
+
+    // Cleanup: reabilitar a sidebar quando sair da página
+    return () => {
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: false }
+      });
+      window.dispatchEvent(event);
+    };
+  }, []);
 
   // Auto-sync valor financiamento com valor carta
   useEffect(() => {
@@ -481,30 +503,24 @@ export default function SimuladorConsorcioXFinanciamento() {
 
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          
-          {/* Cabeçalho */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-100 mb-4">
-              <Users className="inline-block mr-3 h-10 w-10 text-blue-600" />
-              Simulador Consórcio × Financiamento
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400 dark:text-gray-400 max-w-3xl mx-auto">
-              Compare as vantagens financeiras entre consórcio imobiliário e financiamento bancário. 
-              Análise com TIR, probabilidade de contemplação e fluxo de caixa detalhado.
-            </p>
-            
-            {/* Indicadores do Mercado */}
-            <IndicadoresMercado className="mt-6 max-w-4xl mx-auto" />
-          </div>
+      <div className="space-y-6">
 
-          {/* Formulário */}
-          <div className="bg-card rounded-lg shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-100 mb-6 flex items-center">
-              <Calculator className="h-6 w-6 mr-2 text-blue-600" />
-              Parâmetros da Simulação
-            </h2>
+        {/* Layout Principal com duas colunas */}
+        <div className="flex flex-col lg:flex-row gap-6">
+
+          {/* Coluna Esquerda (Scrollable) */}
+          <div className="w-full lg:w-2/3">
+            {/* Formulário */}
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
+                <Calculator className="h-6 w-6 mr-2 text-purple-600" />
+                Parâmetros da Simulação
+              </h2>
             
             {/* Layout em duas colunas: Consórcio e Financiamento */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -744,30 +760,32 @@ export default function SimuladorConsorcioXFinanciamento() {
               </div>
             </div>
 
-            
-            <div className="mt-8 flex justify-center">
-              <button
-                onClick={calcularSimulacao}
-                disabled={loading || !formData.valorCarta || !formData.valorFinanciamento}
-                className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center space-x-2"
-              >
-                <Calculator className="h-5 w-5" />
-                <span>{loading ? 'Calculando...' : 'Calcular Comparativo'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Resultados */}
-          <AnimatePresence>
-            {resultado && (
-              <Element name="results-section">
-                <motion.div
-                  initial={{ opacity: 0, y: 50 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -50 }}
-                  transition={{ duration: 0.5 }}
-                  className="bg-card rounded-lg shadow-lg p-8 mb-8"
+              
+              <div className="mt-8 flex justify-center">
+                <motion.button
+                  onClick={calcularSimulacao}
+                  disabled={loading || !formData.valorCarta || !formData.valorFinanciamento}
+                  className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
+                  <Calculator className="h-5 w-5" />
+                  <span>{loading ? 'Calculando...' : 'Calcular Comparativo'}</span>
+                </motion.button>
+              </div>
+            </motion.div>
+
+            {/* Resultados */}
+            <AnimatePresence>
+              {resultado && (
+                <Element name="results-section">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.6 }}
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mt-6 w-full"
+                  >
                   <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
                       <BarChart3 className="h-6 w-6 mr-2 text-blue-600" />
@@ -894,10 +912,155 @@ export default function SimuladorConsorcioXFinanciamento() {
                     </ul>
                   </div>
 
-                </motion.div>
-              </Element>
-            )}
-          </AnimatePresence>
+                  </motion.div>
+                </Element>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Coluna Direita (Fixa) */}
+          <div className="w-full lg:w-1/3">
+            <div className="sticky top-8 space-y-4">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border-l-4 border-purple-400 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-400 mb-3 flex items-center">
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    Indicadores de Referência
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-purple-800 dark:text-purple-300">SELIC:</span>
+                      <span className="font-medium text-purple-900 dark:text-purple-200">{INDICADORES_MERCADO.selic}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-800 dark:text-purple-300">CDI:</span>
+                      <span className="font-medium text-purple-900 dark:text-purple-200">{INDICADORES_MERCADO.cdi}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-800 dark:text-purple-300">IPCA:</span>
+                      <span className="font-medium text-purple-900 dark:text-purple-200">{INDICADORES_MERCADO.ipca}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-800 dark:text-purple-300">IGP-M:</span>
+                      <span className="font-medium text-purple-900 dark:text-purple-200">{INDICADORES_MERCADO.igpM}%</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-purple-700 dark:text-purple-400 mt-2">
+                    *Valores padrão do mercado - podem ser personalizados no formulário
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Critérios de Análise */}
+              <motion.div
+                className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg shadow-sm p-6 border border-purple-200 dark:border-purple-700"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-300 mb-4 flex items-center gap-2">
+                  <Target className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  Critérios de Análise
+                </h3>
+                
+                <div className="space-y-4">
+                  <div className="bg-white dark:bg-gray-800/50 rounded-lg p-4">
+                    <h4 className="font-semibold text-purple-800 dark:text-purple-300 mb-2 flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Consórcio
+                    </h4>
+                    <div className="space-y-2 text-xs text-purple-700 dark:text-purple-300">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        <span>Sem juros pré-fixados</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-3 w-3 text-amber-500" />
+                        <span>Contemplação por sorteio ou lance</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Shield className="h-3 w-3 text-blue-500" />
+                        <span>Taxa administrativa fixa</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white dark:bg-gray-800/50 rounded-lg p-4">
+                    <h4 className="font-semibold text-purple-800 dark:text-purple-300 mb-2 flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      Financiamento
+                    </h4>
+                    <div className="space-y-2 text-xs text-purple-700 dark:text-purple-300">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        <span>Liberação imediata do crédito</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-3 w-3 text-amber-500" />
+                        <span>Juros pré-fixados ou pós-fixados</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-3 w-3 text-blue-500" />
+                        <span>Entrada exigida pelo banco</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Dicas de Otimização */}
+              <motion.div
+                className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg shadow-sm p-6 border border-purple-200 dark:border-purple-700"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-300 mb-4 flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  Dicas de Otimização
+                </h3>
+                
+                <div className="space-y-3 text-sm text-purple-700 dark:text-purple-300">
+                  <div className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
+                    <div>
+                      <span className="font-medium">Consórcio:</span>
+                      <p className="text-xs mt-1">Lance estratégico de 15-30% aumenta significativamente a probabilidade de contemplação.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-indigo-500 rounded-full mt-2"></div>
+                    <div>
+                      <span className="font-medium">Financiamento:</span>
+                      <p className="text-xs mt-1">Entrada maior reduz o valor financiado e os juros totais pagos.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-purple-600 rounded-full mt-2"></div>
+                    <div>
+                      <span className="font-medium">TIR vs NPV:</span>
+                      <p className="text-xs mt-1">NPV considera o custo de oportunidade do capital, oferecendo visão mais realista.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-2">
+                    <div className="w-2 h-2 bg-indigo-600 rounded-full mt-2"></div>
+                    <div>
+                      <span className="font-medium">Horizonte de Análise:</span>
+                      <p className="text-xs mt-1">Compare prazos equivalentes para análise mais precisa dos custos.</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+            </div>
+          </div>
         </div>
       </div>
     </div>

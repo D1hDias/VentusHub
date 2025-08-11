@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Target, TrendingUp, AlertTriangle, Award, Plus, Trash2, DollarSign, BarChart3, Calendar } from "lucide-react";
+import { motion } from "framer-motion";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { INDICADORES_MERCADO } from "@/lib/indicadores-mercado";
 import IndicadoresMercado from '@/components/IndicadoresMercado';
@@ -55,6 +56,28 @@ interface ResultadoComissaoMetas {
 }
 
 export default function SimuladorComissaoEMetas() {
+  // Função para controlar a sidebar secundária - desabilitar quando acessado diretamente
+  useEffect(() => {
+    // Verificar se chegou diretamente na página do simulador
+    const isDirectAccess = window.location.pathname === '/simulador-comissao-e-metas';
+
+    if (isDirectAccess) {
+      // Criar um evento customizado para comunicar com o Layout
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: true }
+      });
+      window.dispatchEvent(event);
+    }
+
+    // Cleanup: reabilitar a sidebar quando sair da página
+    return () => {
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: false }
+      });
+      window.dispatchEvent(event);
+    };
+  }, []);
+
   const [formData, setFormData] = useState<FormData>({
     ticket_medio: '',
     meta_anual_faturamento: '',
@@ -311,300 +334,96 @@ export default function SimuladorComissaoEMetas() {
 
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
-            <Target className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Simulador de Comissão & Metas
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Planeje suas metas mensais, calcule comissões por faixas e acompanhe o desempenho
-            </p>
-          </div>
-        </div>
-      </div>
+      <div className="space-y-6">
 
-      {/* Indicadores do Mercado - Seção ampliada */}
-      <div className="mb-8">
-        <IndicadoresMercado className="max-w-full mx-auto" />
-      </div>
+        {/* Layout Principal com duas colunas */}
+        <div className="flex flex-col lg:flex-row gap-6">
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Formulário */}
-        <div className="xl:col-span-1 space-y-6">
-          {/* Configurações Básicas */}
-          <Card className="bg-card dark:bg-card border border-border dark:border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-foreground">
-                <DollarSign className="w-5 h-5" />
-                Configurações Básicas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="ticket_medio" className="text-foreground">Ticket Médio (R$)</Label>
-                <Input
-                  id="ticket_medio"
-                  type="text"
-                  placeholder="R$ 350.000,00"
-                  value={formData.ticket_medio}
-                  onChange={(e) => handleInputChange('ticket_medio', e.target.value)}
-                  className="bg-background text-foreground border-input"
-                />
-              </div>
+          {/* Coluna Esquerda (Scrollable) */}
+          <div className="w-full lg:w-2/3">
+            {/* Formulário */}
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <div className="space-y-8">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  Configurações de Comissão
+                </h2>
 
-              <div>
-                <Label htmlFor="meta_anual_faturamento" className="text-foreground">Meta Anual de Faturamento (R$)</Label>
-                <Input
-                  id="meta_anual_faturamento"
-                  type="text"
-                  placeholder="R$ 1.200.000,00"
-                  value={formData.meta_anual_faturamento}
-                  onChange={(e) => handleInputChange('meta_anual_faturamento', e.target.value)}
-                  className="bg-background text-foreground border-input"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="alerta_gap_percent" className="text-foreground">Alerta de Gap (%)</Label>
-                <Input
-                  id="alerta_gap_percent"
-                  type="number"
-                  step="1"
-                  min="0"
-                  max="100"
-                  value={formData.alerta_gap_percent}
-                  onChange={(e) => setFormData(prev => ({ ...prev, alerta_gap_percent: Number(e.target.value) }))}
-                  className="bg-background text-foreground border-input"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Faixas de Comissão */}
-          <Card className="bg-card dark:bg-card border border-border dark:border-border">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <TrendingUp className="w-5 h-5" />
-                  Faixas de Comissão
-                </CardTitle>
-                <Button
-                  onClick={adicionarCommissionTier}
-                  size="sm"
-                  variant="outline"
-                  className="bg-background text-foreground border-input hover:bg-accent"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Adicionar
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {formData.commission_tiers.map((tier, index) => (
-                <div key={tier.id} className="p-4 border border-border dark:border-border rounded-lg bg-accent/10 dark:bg-accent/10">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium text-foreground">Faixa {index + 1}</h4>
-                    {formData.commission_tiers.length > 1 && (
-                      <Button
-                        onClick={() => removerCommissionTier(tier.id)}
-                        size="sm"
-                        variant="ghost"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label className="text-foreground">% da Meta</Label>
-                      <Input
-                        type="number"
-                        step="1"
-                        min="0"
-                        max="200"
-                        value={tier.pct_meta}
-                        onChange={(e) => atualizarCommissionTier(tier.id, 'pct_meta', Number(e.target.value))}
-                        className="bg-background text-foreground border-input"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-foreground">% Comissão</Label>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        max="10"
-                        value={tier.pct_comissao}
-                        onChange={(e) => atualizarCommissionTier(tier.id, 'pct_comissao', Number(e.target.value))}
-                        className="bg-background text-foreground border-input"
-                      />
-                    </div>
-                  </div>
+                {/* Indicadores do Mercado - Seção ampliada */}
+                <div className="mb-6">
+                  <IndicadoresMercado className="max-w-full mx-auto" />
                 </div>
-              ))}
-            </CardContent>
-          </Card>
 
-          {/* Bônus Escalonado */}
-          <Card className="bg-card dark:bg-card border border-border dark:border-border">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Award className="w-5 h-5" />
-                  Bônus Escalonado
-                </CardTitle>
-                <Switch
-                  checked={formData.toggle_bonus_escalonado}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, toggle_bonus_escalonado: checked }))}
-                />
-              </div>
-            </CardHeader>
-            {formData.toggle_bonus_escalonado && (
-              <CardContent className="space-y-4">
-                <div className="flex justify-end">
-                  <Button
-                    onClick={adicionarBonusTier}
-                    size="sm"
-                    variant="outline"
-                    className="bg-background text-foreground border-input hover:bg-accent"
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    Adicionar
-                  </Button>
-                </div>
-                
-                {formData.bonus_tiers.map((tier, index) => (
-                  <div key={tier.id} className="p-4 border border-border dark:border-border rounded-lg bg-accent/10 dark:bg-accent/10">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="font-medium text-foreground">Bônus {index + 1}</h4>
-                      {formData.bonus_tiers.length > 1 && (
-                        <Button
-                          onClick={() => removerBonusTier(tier.id)}
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label className="text-foreground">% da Meta</Label>
-                        <Input
-                          type="number"
-                          step="1"
-                          min="100"
-                          max="200"
-                          value={tier.pct_meta}
-                          onChange={(e) => atualizarBonusTier(tier.id, 'pct_meta', Number(e.target.value))}
-                          className="bg-background text-foreground border-input"
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-foreground">% Bônus</Label>
-                        <Input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="5"
-                          value={tier.bonus_pct}
-                          onChange={(e) => atualizarBonusTier(tier.id, 'bonus_pct', Number(e.target.value))}
-                          className="bg-background text-foreground border-input"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            )}
-          </Card>
-
-          {/* Sazonalidade */}
-          <Card className="bg-card dark:bg-card border border-border dark:border-border">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Calendar className="w-5 h-5" />
-                  Sazonalidade
-                </CardTitle>
-                <Switch
-                  checked={formData.toggle_sazonalidade}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, toggle_sazonalidade: checked }))}
-                />
-              </div>
-            </CardHeader>
-            {formData.toggle_sazonalidade && (
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  {meses.map((mes, index) => (
-                    <div key={index}>
-                      <Label className="text-foreground text-xs">{mes}</Label>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        max="20"
-                        value={formData.sazonalidade_percent[index]}
-                        onChange={(e) => atualizarSazonalidade(index, Number(e.target.value))}
-                        className="bg-background text-foreground border-input"
-                      />
-                    </div>
-                  ))}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Total: {formData.sazonalidade_percent.reduce((a, b) => a + b, 0).toFixed(1)}%
-                </div>
-              </CardContent>
-            )}
-          </Card>
-
-          {/* Vendas Reais */}
-          <Card className="bg-card dark:bg-card border border-border dark:border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-foreground">
-                <BarChart3 className="w-5 h-5" />
-                Vendas Reais Mensais
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-3">
-                {meses.map((mes, index) => (
-                  <div key={index} className="grid grid-cols-2 gap-3 items-center">
-                    <Label className="text-foreground text-sm">{mes}</Label>
-                    <Input
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <DollarSign className="h-4 w-4 inline-block mr-2" />Ticket Médio (R$)
+                    </label>
+                    <input
                       type="text"
-                      placeholder="R$ 0,00"
-                      value={formData.vendas_reais_mensais[index]}
-                      onChange={(e) => atualizarVendaReal(index, e.target.value)}
-                      className="bg-background text-foreground border-input"
+                      value={formData.ticket_medio}
+                      onChange={(e) => handleInputChange('ticket_medio', e.target.value)}
+                      placeholder="R$ 350.000,00"
+                      className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-orange-200 focus:border-orange-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
                     />
                   </div>
-                ))}
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <Target className="h-4 w-4 inline-block mr-2" />Meta Anual de Faturamento (R$)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.meta_anual_faturamento}
+                      onChange={(e) => handleInputChange('meta_anual_faturamento', e.target.value)}
+                      placeholder="R$ 1.200.000,00"
+                      className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-orange-200 focus:border-orange-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <AlertTriangle className="h-4 w-4 inline-block mr-2" />Alerta de Gap (%)
+                    </label>
+                    <input
+                      type="number"
+                      step="1"
+                      min="0"
+                      max="100"
+                      value={formData.alerta_gap_percent}
+                      onChange={(e) => setFormData(prev => ({ ...prev, alerta_gap_percent: Number(e.target.value) }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-orange-200 focus:border-orange-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
+                    />
+                  </div>
+                </div>
+
+                <motion.button
+                  onClick={calcularSimulacao}
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Target className="h-5 w-5" />
+                  {loading ? 'Processando...' : 'Simular Comissão & Metas'}
+                </motion.button>
               </div>
-            </CardContent>
-          </Card>
+            </motion.div>
 
-          <Button 
-            onClick={calcularSimulacao} 
-            disabled={loading}
-            className="w-full"
-          >
-            {loading ? "Calculando..." : "Simular Comissão & Metas"}
-          </Button>
-        </div>
-
-        {/* Resultados */}
-        <div className="xl:col-span-2">
-          {resultado && (
-            <div className="space-y-6">
+            {/* Resultados */}
+            {resultado && (
+              <motion.div
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mt-6 w-full"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Dashboard de Performance</h2>
               {/* Resumo Geral */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="bg-card dark:bg-card border border-border dark:border-border">
@@ -752,22 +571,112 @@ export default function SimuladorComissaoEMetas() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
+                </div>
+              </motion.div>
+            )}
 
-          {!resultado && (
-            <Card className="bg-card dark:bg-card border border-border dark:border-border">
-              <CardContent className="p-12 text-center">
-                <Target className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">
-                  Configure suas metas e comissões
+          </div>
+
+          {/* Coluna Direita (Fixa) */}
+          <div className="w-full lg:w-1/3">
+            <div className="sticky top-8 space-y-4">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 border-l-4 border-orange-400 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-400 mb-3 flex items-center">
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    Indicadores de Performance
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-orange-800 dark:text-orange-300">SELIC:</span>
+                      <span className="font-medium text-orange-900 dark:text-orange-200">{INDICADORES_MERCADO.selic}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-orange-800 dark:text-orange-300">CDI:</span>
+                      <span className="font-medium text-orange-900 dark:text-orange-200">{INDICADORES_MERCADO.cdi}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-orange-800 dark:text-orange-300">IPCA:</span>
+                      <span className="font-medium text-orange-900 dark:text-orange-200">{INDICADORES_MERCADO.ipca}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-orange-800 dark:text-orange-300">IGP-M:</span>
+                      <span className="font-medium text-orange-900 dark:text-orange-200">{INDICADORES_MERCADO.igpM}%</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-orange-700 dark:text-orange-400 mt-2">
+                    *Índices para reajustes de metas e comissões
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Informações sobre comissão */}
+              <motion.div
+                className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg shadow-sm p-6 border border-orange-200 dark:border-orange-700"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-300 mb-4 flex items-center gap-2">
+                  <Target className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  Estratégias de Performance
                 </h3>
-                <p className="text-muted-foreground">
-                  Defina suas faixas de comissão, bônus escalonado e vendas reais para calcular o desempenho.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+
+                <div className="space-y-4 text-sm">
+                  <div className="bg-orange-100 dark:bg-orange-900/30 rounded-lg p-3 border border-orange-300 dark:border-orange-700">
+                    <div className="font-semibold text-orange-900 dark:text-orange-300 mb-2">Faixas de Comissão</div>
+                    <div className="text-xs text-orange-700 dark:text-orange-300 space-y-1">
+                      <div>• 80% da meta: comissão base</div>
+                      <div>• 100% da meta: comissão padrão</div>
+                      <div>• 120% da meta: comissão premium</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-100 dark:bg-amber-900/30 rounded-lg p-3 border border-amber-300 dark:border-amber-700">
+                    <div className="font-semibold text-amber-900 dark:text-amber-300 mb-2">Bônus Escalonado</div>
+                    <div className="text-xs text-amber-700 dark:text-amber-300 space-y-1">
+                      <div>• 110% da meta: bônus inicial</div>
+                      <div>• 125% da meta: bônus máximo</div>
+                      <div>• Aplicado sobre a comissão base</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-orange-100 dark:bg-orange-900/30 rounded-lg p-3 border border-orange-300 dark:border-orange-700">
+                    <div className="font-semibold text-orange-900 dark:text-orange-300 mb-2">Sazonalidade</div>
+                    <div className="text-xs text-orange-700 dark:text-orange-300 space-y-1">
+                      <div>• Distribuição mensal personalizada</div>
+                      <div>• Adapta metas conforme mercado</div>
+                      <div>• Total deve somar 100%</div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {!resultado && (
+                <motion.div
+                  className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg shadow-sm p-4 border border-orange-200 dark:border-orange-700"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.6 }}
+                >
+                  <div className="text-center space-y-3">
+                    <Target className="w-12 h-12 text-orange-400 mx-auto" />
+                    <h3 className="text-lg font-medium text-orange-900 dark:text-orange-300">
+                      Configure suas metas
+                    </h3>
+                    <p className="text-orange-700 dark:text-orange-300 text-sm">
+                      Defina suas faixas de comissão, bônus escalonado e vendas reais para calcular o desempenho.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
+            </div>
+          </div>
         </div>
       </div>
       

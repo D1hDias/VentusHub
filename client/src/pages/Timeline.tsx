@@ -273,63 +273,71 @@ export default function Timeline() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
-                <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
+                  <FileText className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Total</p>
+                  <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{overallStats.totalProperties}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold text-blue-600">{overallStats.totalProperties}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-xl flex items-center justify-center">
-                <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#d47c16'}}>
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Em Andamento</p>
+                  <p className="text-2xl font-bold" style={{color: '#d47c16'}}>{overallStats.inProgress}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Em Andamento</p>
-                <p className="text-2xl font-bold text-purple-600">{overallStats.inProgress}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-xl flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#1ea475'}}>
+                  <CheckCircle className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Concluídos</p>
+                  <p className="text-2xl font-bold" style={{color: '#1ea475'}}>{overallStats.completed}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Concluídos</p>
-                <p className="text-2xl font-bold text-green-600">{overallStats.completed}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-xl flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#dc2828'}}>
+                  <AlertTriangle className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Alertas</p>
+                  <p className="text-2xl font-bold" style={{color: '#dc2828'}}>{overallStats.alerts}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Alertas</p>
-                <p className="text-2xl font-bold text-red-600">{overallStats.alerts}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -384,7 +392,7 @@ export default function Timeline() {
           </Card>
         ) : (
           filteredTimelines.map((timeline: any) => (
-            <Card key={timeline.id}>
+            <Card key={timeline.id} className="hover:bg-accent/50 hover:shadow-md hover:border-primary/20 hover:scale-[1.02] cursor-pointer transition-all duration-300 ease-in-out">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>

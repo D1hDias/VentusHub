@@ -11,6 +11,9 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { AnimatedModal } from "@/components/ui/animated-modal";
+import { motion, AnimatePresence } from "framer-motion";
+import { useResponsive } from "@/hooks/useMediaQuery";
 import {
   Form,
   FormControl,

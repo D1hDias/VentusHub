@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,9 +7,13 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Calculator, DollarSign, MapPin, Info, AlertCircle, CheckCircle2, Building2 } from "lucide-react";
+import { FileText, Calculator, DollarSign, MapPin, Info, AlertCircle, CheckCircle2, Building2, BarChart3 } from "lucide-react";
+import { motion } from "framer-motion";
+import { INDICADORES_MERCADO } from "@/lib/indicadores-mercado";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LoadingModal } from '@/components/LoadingModal';
+import ResponsiveTable, { StatusBadge } from '@/components/responsive/ResponsiveTable';
+import { CurrencyField } from '@/components/responsive/CardList';
 
 // Estados e munic�pios dispon�veis na API
 const ESTADOS_DISPONIVEIS = [
@@ -269,6 +273,28 @@ interface ResultadoRegistro {
 }
 
 export default function SimuladorValorRegistro() {
+  // Função para controlar a sidebar secundária - desabilitar quando acessado diretamente
+  useEffect(() => {
+    // Verificar se chegou diretamente na página do simulador
+    const isDirectAccess = window.location.pathname === '/simulador-valor-registro';
+
+    if (isDirectAccess) {
+      // Criar um evento customizado para comunicar com o Layout
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: true }
+      });
+      window.dispatchEvent(event);
+    }
+
+    // Cleanup: reabilitar a sidebar quando sair da página
+    return () => {
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: false }
+      });
+      window.dispatchEvent(event);
+    };
+  }, []);
+
   const [formData, setFormData] = useState<FormData>({
     codigo_municipio: '',
     nome_municipio: '',
@@ -421,196 +447,218 @@ export default function SimuladorValorRegistro() {
 
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
-            <FileText className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Calculadora de Registro de Imóveis
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Calcule os custos oficiais de registro de imóveis no Brasil
-            </p>
-          </div>
-        </div>
+      <div className="space-y-6">
 
-        {/* Alerta informativo */}
-        <Alert className="mb-6">
-          <Info className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Estados disponíveis:</strong> AM, BA, ES, GO, MG, MS, PA, PR, RJ, RS, SP.
-          </AlertDescription>
-        </Alert>
-      </div>
+        {/* Layout Principal com duas colunas */}
+        <div className="flex flex-col lg:flex-row gap-6">
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Formulário */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5" />
-                Dados do Imóvel
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="estado_selecionado">Estado</Label>
-                <Select
-                  value={formData.estado_selecionado}
-                  onValueChange={(value) => setFormData(prev => ({
-                    ...prev,
-                    estado_selecionado: value,
-                    codigo_municipio: '', // Reset município quando mudar estado
-                    nome_municipio: '', // Reset nome do município
-                    desconto: '' // Reset desconto quando mudar estado
-                  }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ESTADOS_DISPONIVEIS && ESTADOS_DISPONIVEIS.map((estado) => (
-                      <SelectItem key={estado.codigo} value={estado.codigo}>
-                        {estado.nome} ({estado.codigo})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          {/* Coluna Esquerda (Scrollable) */}
+          <div className="w-full lg:w-2/3">
+            {/* Formulário */}
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <div className="space-y-8">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  Dados do Imóvel
+                </h2>
 
-              <div>
-                <Label htmlFor="municipio">Município</Label>
-                <Select
-                  value={formData.codigo_municipio}
-                  onValueChange={(value) => {
-                    const municipioSelecionado = municipiosDisponiveis.find(m => m.codigo === value);
-                    setFormData(prev => ({
-                      ...prev,
-                      codigo_municipio: value,
-                      nome_municipio: municipioSelecionado?.nome || ''
-                    }));
-                  }}
-                  disabled={!formData.estado_selecionado}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={formData.estado_selecionado ? "Selecione o município" : "Selecione um estado primeiro"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.isArray(municipiosDisponiveis) && municipiosDisponiveis.map((municipio) => (
-                      <SelectItem key={municipio.codigo} value={municipio.codigo}>
-                        {municipio.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="consulta_id">Tipo de Registro</Label>
-                <Select
-                  value={formData.consulta_id.toString()}
-                  onValueChange={(value) => setFormData(prev => ({
-                    ...prev,
-                    consulta_id: Number(value),
-                    valor_financiamento: Number(value) !== 2 ? '' : prev.valor_financiamento
-                  }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {TIPOS_CONSULTA && TIPOS_CONSULTA.map((tipo) => (
-                      <SelectItem key={tipo.id} value={tipo.id.toString()}>
-                        <div>
-                          <div className="font-medium">{tipo.nome}</div>
-                          <div className="text-xs text-muted-foreground">{tipo.descricao}</div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="valor_imovel">Valor do Imóvel (R$)</Label>
-                <Input
-                  id="valor_imovel"
-                  type="text"
-                  placeholder="R$ 0,00"
-                  value={formData.valor_imovel}
-                  onChange={(e) => handleInputChange('valor_imovel', e.target.value)}
-                />
-              </div>
-
-              {formData.consulta_id === 2 && (
-                <div>
-                  <Label htmlFor="valor_financiamento">Valor do Financiamento (R$)</Label>
-                  <Input
-                    id="valor_financiamento"
-                    type="text"
-                    placeholder="R$ 0,00"
-                    value={formData.valor_financiamento}
-                    onChange={(e) => handleInputChange('valor_financiamento', e.target.value)}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Obrigatório para Compra e Venda com Alienação Fiduciária
-                  </p>
+                {/* Alerta informativo */}
+                <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-4 rounded-lg">
+                  <div className="flex items-start">
+                    <Info className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
+                    <div className="text-blue-700 dark:text-blue-300 text-sm">
+                      <strong>Estados disponíveis:</strong> AM, BA, ES, GO, MG, MS, PA, PR, RJ, RS, SP.
+                    </div>
+                  </div>
                 </div>
-              )}
 
-              <Separator />
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <MapPin className="h-4 w-4 inline-block mr-2" />Estado
+                    </label>
+                    <Select
+                      value={formData.estado_selecionado}
+                      onValueChange={(value) => setFormData(prev => ({
+                        ...prev,
+                        estado_selecionado: value,
+                        codigo_municipio: '', // Reset município quando mudar estado
+                        nome_municipio: '', // Reset nome do município
+                        desconto: '' // Reset desconto quando mudar estado
+                      }))}
+                    >
+                      <SelectTrigger className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-green-200 focus:border-green-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600">
+                        <SelectValue placeholder="Selecione o estado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ESTADOS_DISPONIVEIS && ESTADOS_DISPONIVEIS.map((estado) => (
+                          <SelectItem key={estado.codigo} value={estado.codigo}>
+                            {estado.nome} ({estado.codigo})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {formData.estado_selecionado && (
-                <div>
-                  <Label htmlFor="desconto">Desconto Aplicável (opcional)</Label>
-                  <Select
-                    value={formData.desconto}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, desconto: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Nenhum desconto" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.isArray(descontosDisponiveis) && descontosDisponiveis.map((desconto) => (
-                        <SelectItem key={desconto.codigo} value={desconto.codigo}>
-                          <div>
-                            <div className="font-medium">{desconto.titulo}</div>
-                            <div className="text-xs text-muted-foreground">Redução: {desconto.reducao}</div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <Building2 className="h-4 w-4 inline-block mr-2" />Município
+                    </label>
+                    <Select
+                      value={formData.codigo_municipio}
+                      onValueChange={(value) => {
+                        const municipioSelecionado = municipiosDisponiveis.find(m => m.codigo === value);
+                        setFormData(prev => ({
+                          ...prev,
+                          codigo_municipio: value,
+                          nome_municipio: municipioSelecionado?.nome || ''
+                        }));
+                      }}
+                      disabled={!formData.estado_selecionado}
+                    >
+                      <SelectTrigger className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-green-200 focus:border-green-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600">
+                        <SelectValue placeholder={formData.estado_selecionado ? "Selecione o município" : "Selecione um estado primeiro"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.isArray(municipiosDisponiveis) && municipiosDisponiveis.map((municipio) => (
+                          <SelectItem key={municipio.codigo} value={municipio.codigo}>
+                            {municipio.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <FileText className="h-4 w-4 inline-block mr-2" />Tipo de Registro
+                    </label>
+                    <Select
+                      value={formData.consulta_id.toString()}
+                      onValueChange={(value) => setFormData(prev => ({
+                        ...prev,
+                        consulta_id: Number(value),
+                        valor_financiamento: Number(value) !== 2 ? '' : prev.valor_financiamento
+                      }))}
+                    >
+                      <SelectTrigger className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-green-200 focus:border-green-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIPOS_CONSULTA && TIPOS_CONSULTA.map((tipo) => (
+                          <SelectItem key={tipo.id} value={tipo.id.toString()}>
+                            <div>
+                              <div className="font-medium">{tipo.nome}</div>
+                              <div className="text-xs text-muted-foreground">{tipo.descricao}</div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <DollarSign className="h-4 w-4 inline-block mr-2" />Valor do Imóvel
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
+                      <input
+                        type="text"
+                        value={formData.valor_imovel}
+                        onChange={(e) => handleInputChange('valor_imovel', e.target.value)}
+                        placeholder="0,00"
+                        className="w-full pl-10 px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-green-200 focus:border-green-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
+                      />
+                    </div>
+                  </div>
+
+                  {formData.consulta_id === 2 && (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <DollarSign className="h-4 w-4 inline-block mr-2" />Valor do Financiamento
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
+                        <input
+                          type="text"
+                          value={formData.valor_financiamento}
+                          onChange={(e) => handleInputChange('valor_financiamento', e.target.value)}
+                          placeholder="0,00"
+                          className="w-full pl-10 px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-green-200 focus:border-green-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        Obrigatório para Compra e Venda com Alienação Fiduciária
+                      </p>
+                    </div>
+                  )}
+
+                  {formData.estado_selecionado && (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Desconto Aplicável (opcional)
+                      </label>
+                      <Select
+                        value={formData.desconto}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, desconto: value }))}
+                      >
+                        <SelectTrigger className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-green-200 focus:border-green-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600">
+                          <SelectValue placeholder="Nenhum desconto" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.isArray(descontosDisponiveis) && descontosDisponiveis.map((desconto) => (
+                            <SelectItem key={desconto.codigo} value={desconto.codigo}>
+                              <div>
+                                <div className="font-medium">{desconto.titulo}</div>
+                                <div className="text-xs text-muted-foreground">Redução: {desconto.reducao}</div>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
-              )}
 
-              <Button
-                onClick={calcularRegistro}
-                disabled={loading || isLoadingModalOpen}
-                className="w-full"
+                <motion.button
+                  onClick={calcularRegistro}
+                  disabled={loading || isLoadingModalOpen}
+                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Calculator className="h-5 w-5" />
+                  {(loading || isLoadingModalOpen) ? 'Processando...' : 'Calcular Valor do Registro'}
+                </motion.button>
+
+                {error && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 p-4 rounded-lg">
+                    <div className="flex items-start">
+                      <AlertCircle className="h-5 w-5 text-red-600 mr-2 mt-0.5" />
+                      <div className="text-red-700 dark:text-red-300 text-sm">
+                        {error}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Resultados */}
+            {resultado && (
+              <motion.div
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mt-6 w-full"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
               >
-                {(loading || isLoadingModalOpen) ? "Calculando..." : "Calcular Valor do Registro"}
-              </Button>
-
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Resultados */}
-        <div className="lg:col-span-2">
-          {resultado && (
-            <div className="space-y-6">
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Resultado do Cálculo</h2>
               {/* Card Principal */}
               <Card>
                 <CardContent className="p-6">
@@ -635,31 +683,51 @@ export default function SimuladorValorRegistro() {
                     Detalhamento dos Atos
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-3 font-medium">Ato</th>
-                          <th className="text-right p-3 font-medium">Emolumento</th>
-                          <th className="text-right p-3 font-medium">Taxa Fiscalização</th>
-                          <th className="text-right p-3 font-medium">Registro Civil 6%</th>
-                          <th className="text-right p-3 font-medium">Subtotal</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {resultado.atos && resultado.atos.map((ato, index) => (
-                          <tr key={index} className="border-b">
-                            <td className="p-3 font-medium">{ato.descricao}</td>
-                            <td className="text-right p-3">{formatCurrency(ato.emolumento)}</td>
-                            <td className="text-right p-3">{formatCurrency(ato.taxa_de_fiscalizacao || 0)}</td>
-                            <td className="text-right p-3">{formatCurrency(ato["registro_civil-6%"])}</td>
-                            <td className="text-right p-3 font-bold text-green-600">{formatCurrency(ato.subtotal)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                <CardContent className="p-0">
+                  <ResponsiveTable
+                    data={resultado.atos || []}
+                    columns={[
+                      {
+                        key: 'descricao',
+                        header: 'Ato',
+                        className: 'font-medium'
+                      },
+                      {
+                        key: 'emolumento',
+                        header: 'Emolumento',
+                        accessor: (ato) => <CurrencyField value={ato.emolumento} />,
+                        className: 'text-right'
+                      },
+                      {
+                        key: 'taxa_de_fiscalizacao',
+                        header: 'Taxa Fiscalização',
+                        accessor: (ato) => <CurrencyField value={ato.taxa_de_fiscalizacao || 0} />,
+                        className: 'text-right'
+                      },
+                      {
+                        key: 'registro_civil-6%',
+                        header: 'Registro Civil 6%',
+                        accessor: (ato) => <CurrencyField value={ato["registro_civil-6%"] || 0} />,
+                        className: 'text-right'
+                      },
+                      {
+                        key: 'subtotal',
+                        header: 'Subtotal',
+                        accessor: (ato) => (
+                          <span className="font-bold text-green-600 dark:text-green-400">
+                            {formatCurrency(ato.subtotal)}
+                          </span>
+                        ),
+                        className: 'text-right'
+                      }
+                    ]}
+                    mobileTitle={(ato) => ato.descricao}
+                    mobileSubtitle={(ato) => `Total: ${formatCurrency(ato.subtotal)}`}
+                    mobilePrimaryFields={['subtotal']}
+                    mobileSecondaryFields={['emolumento', 'taxa_de_fiscalizacao', 'registro_civil-6%']}
+                    className="border-0"
+                    mobileCardClassName="hover:bg-muted/30"
+                  />
                 </CardContent>
               </Card>
 
@@ -736,22 +804,110 @@ export default function SimuladorValorRegistro() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
+                </div>
+              </motion.div>
+            )}
 
-          {!resultado && !error && (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                  Pronto para calcular?
+          </div>
+
+          {/* Coluna Direita (Fixa) */}
+          <div className="w-full lg:w-1/3">
+            <div className="sticky top-8 space-y-4">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-l-4 border-green-400 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-green-900 dark:text-green-400 mb-3 flex items-center">
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    Indicadores de Referência
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-green-800 dark:text-green-300">SELIC:</span>
+                      <span className="font-medium text-green-900 dark:text-green-200">{INDICADORES_MERCADO.selic}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-green-800 dark:text-green-300">CDI:</span>
+                      <span className="font-medium text-green-900 dark:text-green-200">{INDICADORES_MERCADO.cdi}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-green-800 dark:text-green-300">IPCA:</span>
+                      <span className="font-medium text-green-900 dark:text-green-200">{INDICADORES_MERCADO.ipca}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-green-800 dark:text-green-300">IGP-M:</span>
+                      <span className="font-medium text-green-900 dark:text-green-200">{INDICADORES_MERCADO.igpM}%</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-green-700 dark:text-green-400 mt-2">
+                    *Valores de referência do mercado imobiliário
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Informações sobre registro */}
+              <motion.div
+                className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg shadow-sm p-6 border border-green-200 dark:border-green-700"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <h3 className="text-lg font-semibold text-green-900 dark:text-green-300 mb-4 flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  Informações Importantes
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Preencha os dados do imóvel e clique em "Calcular Valor do Registro" para obter os custos oficiais.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+
+                <div className="space-y-4 text-sm">
+                  <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-3 border border-green-300 dark:border-green-700">
+                    <div className="font-semibold text-green-900 dark:text-green-300 mb-2">Estados Disponíveis</div>
+                    <div className="text-xs text-green-700 dark:text-green-300">
+                      • AM, BA, ES, GO, MG, MS, PA, PR, RJ, RS, SP
+                    </div>
+                  </div>
+
+                  <div className="bg-emerald-100 dark:bg-emerald-900/30 rounded-lg p-3 border border-emerald-300 dark:border-emerald-700">
+                    <div className="font-semibold text-emerald-900 dark:text-emerald-300 mb-2">Tipos de Registro</div>
+                    <div className="space-y-1 text-xs text-emerald-700 dark:text-emerald-300">
+                      <div>• Registro em Geral</div>
+                      <div>• Compra e Venda com Alienação</div>
+                      <div>• Averbação com Valor Econômico</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-3 border border-green-300 dark:border-green-700">
+                    <div className="font-semibold text-green-900 dark:text-green-300 mb-2">Descontos Disponíveis</div>
+                    <div className="space-y-1 text-xs text-green-700 dark:text-green-300">
+                      <div>• 1ª Aquisição SFH (50%)</div>
+                      <div>• Minha Casa Minha Vida (50%)</div>
+                      <div>• FAR e FDS (75%)</div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {!resultado && !error && (
+                <motion.div
+                  className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg shadow-sm p-4 border border-green-200 dark:border-green-700"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.6 }}
+                >
+                  <div className="text-center space-y-3">
+                    <FileText className="w-12 h-12 text-green-400 mx-auto" />
+                    <h3 className="text-lg font-medium text-green-900 dark:text-green-300">
+                      Preencha os dados
+                    </h3>
+                    <p className="text-green-700 dark:text-green-300 text-sm">
+                      Selecione o estado, município e valor do imóvel para calcular os custos oficiais de registro.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
+            </div>
+          </div>
         </div>
       </div>
 

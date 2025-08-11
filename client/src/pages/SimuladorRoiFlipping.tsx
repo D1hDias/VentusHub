@@ -98,6 +98,28 @@ export default function SimuladorRoiFlipping() {
   const [resultado, setResultado] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Função para controlar a sidebar secundária - desabilitar quando acessado diretamente
+  useEffect(() => {
+    // Verificar se chegou diretamente na página do simulador
+    const isDirectAccess = window.location.pathname === '/simulador-roi-flipping';
+
+    if (isDirectAccess) {
+      // Criar um evento customizado para comunicar com o Layout
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: true }
+      });
+      window.dispatchEvent(event);
+    }
+
+    // Cleanup: reabilitar a sidebar quando sair da página
+    return () => {
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: false }
+      });
+      window.dispatchEvent(event);
+    };
+  }, []);
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -413,26 +435,21 @@ export default function SimuladorRoiFlipping() {
 
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          
-          {/* Cabeçalho */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-              <Target className="inline-block mr-3 h-10 w-10 text-blue-600" />
-              Simulador ROI Flip/Revenda
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Analise a viabilidade financeira de projetos de compra, reforma e revenda. 
-              Calcule ROI, TIR e faça análise de sensibilidade automaticamente.
-            </p>
-            
-            {/* Indicadores do Mercado */}
-            <IndicadoresMercado className="mt-6 max-w-4xl mx-auto" />
-          </div>
+      <div className="space-y-6">
+        {/* Header */}
 
-          {/* Formulário */}
-          <div className="bg-card rounded-lg shadow-lg p-8 mb-8">
+        {/* Layout Principal com duas colunas */}
+        <div className="flex flex-col lg:flex-row gap-6">
+
+          {/* Coluna Esquerda (Scrollable) */}
+          <div className="w-full lg:w-2/3">
+            {/* Formulário */}
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
             <h2 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
               <Calculator className="h-6 w-6 mr-2 text-blue-600" />
               Parâmetros do Projeto
@@ -666,18 +683,18 @@ export default function SimuladorRoiFlipping() {
                 <span>{loading ? 'Calculando...' : 'Calcular ROI'}</span>
               </button>
             </div>
-          </div>
+            </motion.div>
 
-          {/* Resultados */}
-          <AnimatePresence>
-            {resultado && (
-              <Element name="results-section">
-                <motion.div
-                  initial={{ opacity: 0, y: 50 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -50 }}
-                  transition={{ duration: 0.5 }}
-                  className="bg-card rounded-lg shadow-lg p-8 mb-8"
+            {/* Resultados */}
+            <AnimatePresence>
+              {resultado && (
+                <Element name="results-section">
+                  <motion.div
+                    initial={{ opacity: 0, y: 50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -50 }}
+                    transition={{ duration: 0.5 }}
+                    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mt-6 w-full"
                 >
                   <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-semibold text-gray-900 flex items-center">
@@ -877,11 +894,161 @@ export default function SimuladorRoiFlipping() {
                     </div>
                   </div>
 
-                </motion.div>
-              </Element>
-            )}
-          </AnimatePresence>
+                  </motion.div>
+                </Element>
+              )}
+            </AnimatePresence>
 
+          </div>
+
+          {/* Coluna Direita (Fixa) */}
+          <div className="w-full lg:w-1/3">
+            <div className="sticky top-8 space-y-4">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border-l-4 border-orange-400 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-400 mb-3 flex items-center">
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    Indicadores de Mercado
+                  </h3>
+                  <div className="grid grid-cols-1 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-orange-800 dark:text-orange-300">Custo Obra/m²:</span>
+                      <span className="font-medium text-orange-900 dark:text-orange-200">R$ {INDICADORES_FLIP.custoObraM2}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-orange-800 dark:text-orange-300">Valorização:</span>
+                      <span className="font-medium text-orange-900 dark:text-orange-200">{(INDICADORES_FLIP.valorizacaoReforma * 100 - 100).toFixed(0)}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-orange-800 dark:text-orange-300">CDI:</span>
+                      <span className="font-medium text-orange-900 dark:text-orange-200">{INDICADORES_MERCADO.cdi}%</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-orange-700 dark:text-orange-400 mt-2">
+                    *Valores de mercado para análise comparativa
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Análise de Viabilidade */}
+              <motion.div
+                className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg shadow-sm p-6 border border-orange-200 dark:border-orange-700"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-300 mb-4 flex items-center gap-2">
+                  <Target className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  Critérios de Análise
+                </h3>
+
+                <div className="space-y-4">
+                  {/* ROI Simples */}
+                  <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-4 border border-green-300 dark:border-green-700">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                      <h4 className="font-semibold text-green-900 dark:text-green-300">
+                        ROI Excelente
+                      </h4>
+                    </div>
+                    <div className="space-y-2 text-xs text-green-700 dark:text-green-300">
+                      <div className="flex justify-between">
+                        <span>Meta:</span>
+                        <span className="font-medium">&gt; 20%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Status:</span>
+                        <span className="font-medium">Projeto Viável</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ROI Moderado */}
+                  <div className="bg-yellow-100 dark:bg-yellow-900/30 rounded-lg p-4 border border-yellow-300 dark:border-yellow-700">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
+                      <h4 className="font-semibold text-yellow-900 dark:text-yellow-300">
+                        ROI Moderado
+                      </h4>
+                    </div>
+                    <div className="space-y-2 text-xs text-yellow-700 dark:text-yellow-300">
+                      <div className="flex justify-between">
+                        <span>Faixa:</span>
+                        <span className="font-medium">10% - 20%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Status:</span>
+                        <span className="font-medium">Avaliar Cenário</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ROI Baixo */}
+                  <div className="bg-red-100 dark:bg-red-900/30 rounded-lg p-4 border border-red-300 dark:border-red-700">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-3 h-3 bg-red-600 rounded-full"></div>
+                      <h4 className="font-semibold text-red-900 dark:text-red-300">
+                        ROI Baixo
+                      </h4>
+                    </div>
+                    <div className="space-y-2 text-xs text-red-700 dark:text-red-300">
+                      <div className="flex justify-between">
+                        <span>Faixa:</span>
+                        <span className="font-medium">&lt; 10%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Status:</span>
+                        <span className="font-medium">Alto Risco</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Dicas de Otimização */}
+              <motion.div
+                className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg shadow-sm p-4 border border-orange-200 dark:border-orange-700"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+              >
+                <div className="text-center space-y-3">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="bg-orange-100 dark:bg-orange-900/30 p-3 rounded-full">
+                      <TrendingUp className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-300">
+                      Dicas de Otimização
+                    </h3>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-white dark:bg-gray-800/50 rounded-lg p-4 border border-orange-200 dark:border-orange-700">
+                      <div className="space-y-3 text-xs text-orange-700 dark:text-orange-300 mb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                          <span><strong>Prazo:</strong> Projetos até 6 meses têm melhor TIR</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-orange-600 rounded-full"></div>
+                          <span><strong>Custos:</strong> Controle rigoroso da obra</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                          <span><strong>Venda:</strong> Preço competitivo acelera liquidez</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+            </div>
+          </div>
         </div>
       </div>
     </div>

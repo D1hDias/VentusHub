@@ -35,6 +35,8 @@ import SimuladorCGI from "./pages/SimuladorCGI";
 import CreditoFinanciamento from "./pages/CreditoFinanciamento";
 import CreditoConsorcio from "./pages/CreditoConsorcio";
 import CreditoCGI from "./pages/CreditoCGI";
+import CreditoPJ from "./pages/CreditoPJ";
+import SimuladorCreditoPJ from "./pages/SimuladorCreditoPJ";
 
 // Components
 import Layout from "./components/Layout";
@@ -158,6 +160,17 @@ function AppRoutes() {
         </ProtectedRoute>
       </Route>
 
+      <Route path="/credito/pj">
+        <ProtectedRoute>
+          <CreditoPJ />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/simulador-credito-pj">
+        <ProtectedRoute>
+          <SimuladorCreditoPJ />
+        </ProtectedRoute>
+      </Route>
 
       <Route path="/instrumento">
         <ProtectedRoute>

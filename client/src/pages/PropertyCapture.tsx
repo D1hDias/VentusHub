@@ -464,17 +464,15 @@ export default function PropertyCapture() {
                           filters.city.length > 0 || filters.priceRange !== "all";
 
   return (
-    <div className="min-h-screen">
-      {/* Container principal com padding balanceado */}
-      <div className="mx-auto px-6 py-4 space-y-6">
+    <div className="p-6 space-y-6">
         
-        {/* Header com espaçamento balanceado */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-          <div className="space-y-1">
-            <p className="text-base text-gray-600">
-              Gerencie e acompanhe o processo de captação dos seus imóveis
-            </p>
-          </div>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-muted-foreground">
+            Gerencie e acompanhe o processo de captação dos seus imóveis
+          </p>
+        </div>
           <Button 
             onClick={() => setShowPropertyModal(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
@@ -618,14 +616,12 @@ export default function PropertyCapture() {
           </CardContent>
         </Card>
 
-        {/* Properties Table com espaçamento melhorado */}
-        <Card className="shadow-sm border-gray-200">
-          <CardHeader className="px-6 py-4 border-b border-gray-200">
-            <CardTitle className="text-xl font-semibold text-gray-900">
-              Imóveis em Captação ({filteredProperties.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
+      {/* Properties Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Imóveis em Captação ({filteredProperties.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
             {isLoading ? (
               <div className="space-y-4 p-4">
                 {[...Array(5)].map((_, i) => (
@@ -725,8 +721,6 @@ export default function PropertyCapture() {
           }}
           property={selectedProperty}
         />
-        
-      </div>
     </div>
   );
 }

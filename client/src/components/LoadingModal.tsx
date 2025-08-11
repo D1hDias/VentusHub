@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Loader2, FileText, Calculator, Building2, Search } from "lucide-react";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { motion, AnimatePresence } from "framer-motion";
+import { useResponsive } from "@/hooks/useMediaQuery";
 
 interface LoadingModalProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export function LoadingModal({
   const [progress, setProgress] = useState(0);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [currentMessage, setCurrentMessage] = useState(LOADING_MESSAGES[0]);
+  const { prefersReducedMotion } = useResponsive();
 
   useEffect(() => {
     if (!isOpen) {
@@ -79,7 +81,7 @@ export function LoadingModal({
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen}>
       <DialogContent className="sm:max-w-lg border-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-900">
         <VisuallyHidden>
           <DialogTitle>Processando Cálculo</DialogTitle>
@@ -90,8 +92,8 @@ export function LoadingModal({
           {/* Ícone Principal Animado */}
           <div className="relative">
             <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              animate={prefersReducedMotion ? undefined : { rotate: 360 }}
+              transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "linear" }}
               className="relative"
             >
               <FileText className="h-16 w-16 text-primary" />
@@ -99,24 +101,24 @@ export function LoadingModal({
 
             {/* Ícones Orbitais */}
             <motion.div
-              animate={{ rotate: -360 }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              animate={prefersReducedMotion ? undefined : { rotate: -360 }}
+              transition={prefersReducedMotion ? undefined : { duration: 3, repeat: Infinity, ease: "linear" }}
               className="absolute -top-2 -right-2"
             >
               <Calculator className="h-6 w-6 text-green-600" />
             </motion.div>
 
             <motion.div
-              animate={{ rotate: -360 }}
-              transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+              animate={prefersReducedMotion ? undefined : { rotate: -360 }}
+              transition={prefersReducedMotion ? undefined : { duration: 4, repeat: Infinity, ease: "linear" }}
               className="absolute -bottom-2 -left-2"
             >
               <Building2 className="h-6 w-6 text-blue-600" />
             </motion.div>
 
             <motion.div
-              animate={{ rotate: -360 }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "linear" }}
+              animate={prefersReducedMotion ? undefined : { rotate: -360 }}
+              transition={prefersReducedMotion ? undefined : { duration: 3.5, repeat: Infinity, ease: "linear" }}
               className="absolute top-0 -left-4"
             >
               <Search className="h-5 w-5 text-orange-600" />
@@ -148,10 +150,10 @@ export function LoadingModal({
             <AnimatePresence mode="wait">
               <motion.p
                 key={currentMessageIndex}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
+                initial={prefersReducedMotion ? undefined : { opacity: 0, y: 20 }}
+                animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+                exit={prefersReducedMotion ? undefined : { opacity: 0, y: -20 }}
+                transition={prefersReducedMotion ? undefined : { duration: 0.3 }}
                 className="text-center text-sm font-medium text-gray-700 dark:text-gray-200"
               >
                 {currentMessage}
@@ -170,8 +172,8 @@ export function LoadingModal({
                     ? 'bg-blue-500'
                     : 'bg-gray-300 dark:bg-gray-600'
                   }`}
-                animate={progress > index * 33 ? { scale: [1, 1.2, 1] } : {}}
-                transition={{ duration: 0.5, repeat: progress > index * 33 ? Infinity : 0 }}
+                animate={prefersReducedMotion ? undefined : progress > index * 33 ? { scale: [1, 1.2, 1] } : {}}
+                transition={prefersReducedMotion ? undefined : { duration: 0.5, repeat: progress > index * 33 ? Infinity : 0 }}
               />
             ))}
           </div>

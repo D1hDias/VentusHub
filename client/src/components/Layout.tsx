@@ -2,6 +2,8 @@ import React, { useState, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import logoImage from "@/assets/logo.png";
+import { BottomNavigation, useMobileNavigation } from "@/components/responsive/MobileNavigation";
+import { useResponsive } from "@/hooks/useMediaQuery";
 import {
   Home,
   Building2,
@@ -17,8 +19,6 @@ import {
   X,
   Bell,
   User,
-  Moon,
-  Sun,
   Calculator,
   ChevronDown,
   ChevronRight,
@@ -51,8 +51,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useTheme } from "@/contexts/ThemeContext";
-import { Avatar, AvatarFallback, AvatarImage  } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useDeviceInfo } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -296,6 +295,22 @@ const simulatorsConfig = [
     darkIconBgHover: 'bg-sky-800/50',
     iconColor: 'text-sky-600',
     darkIconColor: 'text-sky-400'
+  },
+  {
+    id: 'simulador-credito-pj',
+    href: '/simulador-credito-pj',
+    label: 'Crédito Empresarial',
+    icon: Building2,
+    bgColor: 'from-yellow-50 to-amber-50',
+    darkBgColor: 'from-gray-800 to-gray-750',
+    textColor: 'text-yellow-700',
+    darkTextColor: 'text-yellow-400',
+    iconBg: 'bg-yellow-100',
+    darkIconBg: 'bg-yellow-900/50',
+    iconBgHover: 'bg-yellow-200',
+    darkIconBgHover: 'bg-yellow-800/50',
+    iconColor: 'text-yellow-600',
+    darkIconColor: 'text-yellow-400'
   }
 ];
 
@@ -311,10 +326,11 @@ export default function Layout({ children }: LayoutProps) {
   const [showCreditoSidebar, setShowCreditoSidebar] = useState(false);
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(1, 5);
   const [isSimulatorsOpen, setIsSimulatorsOpen] = useState(false);
   const { isMobile, isSmallMobile, isTouchDevice } = useDeviceInfo();
+  const { showBottomNav, shouldHideSidebar } = useMobileNavigation();
+  const { prefersReducedMotion } = useResponsive();
   const calculatorButtonRef = useRef<HTMLButtonElement>(null);
   const mouseLeaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -345,7 +361,7 @@ export default function Layout({ children }: LayoutProps) {
   const trackSimulatorUsage = (simulatorId: string) => {
     const usageData = loadUsageData();
     const currentTime = Date.now();
-    
+
     if (!usageData[simulatorId]) {
       usageData[simulatorId] = {
         count: 0,
@@ -353,31 +369,31 @@ export default function Layout({ children }: LayoutProps) {
         firstUsed: currentTime
       };
     }
-    
+
     usageData[simulatorId].count += 1;
     usageData[simulatorId].lastUsed = currentTime;
-    
+
     saveUsageData(usageData);
   };
 
   // Função para ordenar simuladores baseado no uso
   const getSortedSimulators = () => {
     const usageData = loadUsageData();
-    
+
     return [...simulatorsConfig].sort((a, b) => {
       const aUsage = usageData[a.id] || { count: 0, lastUsed: 0 };
       const bUsage = usageData[b.id] || { count: 0, lastUsed: 0 };
-      
+
       // Primeiro critério: número de usos (decrescente)
       if (aUsage.count !== bUsage.count) {
         return bUsage.count - aUsage.count;
       }
-      
+
       // Segundo critério: último uso (mais recente primeiro)
       if (aUsage.lastUsed !== bUsage.lastUsed) {
         return bUsage.lastUsed - aUsage.lastUsed;
       }
-      
+
       // Terceiro critério: ordem alfabética (fallback)
       return a.label.localeCompare(b.label);
     });
@@ -398,7 +414,7 @@ export default function Layout({ children }: LayoutProps) {
   }, []);
 
 
-  // Auto-abrir sidebar de crédito para financiamento, CGI e simulador
+  // Auto-abrir sidebar de crédito para financiamento, CGI, PJ e simuladores
   React.useEffect(() => {
     if (location === "/credito/financiamento") {
       // Para a página de Financiamento: sempre colapsar sidebar principal e abrir sidebar branca se não estiver aberta
@@ -412,11 +428,20 @@ export default function Layout({ children }: LayoutProps) {
       if (!showCreditoSidebar) {
         setShowCreditoSidebar(true);
       }
+    } else if (location === "/credito/pj") {
+      // Para a página de Crédito PJ: sempre colapsar sidebar principal e abrir sidebar amarela se não estiver aberta
+      setSidebarCollapsed(true);
+      if (!showCreditoSidebar) {
+        setShowCreditoSidebar(true);
+      }
     } else if (location === "/simulador-financiamento") {
       // Para o Simulador: não abrir sidebar branca
       // Mantém comportamento padrão sem sidebar
     } else if (location === "/simulador-cgi") {
       // Para o Simulador CGI: não abrir sidebar branca  
+      // Mantém comportamento padrão sem sidebar
+    } else if (location === "/simulador-credito-pj") {
+      // Para o Simulador Crédito PJ: não abrir sidebar amarela
       // Mantém comportamento padrão sem sidebar
     } else {
       // Para outras rotas: fechar sidebar branca e expandir sidebar principal
@@ -498,7 +523,7 @@ export default function Layout({ children }: LayoutProps) {
           footerDots: "bg-emerald-400"
         }
       };
-    } else if (location === "/credito/pj") {
+    } else if (location === "/credito/pj" || location === "/simulador-credito-pj") {
       return {
         primary: "#eab308",
         primaryRgb: "234, 179, 8",
@@ -571,6 +596,16 @@ export default function Layout({ children }: LayoutProps) {
         { href: "/credito/cgi/equipe", label: "Equipe", icon: Users },
         { href: "/credito/cgi/relatorios", label: "Relatórios", icon: ScrollText },
       ];
+    } else if (location === "/credito/pj" || location === "/simulador-credito-pj") {
+      return [
+        { href: "/credito/pj", label: "Visão geral", icon: Home },
+        { href: "/simulador-credito-pj", label: "Simulação", icon: Calculator },
+        { href: "/credito/pj/aprovacao", label: "Aprovação", icon: FileCheck },
+        { href: "/credito/pj/propostas", label: "Propostas", icon: PenTool },
+        { href: "/credito/pj/acompanhamento", label: "Acompanhamento", icon: FileSearch },
+        { href: "/credito/pj/equipe", label: "Equipe", icon: Users },
+        { href: "/credito/pj/relatorios", label: "Relatórios", icon: ScrollText },
+      ];
     }
     return [];
   };
@@ -609,11 +644,9 @@ export default function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-background flex transition-colors duration-200">
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-[#001f3f] to-[#004286] transform transition-all duration-300 ease-in-out lg:translate-x-0 ${
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } ${
-        sidebarCollapsed && !sidebarHovered ? "w-14 shadow-2xl shadow-black/40" : "w-60 shadow-lg"
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-[#001f3f] to-[#004286] transform transition-all duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } ${sidebarCollapsed && !sidebarHovered ? "w-14 shadow-2xl shadow-black/40" : "w-60 shadow-lg"
+          }`}
         style={(sidebarCollapsed && !sidebarHovered) ? {
           boxShadow: '6px 0 25px rgba(0, 0, 0, 0.5), 3px 0 15px rgba(0, 0, 0, 0.3), 1px 0 5px rgba(0, 0, 0, 0.2)',
           zIndex: 60
@@ -635,7 +668,7 @@ export default function Layout({ children }: LayoutProps) {
               variant="ghost"
               size="icon"
               className="text-white hover:bg-white/20 w-full flex justify-center hover:shadow-lg transition-all duration-200 lg:hidden"
-              style={{ 
+              style={{
                 filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
               }}
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -652,9 +685,9 @@ export default function Layout({ children }: LayoutProps) {
               >
                 <Menu className="h-5 w-5" />
               </Button>
-              <img 
-                src={logoImage} 
-                alt="Ventus Hub" 
+              <img
+                src={logoImage}
+                alt="Ventus Hub"
                 className="w-[120px] h-auto"
               />
             </div>
@@ -666,19 +699,18 @@ export default function Layout({ children }: LayoutProps) {
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = location === item.href;
-              
+
               // Special handling for Crédito
               if (item.href === "/credito") {
                 return (
                   <div key={item.href}>
                     {/* Crédito Button */}
                     <div
-                      className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${sidebarCollapsed && !sidebarHovered ? "px-2" : "px-3"} ${
-                        isActive || location.startsWith("/credito")
+                      className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${sidebarCollapsed && !sidebarHovered ? "px-2" : "px-3"} ${isActive || location.startsWith("/credito")
                           ? "bg-white/20 text-white border-r-2 border-white"
                           : "text-white/80 hover:bg-white/10 hover:text-white"
-                      } ${sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""}`}
-                      style={sidebarCollapsed && !sidebarHovered ? { 
+                        } ${sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""}`}
+                      style={sidebarCollapsed && !sidebarHovered ? {
                         filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
                       } : {}}
                       title={sidebarCollapsed && !sidebarHovered ? item.label : ""}
@@ -712,11 +744,10 @@ export default function Layout({ children }: LayoutProps) {
                     {/* Submenu - Efeito Moderno */}
                     {(!sidebarCollapsed || sidebarHovered) && (
                       <div
-                        className={`overflow-hidden transition-all duration-500 ease-out transform ${
-                          showFinanciamentoSubmenu 
-                            ? "max-h-52 opacity-100 translate-y-0 scale-y-100" 
+                        className={`overflow-hidden transition-all duration-500 ease-out transform ${showFinanciamentoSubmenu
+                            ? "max-h-52 opacity-100 translate-y-0 scale-y-100"
                             : "max-h-0 opacity-0 -translate-y-2 scale-y-95"
-                        }`}
+                          }`}
                         style={{
                           transformOrigin: 'top',
                         }}
@@ -724,21 +755,20 @@ export default function Layout({ children }: LayoutProps) {
                         <div className="relative ml-6 mr-2 mt-3 mb-4">
                           {/* Linha conectora */}
                           <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-blue-300 via-blue-400 to-transparent"></div>
-                          
+
                           {/* Container dos itens com efeito glass */}
                           <div className="relative bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 dark:border-gray-700/50 p-3 ml-4">
                             {/* Efeito de brilho */}
                             <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none"></div>
-                            
+
                             <div className="relative space-y-2">
                               {/* Financiamento */}
                               <Link href="/credito/financiamento">
                                 <div
-                                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] ${
-                                    location === "/credito/financiamento"
+                                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] ${location === "/credito/financiamento"
                                       ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
                                       : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-blue-700 dark:hover:text-blue-400"
-                                  }`}
+                                    }`}
                                   onClick={() => {
                                     // Fechar o submenu após clique
                                     setShowFinanciamentoSubmenu(false);
@@ -749,11 +779,10 @@ export default function Layout({ children }: LayoutProps) {
                                     }, 0);
                                   }}
                                 >
-                                  <div className={`p-1 rounded-md mr-2 transition-all duration-300 ${
-                                    location === "/credito/financiamento"
+                                  <div className={`p-1 rounded-md mr-2 transition-all duration-300 ${location === "/credito/financiamento"
                                       ? "bg-white/20"
                                       : "bg-blue-100 dark:bg-gray-700 group-hover:bg-blue-200 dark:group-hover:bg-gray-600"
-                                  }`}>
+                                    }`}>
                                     <CreditCard className="h-3 w-3" />
                                   </div>
                                   <span className="font-medium text-xs">Financiamento</span>
@@ -766,17 +795,15 @@ export default function Layout({ children }: LayoutProps) {
                               {/* Consórcio */}
                               <Link href="/credito/consorcio">
                                 <div
-                                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] ${
-                                    location === "/credito/consorcio"
+                                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] ${location === "/credito/consorcio"
                                       ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25"
                                       : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-red-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-red-700 dark:hover:text-red-400"
-                                  }`}
+                                    }`}
                                 >
-                                  <div className={`p-1 rounded-md mr-2 transition-all duration-300 ${
-                                    location === "/credito/consorcio"
+                                  <div className={`p-1 rounded-md mr-2 transition-all duration-300 ${location === "/credito/consorcio"
                                       ? "bg-white/20"
                                       : "bg-red-100 dark:bg-gray-700 group-hover:bg-red-200 dark:group-hover:bg-gray-600"
-                                  }`}>
+                                    }`}>
                                     <BadgeCent className="h-3 w-3" />
                                   </div>
                                   <span className="font-medium text-xs">Consórcio</span>
@@ -789,11 +816,10 @@ export default function Layout({ children }: LayoutProps) {
                               {/* CGI */}
                               <Link href="/credito/cgi">
                                 <div
-                                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] ${
-                                    location === "/credito/cgi"
+                                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] ${location === "/credito/cgi"
                                       ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/25"
                                       : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-emerald-700 dark:hover:text-emerald-400"
-                                  }`}
+                                    }`}
                                   title="Crédito com Garantia de Imóvel"
                                   onClick={() => {
                                     // Fechar o submenu após clique
@@ -805,11 +831,10 @@ export default function Layout({ children }: LayoutProps) {
                                     }, 0);
                                   }}
                                 >
-                                  <div className={`p-1 rounded-md mr-2 transition-all duration-300 ${
-                                    location === "/credito/cgi"
+                                  <div className={`p-1 rounded-md mr-2 transition-all duration-300 ${location === "/credito/cgi"
                                       ? "bg-white/20"
                                       : "bg-emerald-100 dark:bg-gray-700 group-hover:bg-emerald-200 dark:group-hover:bg-gray-600"
-                                  }`}>
+                                    }`}>
                                     <Shield className="h-3 w-3" />
                                   </div>
                                   <span className="font-medium text-xs">CGI</span>
@@ -822,18 +847,25 @@ export default function Layout({ children }: LayoutProps) {
                               {/* Crédito PJ */}
                               <Link href="/credito/pj">
                                 <div
-                                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] ${
-                                    location === "/credito/pj"
+                                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] ${location === "/credito/pj"
                                       ? "bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-lg shadow-yellow-500/25"
                                       : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-amber-50 dark:hover:from-gray-800 dark:hover:to-gray-750 hover:text-yellow-700 dark:hover:text-yellow-400"
-                                  }`}
+                                    }`}
                                   title="Crédito Pessoa Jurídica"
+                                  onClick={() => {
+                                    // Fechar o submenu após clique
+                                    setShowFinanciamentoSubmenu(false);
+                                    // Forçar colapso da sidebar principal e abertura da sidebar amarela
+                                    setTimeout(() => {
+                                      setSidebarCollapsed(true);
+                                      setShowCreditoSidebar(true);
+                                    }, 0);
+                                  }}
                                 >
-                                  <div className={`p-1 rounded-md mr-2 transition-all duration-300 ${
-                                    location === "/credito/pj"
+                                  <div className={`p-1 rounded-md mr-2 transition-all duration-300 ${location === "/credito/pj"
                                       ? "bg-white/20"
                                       : "bg-yellow-100 dark:bg-gray-700 group-hover:bg-yellow-200 dark:group-hover:bg-gray-600"
-                                  }`}>
+                                    }`}>
                                     <Building2 className="h-3 w-3" />
                                   </div>
                                   <span className="font-medium text-xs">Crédito PJ</span>
@@ -844,7 +876,7 @@ export default function Layout({ children }: LayoutProps) {
                               </Link>
 
                             </div>
-                            
+
                             {/* Indicador de submenu ativo */}
                             <div className="absolute -left-4 top-1/2 transform -translate-y-1/2">
                               <div className="w-2 h-2 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50 animate-pulse"></div>
@@ -861,14 +893,12 @@ export default function Layout({ children }: LayoutProps) {
               return (
                 <Link key={item.href} href={item.href}>
                   <div
-                    className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${sidebarCollapsed && !sidebarHovered ? "px-2" : "px-3"} ${
-                    isActive
+                    className={`flex items-center py-2 text-sm font-medium rounded-md transition-colors cursor-pointer ${sidebarCollapsed && !sidebarHovered ? "px-2" : "px-3"} ${isActive
                         ? "bg-white/20 text-white border-r-2 border-white"
                         : "text-white/80 hover:bg-white/10 hover:text-white"
-                    } ${
-                    sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
-                    }`}
-                    style={sidebarCollapsed && !sidebarHovered ? { 
+                      } ${sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
+                      }`}
+                    style={sidebarCollapsed && !sidebarHovered ? {
                       filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
                     } : {}}
                     title={sidebarCollapsed && !sidebarHovered ? item.label : ""}
@@ -884,13 +914,12 @@ export default function Layout({ children }: LayoutProps) {
 
         <div className={`absolute bottom-4 left-0 right-0 ${sidebarCollapsed && !sidebarHovered ? "px-1" : "px-3"}`}>
           <Link href="/configuracoes">
-            <div className={`flex items-center py-2 text-sm text-white/80 cursor-pointer hover:bg-white/10 rounded-md ${sidebarCollapsed && !sidebarHovered ? "px-2" : "px-3"} ${
-              sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
-            }`}
-            style={sidebarCollapsed && !sidebarHovered ? { 
-              filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
-            } : {}}
-            title={sidebarCollapsed && !sidebarHovered ? "Configurações" : ""}
+            <div className={`flex items-center py-2 text-sm text-white/80 cursor-pointer hover:bg-white/10 rounded-md ${sidebarCollapsed && !sidebarHovered ? "px-2" : "px-3"} ${sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
+              }`}
+              style={sidebarCollapsed && !sidebarHovered ? {
+                filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
+              } : {}}
+              title={sidebarCollapsed && !sidebarHovered ? "Configurações" : ""}
             >
               <Settings className={`h-5 w-5 ${sidebarCollapsed && !sidebarHovered ? "" : "mr-3"}`} />
               {(!sidebarCollapsed || sidebarHovered) && "Configurações"}
@@ -937,23 +966,21 @@ export default function Layout({ children }: LayoutProps) {
                 {getCreditoItems().map((item) => {
                   const Icon = item.icon;
                   const isActive = location === item.href;
-                  
+
                   return (
                     <Link key={item.href} href={item.href}>
                       <motion.div
                         whileHover={{ scale: 1.02, x: 4 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer ${
-                          isActive
+                        className={`flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-300 cursor-pointer ${isActive
                             ? `bg-gradient-to-r ${currentTheme.classes.itemActive} text-white shadow-lg border-r-2`
                             : `text-gray-700 ${currentTheme.classes.itemHover} hover:border-l-2`
-                        }`}
+                          }`}
                       >
-                        <div className={`p-1.5 rounded-lg mr-3 transition-all duration-300 ${
-                          isActive 
-                            ? "bg-white/20" 
+                        <div className={`p-1.5 rounded-lg mr-3 transition-all duration-300 ${isActive
+                            ? "bg-white/20"
                             : currentTheme.classes.iconBg
-                        }`}>
+                          }`}>
                           <Icon className={`h-4 w-4 ${isActive ? "text-white" : currentTheme.classes.iconText}`} />
                         </div>
                         <span className="flex-1">{item.label}</span>
@@ -996,7 +1023,7 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Main content */}
       {/* Header */}
-      <header className={cn("fixed top-0 right-0 z-40 bg-gradient-to-r from-[#001f3f] to-[#004286] border-b border-white/10 shadow-sm transition-all duration-300 ease-in-out h-16", 
+      <header className={cn("fixed top-0 right-0 z-40 bg-gradient-to-r from-[#001f3f] to-[#004286] border-b border-white/10 shadow-sm transition-all duration-300 ease-in-out h-16",
         showCreditoSidebar ? "lg:left-[280px]" : (sidebarCollapsed && !sidebarHovered ? "lg:left-14" : "lg:left-60")
       )}>
         <div className="flex items-center justify-between h-full px-6">
@@ -1009,140 +1036,137 @@ export default function Layout({ children }: LayoutProps) {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            
+
             <h1 className="ml-4 text-2xl font-semibold text-white lg:ml-0">
-              {navigationItems.find(item => item.href === location)?.label || "Dashboard"}
+              {(() => {
+                // Primeiro, verificar se é uma rota do navigationItems
+                const navItem = navigationItems.find(item => item.href === location);
+                if (navItem) return navItem.label;
+                
+                // Se não, verificar se é um simulador
+                const simulator = simulatorsConfig.find(sim => sim.href === location);
+                if (simulator) return simulator.label;
+                
+                // Default para Dashboard
+                return "Dashboard";
+              })()}
             </h1>
           </div>
 
           <div className="flex items-center space-x-4">
-          {/* Simulators Dropdown */}
-          <div 
-            onMouseEnter={() => {
-              // Cancelar timeout se o mouse voltar
-              if (mouseLeaveTimeoutRef.current) {
-                clearTimeout(mouseLeaveTimeoutRef.current);
-                mouseLeaveTimeoutRef.current = null;
-              }
-            }}
-            onMouseLeave={() => {
-              // Só fechar se o dropdown estiver aberto, com delay
-              if (isSimulatorsOpen) {
-                mouseLeaveTimeoutRef.current = setTimeout(() => {
-                  setIsSimulatorsOpen(false);
-                }, 800); // 800ms de delay para dar tempo do usuário entrar no menu
-              }
-            }}
-          >
-          <DropdownMenu open={isSimulatorsOpen} onOpenChange={(open) => {
-            // Permitir apenas abertura manual via clique do botão
-            if (!open) {
-              setIsSimulatorsOpen(false);
-            }
-          }}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                ref={calculatorButtonRef}
-                variant="ghost"
-                size={isMobile ? "default" : "sm"}
-                className={`${isMobile ? 'h-10 min-w-[44px]' : 'h-8'} w-auto px-2 text-white hover:bg-white/10 flex items-center gap-2 ${isTouchDevice ? 'touch-target' : ''}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setIsSimulatorsOpen(!isSimulatorsOpen);
-                }}
-              >
-                <motion.div layout>
-                  <Calculator className="h-4 w-4" />
-                </motion.div>
-                <AnimatePresence>
-                  {isSimulatorsOpen && (
-                    <motion.span
-                      initial={{ opacity: 0, width: 0, marginRight: 0 }}
-                      animate={{ opacity: 1, width: 'auto', marginRight: '8px' }}
-                      exit={{ opacity: 0, width: 0, marginRight: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="text-sm font-medium whitespace-nowrap"
-                    >
-                      SIMULADORES
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent 
-              align="end" 
-              className="w-80 max-h-[600px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 shadow-xl rounded-xl p-1 relative"
+            {/* Simulators Dropdown */}
+            <div
+              onMouseEnter={() => {
+                // Cancelar timeout se o mouse voltar
+                if (mouseLeaveTimeoutRef.current) {
+                  clearTimeout(mouseLeaveTimeoutRef.current);
+                  mouseLeaveTimeoutRef.current = null;
+                }
+              }}
+              onMouseLeave={() => {
+                // Só fechar se o dropdown estiver aberto, com delay
+                if (isSimulatorsOpen) {
+                  mouseLeaveTimeoutRef.current = setTimeout(() => {
+                    setIsSimulatorsOpen(false);
+                  }, 800); // 800ms de delay para dar tempo do usuário entrar no menu
+                }
+              }}
             >
-              {/* Efeito de brilho */}
-              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none"></div>
-              
-              <div className="relative space-y-0.5">
-                {getSortedSimulators().map((simulator) => {
-                  const Icon = simulator.icon;
-                  return (
-                    <DropdownMenuItem 
-                      key={simulator.id} 
-                      className="p-0 focus:bg-transparent"
-                      onSelect={(e) => {
-                        e.preventDefault();
-                        handleSimulatorClick(simulator.id);
-                        setIsSimulatorsOpen(false);
-                        // Navegar após fechar
-                        setTimeout(() => {
-                          setLocation(simulator.href);
-                        }, 100);
-                      }}
-                    >
-                      <div className="group w-full"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleSimulatorClick(simulator.id);
-                          setIsSimulatorsOpen(false);
-                          // Navegar após fechar
-                          setTimeout(() => {
-                            setLocation(simulator.href);
-                          }, 100);
-                        }}
-                      >
-                        <div className={`flex items-center px-2 py-1.5 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer transform hover:scale-[1.01] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:${simulator.bgColor} dark:hover:${simulator.darkBgColor} hover:${simulator.textColor} dark:hover:${simulator.darkTextColor} hover:shadow-sm`}>
-                          <div className={`p-1 rounded-full ${simulator.iconBg} dark:${simulator.darkIconBg} mr-2 transition-all duration-300 group-hover:${simulator.iconBgHover} dark:group-hover:${simulator.darkIconBgHover}`}>
-                            <Icon className={`h-2.5 w-2.5 ${simulator.iconColor} dark:${simulator.darkIconColor}`} />
-                          </div>
-                          <span className="font-medium text-xs flex-1">{simulator.label}</span>
-                          <div className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <ChevronRight className="h-2.5 w-2.5" />
-                          </div>
-                        </div>
-                      </div>
-                    </DropdownMenuItem>
-                  );
-                })}
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          </div>
+              <DropdownMenu open={isSimulatorsOpen} onOpenChange={(open) => {
+                // Permitir apenas abertura manual via clique do botão
+                if (!open) {
+                  setIsSimulatorsOpen(false);
+                }
+              }}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    ref={calculatorButtonRef}
+                    variant="ghost"
+                    size={isMobile ? "default" : "sm"}
+                    className={`${isMobile ? 'h-10 min-w-[44px]' : 'h-8'} w-auto px-2 text-white hover:bg-white/10 flex items-center gap-2 ${isTouchDevice ? 'touch-target' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsSimulatorsOpen(!isSimulatorsOpen);
+                    }}
+                  >
+                    <motion.div layout>
+                      <Calculator className="h-4 w-4" />
+                    </motion.div>
+                    <AnimatePresence>
+                      {isSimulatorsOpen && (
+                        <motion.span
+                          initial={{ opacity: 0, width: 0, marginRight: 0 }}
+                          animate={{ opacity: 1, width: 'auto', marginRight: '8px' }}
+                          exit={{ opacity: 0, width: 0, marginRight: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="text-sm font-medium whitespace-nowrap"
+                        >
+                          SIMULADORES
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-80 max-h-[600px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 shadow-xl rounded-xl p-1 relative"
+                >
+                  {/* Efeito de brilho */}
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none"></div>
 
-          {/* Theme toggle */}
-          <Button
-              variant="ghost"
-              size={isMobile ? "default" : "sm"}
-              onClick={toggleTheme}
-              className={`${isMobile ? 'h-10 w-10 min-w-[44px]' : 'h-8 w-8'} text-white hover:bg-white/10 ${isTouchDevice ? 'touch-target' : ''}`}
-          >
-              {theme === "dark" ? (
-              <Sun className="h-4 w-4" />
-              ) : (
-              <Moon className="h-4 w-4" />
-              )}
-          </Button>
+                  <div className="relative space-y-0.5">
+                    {getSortedSimulators().map((simulator) => {
+                      const Icon = simulator.icon;
+                      return (
+                        <DropdownMenuItem
+                          key={simulator.id}
+                          className="p-0 focus:bg-transparent"
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            handleSimulatorClick(simulator.id);
+                            setIsSimulatorsOpen(false);
+                            // Navegar após fechar
+                            setTimeout(() => {
+                              setLocation(simulator.href);
+                            }, 100);
+                          }}
+                        >
+                          <div className="group w-full"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleSimulatorClick(simulator.id);
+                              setIsSimulatorsOpen(false);
+                              // Navegar após fechar
+                              setTimeout(() => {
+                                setLocation(simulator.href);
+                              }, 100);
+                            }}
+                          >
+                            <div className={`flex items-center px-2 py-1.5 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer transform hover:scale-[1.01] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:${simulator.bgColor} dark:hover:${simulator.darkBgColor} hover:${simulator.textColor} dark:hover:${simulator.darkTextColor} hover:shadow-sm`}>
+                              <div className={`p-1 rounded-full ${simulator.iconBg} dark:${simulator.darkIconBg} mr-2 transition-all duration-300 group-hover:${simulator.iconBgHover} dark:group-hover:${simulator.darkIconBgHover}`}>
+                                <Icon className={`h-2.5 w-2.5 ${simulator.iconColor} dark:${simulator.darkIconColor}`} />
+                              </div>
+                              <span className="font-medium text-xs flex-1">{simulator.label}</span>
+                              <div className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <ChevronRight className="h-2.5 w-2.5" />
+                              </div>
+                            </div>
+                          </div>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
             {/* Notifications */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size={isMobile ? "default" : "sm"} 
+                <Button
+                  variant="ghost"
+                  size={isMobile ? "default" : "sm"}
                   className={`relative ${isMobile ? 'h-10 w-10 min-w-[44px]' : 'h-8 w-8'} text-white hover:bg-white/10 ${isTouchDevice ? 'touch-target' : ''}`}
                 >
                   <Bell className="h-5 w-5" />
@@ -1167,7 +1191,7 @@ export default function Layout({ children }: LayoutProps) {
                     </Button>
                   )}
                 </div>
-                
+
                 <div className="max-h-96 overflow-y-auto dropdown-scroll">
                   {notifications.length === 0 ? (
                     <div className="p-4 text-center text-muted-foreground">
@@ -1178,13 +1202,12 @@ export default function Layout({ children }: LayoutProps) {
                     notifications.map((notification) => {
                       const Icon = getNotificationIcon(notification.type, notification.category);
                       const color = getNotificationColor(notification.type);
-                      
+
                       return (
                         <DropdownMenuItem
                           key={notification.id}
-                          className={`flex items-start gap-3 p-3 hover:bg-muted/50 cursor-pointer ${
-                            !notification.isRead ? 'bg-primary/5' : ''
-                          }`}
+                          className={`flex items-start gap-3 p-3 hover:bg-muted/50 cursor-pointer ${!notification.isRead ? 'bg-primary/5' : ''
+                            }`}
                           onClick={() => {
                             if (!notification.isRead) {
                               markAsRead(notification.id);
@@ -1219,7 +1242,7 @@ export default function Layout({ children }: LayoutProps) {
                     })
                   )}
                 </div>
-                
+
                 {notifications.length > 0 && (
                   <div className="border-t p-2">
                     <Button variant="ghost" size="sm" className="w-full text-xs">
@@ -1230,72 +1253,84 @@ export default function Layout({ children }: LayoutProps) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-          {/* User menu - atualizado para mostrar avatar */}
-          <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className={`relative ${isMobile ? 'h-10 w-10 min-w-[44px]' : 'h-8 w-8'} rounded-full hover:bg-white/10 ${isTouchDevice ? 'touch-target' : ''}`}
-              >
-              <Avatar className="h-8 w-8">
-                  {user?.avatarUrl ? (
-                  <AvatarImage src={user.avatarUrl} alt={`${user.firstName} ${user.lastName}`} />
-                  ) : null}
-                  <AvatarFallback className="bg-white/20 text-white text-sm border border-white/20">
-                  {getUserInitials()}
-                  </AvatarFallback>
-              </Avatar>
-              </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                  {user?.firstName} {user?.lastName}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                  {user?.email}
-                  </p>
-                  {user?.creci && (
-                  <p className="text-xs leading-none text-muted-foreground">
-                      CRECI: {user.creci}
-                  </p>
-                  )}
-              </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-              <Link href="/configuracoes" className="w-full cursor-pointer">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Perfil</span>
-              </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-              <Link href="/configuracoes" className="w-full cursor-pointer">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Configurações</span>
-              </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Sair</span>
-              </DropdownMenuItem>
-          </DropdownMenuContent>
-          </DropdownMenu>
+            {/* User menu - atualizado para mostrar avatar */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={`relative ${isMobile ? 'h-10 w-10 min-w-[44px]' : 'h-8 w-8'} rounded-full hover:bg-white/10 ${isTouchDevice ? 'touch-target' : ''}`}
+                >
+                  <Avatar className="h-8 w-8">
+                    {user?.avatarUrl ? (
+                      <AvatarImage src={user.avatarUrl} alt={`${user.firstName} ${user.lastName}`} />
+                    ) : null}
+                    <AvatarFallback className="bg-white/20 text-white text-sm border border-white/20">
+                      {getUserInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">
+                      {user?.firstName} {user?.lastName}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email}
+                    </p>
+                    {user?.creci && (
+                      <p className="text-xs leading-none text-muted-foreground">
+                        CRECI: {user.creci}
+                      </p>
+                    )}
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/configuracoes" className="w-full cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Perfil</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/configuracoes" className="w-full cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Configurações</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sair</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
 
       {/* Page content */}
-      <main className={cn("flex-1 overflow-auto pt-16 transition-all duration-300", 
+      <main className={cn("flex-1 overflow-auto pt-16 transition-all duration-300",
         showCreditoSidebar ? "lg:ml-[280px]" : (sidebarCollapsed && !sidebarHovered ? "lg:ml-14" : "lg:ml-60"),
-        isMobile ? "mobile-padding" : ""
+        isMobile ? "mobile-padding" : "",
+        showBottomNav ? "pb-20" : ""
       )}>
         <div className={isMobile ? "mobile-bottom-safe" : ""}>
           {children}
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      {showBottomNav && (
+        <motion.div
+          initial={prefersReducedMotion ? undefined : { y: 100 }}
+          animate={prefersReducedMotion ? undefined : { y: 0 }}
+          transition={prefersReducedMotion ? undefined : { duration: 0.3 }}
+        >
+          <BottomNavigation />
+        </motion.div>
+      )}
     </div>
   );
 }

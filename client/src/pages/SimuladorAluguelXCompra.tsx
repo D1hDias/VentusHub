@@ -131,6 +131,28 @@ export default function SimuladorAluguelXCompra() {
   const [resultado, setResultado] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Função para controlar a sidebar secundária - desabilitar quando acessado diretamente
+  useEffect(() => {
+    // Verificar se chegou diretamente na página do simulador
+    const isDirectAccess = window.location.pathname === '/simulador-aluguel-compra';
+
+    if (isDirectAccess) {
+      // Criar um evento customizado para comunicar com o Layout
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: true }
+      });
+      window.dispatchEvent(event);
+    }
+
+    // Cleanup: reabilitar a sidebar quando sair da página
+    return () => {
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: false }
+      });
+      window.dispatchEvent(event);
+    };
+  }, []);
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -501,29 +523,20 @@ export default function SimuladorAluguelXCompra() {
 
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          
-          {/* Cabeçalho */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 dark:text-gray-100 mb-4">
-              <Home className="inline-block mr-3 h-10 w-10 text-blue-600" />
-              Simulador Alugar × Comprar
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400 dark:text-gray-400 max-w-3xl mx-auto">
-              Descubra qual é a melhor opção financeira para você: alugar ou comprar um imóvel. 
-              Nossa simulação usa indicadores reais do mercado automaticamente.
-            </p>
-            
-            {/* Indicadores do Mercado */}
-            <IndicadoresMercado 
-              className="mt-6 max-w-4xl mx-auto" 
-              indicadoresVisiveis={['igpM']} 
-            />
-          </div>
+      <div className="space-y-6">
 
-          {/* Formulário */}
-          <div className="bg-card rounded-lg shadow-lg p-8 mb-8">
+        {/* Layout Principal com duas colunas */}
+        <div className="flex flex-col lg:flex-row gap-6">
+
+          {/* Coluna Esquerda (Scrollable) */}
+          <div className="w-full lg:w-2/3">
+            {/* Formulário */}
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 dark:text-gray-100 mb-6 flex items-center">
               <Calculator className="h-6 w-6 mr-2 text-blue-600" />
               Parâmetros da Simulação
@@ -755,10 +768,10 @@ export default function SimuladorAluguelXCompra() {
                 <span>{loading ? 'Calculando...' : 'Calcular Simulação'}</span>
               </button>
             </div>
-          </div>
+            </motion.div>
 
-          {/* Resultados */}
-          <AnimatePresence>
+            {/* Resultados */}
+            <AnimatePresence>
             {resultado && (
               <Element name="results-section">
                 <motion.div
@@ -766,10 +779,10 @@ export default function SimuladorAluguelXCompra() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -50 }}
                   transition={{ duration: 0.5 }}
-                  className="bg-white rounded-lg shadow-lg p-8 mb-8"
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mt-6 w-full"
                 >
                   <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white flex items-center">
                       <BarChart3 className="h-6 w-6 mr-2 text-blue-600" />
                       Resultados da Comparação
                     </h2>
@@ -940,11 +953,153 @@ export default function SimuladorAluguelXCompra() {
                     </div>
                   </div>
 
-                </motion.div>
-              </Element>
-            )}
-          </AnimatePresence>
+                  </motion.div>
+                </Element>
+              )}
+            </AnimatePresence>
 
+          </div>
+
+          {/* Coluna Direita (Fixa) */}
+          <div className="w-full lg:w-1/3">
+            <div className="sticky top-8 space-y-4">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <div className="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 border-l-4 border-cyan-400 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-cyan-900 dark:text-cyan-400 mb-3 flex items-center">
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    Indicadores de Referência
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-cyan-800 dark:text-cyan-300">CDI:</span>
+                      <span className="font-medium text-cyan-900 dark:text-cyan-200">{INDICADORES_MERCADO.custoOportunidade}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-cyan-800 dark:text-cyan-300">Valorização:</span>
+                      <span className="font-medium text-cyan-900 dark:text-cyan-200">{INDICADORES_MERCADO.valorizacaoImovel}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-cyan-800 dark:text-cyan-300">IGP-M:</span>
+                      <span className="font-medium text-cyan-900 dark:text-cyan-200">{INDICADORES_MERCADO.igpM}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-cyan-800 dark:text-cyan-300">Manutenção:</span>
+                      <span className="font-medium text-cyan-900 dark:text-cyan-200">{INDICADORES_MERCADO.manutencaoAnual}%</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-cyan-700 dark:text-cyan-400 mt-2">
+                    *Indicadores automáticos aplicados na simulação
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Informações sobre a Análise */}
+              <motion.div
+                className="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-lg shadow-sm p-6 border border-cyan-200 dark:border-cyan-700"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <h3 className="text-lg font-semibold text-cyan-900 dark:text-cyan-300 mb-4 flex items-center gap-2">
+                  <Building className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  Como Funciona a Análise
+                </h3>
+
+                <div className="space-y-4">
+                  {/* Comprar */}
+                  <div className="bg-blue-100 dark:bg-blue-900/30 rounded-lg p-4 border border-blue-300 dark:border-blue-700">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-300">
+                        Comprar
+                      </h4>
+                    </div>
+                    <div className="space-y-2 text-xs text-blue-700 dark:text-blue-300">
+                      <div className="flex justify-between">
+                        <span>Considera:</span>
+                        <span className="font-medium">Valorização do imóvel</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Custos:</span>
+                        <span className="font-medium">ITBI + Escritura + Manutenção</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Patrimônio:</span>
+                        <span className="font-medium">Valor - Saldo devedor</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Alugar */}
+                  <div className="bg-green-100 dark:bg-green-900/30 rounded-lg p-4 border border-green-300 dark:border-green-700">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                      <h4 className="font-semibold text-green-900 dark:text-green-300">
+                        Alugar
+                      </h4>
+                    </div>
+                    <div className="space-y-2 text-xs text-green-700 dark:text-green-300">
+                      <div className="flex justify-between">
+                        <span>Investe:</span>
+                        <span className="font-medium">Entrada não gasta</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Rendimento:</span>
+                        <span className="font-medium">CDI ({INDICADORES_MERCADO.custoOportunidade}%)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Diferença:</span>
+                        <span className="font-medium">Investe mensalmente</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Dicas de Interpretação */}
+              <motion.div
+                className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-lg shadow-sm p-4 border border-cyan-200 dark:border-cyan-700"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+              >
+                <div className="text-center space-y-3">
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="bg-cyan-100 dark:bg-cyan-900/30 p-3 rounded-full">
+                      <PieChart className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-cyan-900 dark:text-cyan-300">
+                      Interpretação dos Resultados
+                    </h3>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-white dark:bg-gray-800/50 rounded-lg p-4 border border-cyan-200 dark:border-cyan-700">
+                      <div className="space-y-3 text-xs text-cyan-700 dark:text-cyan-300 mb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
+                          <span><strong>TIR:</strong> Taxa de retorno do investimento</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-cyan-600 rounded-full"></div>
+                          <span><strong>Payback:</strong> Tempo para recuperar o investimento</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span><strong>Break-even:</strong> Quando comprar se torna vantajoso</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+            </div>
+          </div>
         </div>
       </div>
     </div>

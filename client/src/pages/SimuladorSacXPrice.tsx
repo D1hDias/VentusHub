@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Calculator, TrendingDown, TrendingUp, DollarSign, Calendar, BarChart3 } from "lucide-react";
+import { motion } from "framer-motion";
+import { INDICADORES_MERCADO } from "@/lib/indicadores-mercado";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { LoadingModal } from "@/components/LoadingModal";
 
@@ -35,6 +37,28 @@ interface ResultadoComparativo {
 }
 
 export default function SimuladorSacXPrice() {
+  // Função para controlar a sidebar secundária - desabilitar quando acessado diretamente
+  useEffect(() => {
+    // Verificar se chegou diretamente na página do simulador
+    const isDirectAccess = window.location.pathname === '/simulador-sac-x-price';
+
+    if (isDirectAccess) {
+      // Criar um evento customizado para comunicar com o Layout
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: true }
+      });
+      window.dispatchEvent(event);
+    }
+
+    // Cleanup: reabilitar a sidebar quando sair da página
+    return () => {
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: false }
+      });
+      window.dispatchEvent(event);
+    };
+  }, []);
+
   const [formData, setFormData] = useState<FormData>({
     valor_financiado: '',
     prazo_meses: 420,
@@ -210,115 +234,124 @@ export default function SimuladorSacXPrice() {
 
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
-            <Calculator className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Simulador SAC × Price
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Compare os sistemas de amortização e escolha o melhor para seu perfil
-            </p>
-          </div>
-        </div>
-      </div>
+      <div className="space-y-6">
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Formulário */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5" />
-                Dados do Financiamento
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="valor_financiado">Valor a Financiar (R$)</Label>
-                <Input
-                  id="valor_financiado"
-                  type="text"
-                  placeholder="R$ 0,00"
-                  value={formData.valor_financiado}
-                  onChange={(e) => handleInputChange('valor_financiado', e.target.value)}
-                />
-              </div>
+        {/* Layout Principal com duas colunas */}
+        <div className="flex flex-col lg:flex-row gap-6">
 
-              <div>
-                <Label htmlFor="prazo_meses">Prazo (meses)</Label>
-                <Input
-                  id="prazo_meses"
-                  type="number"
-                  value={formData.prazo_meses}
-                  onChange={(e) => setFormData(prev => ({ ...prev, prazo_meses: Number(e.target.value) }))}
-                />
-              </div>
+          {/* Coluna Esquerda (Scrollable) */}
+          <div className="w-full lg:w-2/3">
+            {/* Formulário */}
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <div className="space-y-8">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  Dados do Financiamento
+                </h2>
 
-              <div>
-                <Label htmlFor="taxa_efetiva_anual">Taxa Efetiva Anual (%)</Label>
-                <Input
-                  id="taxa_efetiva_anual"
-                  type="number"
-                  step="0.01"
-                  value={formData.taxa_efetiva_anual}
-                  onChange={(e) => setFormData(prev => ({ ...prev, taxa_efetiva_anual: Number(e.target.value) }))}
-                />
-              </div>
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <DollarSign className="h-4 w-4 inline-block mr-2" />Valor a Financiar (R$)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.valor_financiado}
+                      onChange={(e) => handleInputChange('valor_financiado', e.target.value)}
+                      placeholder="R$ 0,00"
+                      className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
+                    />
+                  </div>
 
-              <div>
-                <Label htmlFor="renda_mensal">Renda Mensal (R$) - Opcional</Label>
-                <Input
-                  id="renda_mensal"
-                  type="text"
-                  placeholder="R$ 0,00"
-                  value={formData.renda_mensal}
-                  onChange={(e) => handleInputChange('renda_mensal', e.target.value)}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <Calendar className="h-4 w-4 inline-block mr-2" />Prazo (meses)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.prazo_meses}
+                      onChange={(e) => setFormData(prev => ({ ...prev, prazo_meses: Number(e.target.value) }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
+                    />
+                  </div>
 
-              <Separator />
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <TrendingUp className="h-4 w-4 inline-block mr-2" />Taxa Efetiva Anual (%)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.taxa_efetiva_anual}
+                      onChange={(e) => setFormData(prev => ({ ...prev, taxa_efetiva_anual: Number(e.target.value) }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
+                    />
+                  </div>
 
-              <div className="flex items-center justify-between">
-                <Label htmlFor="toogle_seguro">Incluir Seguro?</Label>
-                <Switch
-                  id="toogle_seguro"
-                  checked={formData.toogle_seguro}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, toogle_seguro: checked }))}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <DollarSign className="h-4 w-4 inline-block mr-2" />Renda Mensal (R$) - Opcional
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.renda_mensal}
+                      onChange={(e) => handleInputChange('renda_mensal', e.target.value)}
+                      placeholder="R$ 0,00"
+                      className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
+                    />
+                  </div>
 
-              {formData.toogle_seguro && (
-                <div>
-                  <Label htmlFor="seguro_percent_aa">Taxa do Seguro (% a.a.)</Label>
-                  <Input
-                    id="seguro_percent_aa"
-                    type="number"
-                    step="0.01"
-                    value={formData.seguro_percent_aa}
-                    onChange={(e) => setFormData(prev => ({ ...prev, seguro_percent_aa: Number(e.target.value) }))}
-                  />
+                  <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Incluir Seguro?</label>
+                    <Switch
+                      checked={formData.toogle_seguro}
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, toogle_seguro: checked }))}
+                    />
+                  </div>
+
+                  {formData.toogle_seguro && (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Taxa do Seguro (% a.a.)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={formData.seguro_percent_aa}
+                        onChange={(e) => setFormData(prev => ({ ...prev, seguro_percent_aa: Number(e.target.value) }))}
+                        className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
 
-              <Button 
-                onClick={calcularComparativo} 
-                disabled={loading}
-                className="w-full"
+                <motion.button
+                  onClick={calcularComparativo}
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Calculator className="h-5 w-5" />
+                  {loading ? 'Processando...' : 'Calcular Comparativo'}
+                </motion.button>
+              </div>
+            </motion.div>
+
+            {/* Resultados */}
+            {resultado && (
+              <motion.div
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mt-6 w-full"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
               >
-                {loading ? "Calculando..." : "Calcular Comparativo"}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Resultados */}
-        <div className="lg:col-span-2">
-          {resultado && (
-            <div className="space-y-6">
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Comparação dos Sistemas</h2>
               {/* Cards de Resumo */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card>
@@ -456,22 +489,117 @@ export default function SimuladorSacXPrice() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
+                </div>
+              </motion.div>
+            )}
 
-          {!resultado && (
-            <Card>
-              <CardContent className="p-12 text-center">
-                <Calculator className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                  Pronto para simular?
+          </div>
+
+          {/* Coluna Direita (Fixa) */}
+          <div className="w-full lg:w-1/3">
+            <div className="sticky top-8 space-y-4">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-l-4 border-blue-400 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-400 mb-3 flex items-center">
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    Indicadores de Referência
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-blue-800 dark:text-blue-300">SELIC:</span>
+                      <span className="font-medium text-blue-900 dark:text-blue-200">{INDICADORES_MERCADO.selic}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-800 dark:text-blue-300">CDI:</span>
+                      <span className="font-medium text-blue-900 dark:text-blue-200">{INDICADORES_MERCADO.cdi}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-800 dark:text-blue-300">IPCA:</span>
+                      <span className="font-medium text-blue-900 dark:text-blue-200">{INDICADORES_MERCADO.ipca}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-blue-800 dark:text-blue-300">IGP-M:</span>
+                      <span className="font-medium text-blue-900 dark:text-blue-200">{INDICADORES_MERCADO.igpM}%</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-blue-700 dark:text-blue-400 mt-2">
+                    *Valores de referência do mercado financeiro
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Informações sobre os sistemas */}
+              <motion.div
+                className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg shadow-sm p-6 border border-blue-200 dark:border-blue-700"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-300 mb-4 flex items-center gap-2">
+                  <Calculator className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  Sistemas de Amortização
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Preencha os dados do financiamento e clique em "Calcular Comparativo" para ver os resultados.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+
+                <div className="space-y-4">
+                  {/* SAC */}
+                  <div className="bg-blue-100 dark:bg-blue-900/30 rounded-lg p-4 border border-blue-300 dark:border-blue-700">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-300">
+                        SAC (Sistema de Amortização Constante)
+                      </h4>
+                    </div>
+                    <div className="space-y-2 text-xs text-blue-700 dark:text-blue-300">
+                      <div>• Amortização constante ao longo do tempo</div>
+                      <div>• Parcelas decrescentes</div>
+                      <div>• Juros incidem sobre saldo devedor</div>
+                      <div>• Menor valor total de juros pagos</div>
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <div className="bg-indigo-100 dark:bg-indigo-900/30 rounded-lg p-4 border border-indigo-300 dark:border-indigo-700">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-3 h-3 bg-indigo-600 rounded-full"></div>
+                      <h4 className="font-semibold text-indigo-900 dark:text-indigo-300">
+                        PRICE (Tabela Price)
+                      </h4>
+                    </div>
+                    <div className="space-y-2 text-xs text-indigo-700 dark:text-indigo-300">
+                      <div>• Parcelas fixas durante todo período</div>
+                      <div>• Amortização crescente ao longo do tempo</div>
+                      <div>• Facilita o planejamento financeiro</div>
+                      <div>• Maior valor total de juros pagos</div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {!resultado && (
+                <motion.div
+                  className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg shadow-sm p-4 border border-blue-200 dark:border-blue-700"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.6 }}
+                >
+                  <div className="text-center space-y-3">
+                    <Calculator className="w-12 h-12 text-blue-400 mx-auto" />
+                    <h3 className="text-lg font-medium text-blue-900 dark:text-blue-300">
+                      Preencha os dados
+                    </h3>
+                    <p className="text-blue-700 dark:text-blue-300 text-sm">
+                      Informe o valor, prazo e taxa para comparar os sistemas SAC e Price.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
+            </div>
+          </div>
         </div>
       </div>
       

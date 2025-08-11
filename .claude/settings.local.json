@@ -88,7 +88,10 @@
       "Bash(timeout 10 npm run dev)",
       "Bash(PORT=5001 npm run dev)",
       "Bash(mv:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(nvm use:*)",
+      "Bash(nvm alias:*)",
+      "Bash(nvm list:*)"
     ],
     "deny": []
   },

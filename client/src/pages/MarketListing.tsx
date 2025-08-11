@@ -1,7 +1,11 @@
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { KPICard } from "@/components/KPICard";
 import { 
   CheckCircle, 
   Camera, 
@@ -15,6 +19,20 @@ import {
 } from "lucide-react";
 
 export default function MarketListing() {
+  const [searchTerm, setSearchTerm] = useState("");
+  
+  // Carregar propriedades da API
+  const { data: allProperties = [], isLoading } = useQuery({
+    queryKey: ["/api/properties"],
+    queryFn: async () => {
+      const response = await fetch("/api/properties");
+      if (!response.ok) {
+        throw new Error("Failed to fetch properties");
+      }
+      return response.json();
+    },
+  });
+  
   // Mock data for demonstration
   const marketProperties = [
     {
@@ -81,63 +99,40 @@ export default function MarketListing() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-xl flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Ativos</p>
-                <p className="text-2xl font-bold text-green-600">1</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
-                <Camera className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Preparando</p>
-                <p className="text-2xl font-bold text-blue-600">1</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-xl flex items-center justify-center">
-                <Eye className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Visualizações</p>
-                <p className="text-2xl font-bold text-purple-600">247</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-xl flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Leads</p>
-                <p className="text-2xl font-bold text-orange-600">12</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <KPICard
+            title="Ativos"
+            value={1}
+            icon={CheckCircle}
+            iconBgColor="#1ea475"
+          />
+        </div>
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <KPICard
+            title="Preparando"
+            value={1}
+            icon={Camera}
+            iconBgColor="#001f3f"
+          />
+        </div>
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <KPICard
+            title="Visualizações"
+            value={247}
+            icon={Eye}
+            iconBgColor="#d47c16"
+          />
+        </div>
+        <div className="cursor-pointer transition-transform hover:scale-105">
+          <KPICard
+            title="Leads"
+            value={12}
+            icon={TrendingUp}
+            iconBgColor="#dc2828"
+          />
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -148,6 +143,8 @@ export default function MarketListing() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por endereço, valor ou proprietário..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
@@ -156,28 +153,43 @@ export default function MarketListing() {
               Filtros
             </Button>
           </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
       {/* Properties List */}
-      <div className="space-y-6">
-        {marketProperties.map((property) => (
-          <Card key={property.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                      {property.sequenceNumber || String(property.id).padStart(5, '0')}
-                    </span>
-                    <CardTitle className="text-lg">{property.property}</CardTitle>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{property.address}</p>
-                </div>
-                {getStatusBadge(property.status)}
+      <Card>
+        <CardHeader>
+          <CardTitle>Imóveis no Mercado ({marketProperties.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+            {isLoading ? (
+              <div className="space-y-4 p-4">
+                {[...Array(3)].map((_, i) => (
+                  <Skeleton key={i} className="h-48 w-full" />
+                ))}
               </div>
-            </CardHeader>
-            <CardContent>
+            ) : (
+            <div className="space-y-4 hover:space-y-2 transition-all duration-300">
+                {marketProperties.map((property) => (
+                <Card 
+                  key={property.id}
+                  className="hover:bg-accent/50 hover:shadow-md hover:border-primary/20 hover:scale-[1.02] cursor-pointer transition-all duration-300 ease-in-out"
+                >
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-3 mb-1">
+                          <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            {property.sequenceNumber || String(property.id).padStart(5, '0')}
+                          </span>
+                          <CardTitle className="text-lg">{property.property}</CardTitle>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{property.address}</p>
+                      </div>
+                      {getStatusBadge(property.status)}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Property Details */}
                 <div className="lg:col-span-2 space-y-4">
@@ -305,9 +317,12 @@ export default function MarketListing() {
                 </div>
               </div>
             </CardContent>
-          </Card>
-        ))}
-      </div>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

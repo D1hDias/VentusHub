@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, Plus, Trash2, DollarSign, PieChart, TrendingUp, BarChart3, Calendar } from "lucide-react";
+import { motion } from "framer-motion";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { INDICADORES_MERCADO } from "@/lib/indicadores-mercado";
 import IndicadoresMercado from '@/components/IndicadoresMercado';
@@ -53,6 +54,28 @@ interface ResultadoRendaPassiva {
 }
 
 export default function SimuladorRendaPassiva() {
+  // Função para controlar a sidebar secundária - desabilitar quando acessado diretamente
+  useEffect(() => {
+    // Verificar se chegou diretamente na página do simulador
+    const isDirectAccess = window.location.pathname === '/simulador-renda-passiva';
+
+    if (isDirectAccess) {
+      // Criar um evento customizado para comunicar com o Layout
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: true }
+      });
+      window.dispatchEvent(event);
+    }
+
+    // Cleanup: reabilitar a sidebar quando sair da página
+    return () => {
+      const event = new CustomEvent('disableSecondSidebar', {
+        detail: { disable: false }
+      });
+      window.dispatchEvent(event);
+    };
+  }, []);
+
   const [formData, setFormData] = useState<FormData>({
     horizonte_anos: 5,
     indice_reajuste: "igpm",
@@ -271,277 +294,155 @@ export default function SimuladorRendaPassiva() {
 
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg">
-            <Building2 className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              Renda Passiva - Carteira de Aluguéis
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Projete o fluxo de caixa e rentabilidade da sua carteira de imóveis locados
-            </p>
-          </div>
-        </div>
-        
-        {/* Indicadores do Mercado - Seção ampliada */}
-        <div className="mb-8">
-          <IndicadoresMercado className="max-w-full mx-auto" />
-        </div>
-      </div>
+      <div className="space-y-6">
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Formulário */}
-        <div className="xl:col-span-1 space-y-6">
-          {/* Configurações Gerais */}
-          <Card className="bg-card dark:bg-card border border-border dark:border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-foreground">
-                <Calendar className="w-5 h-5" />
-                Configurações Gerais
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="horizonte_anos" className="text-foreground">Horizonte (anos)</Label>
-                <Input
-                  id="horizonte_anos"
-                  type="number"
-                  value={formData.horizonte_anos}
-                  onChange={(e) => setFormData(prev => ({ ...prev, horizonte_anos: Number(e.target.value) }))}
-                  className="bg-background text-foreground border-input"
-                />
-              </div>
+        {/* Layout Principal com duas colunas */}
+        <div className="flex flex-col lg:flex-row gap-6">
 
-              <div>
-                <Label htmlFor="indice_reajuste" className="text-foreground">Índice de Reajuste</Label>
-                <Select 
-                  value={formData.indice_reajuste} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, indice_reajuste: value }))}
-                >
-                  <SelectTrigger className="bg-background text-foreground border-input">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border-border">
-                    <SelectItem value="igpm">IGP-M ({INDICADORES_MERCADO.igpM}% a.a.)</SelectItem>
-                    <SelectItem value="ipca">IPCA ({INDICADORES_MERCADO.ipca}% a.a.)</SelectItem>
-                    <SelectItem value="custom">Taxa Customizada</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          {/* Coluna Esquerda (Scrollable) */}
+          <div className="w-full lg:w-2/3">
+            {/* Formulário */}
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <div className="space-y-8">
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  Configurações da Carteira
+                </h2>
 
-              {formData.indice_reajuste === 'custom' && (
-                <div>
-                  <Label htmlFor="taxa_reajuste_custom_aa" className="text-foreground">Taxa Custom (% a.a.)</Label>
-                  <Input
-                    id="taxa_reajuste_custom_aa"
-                    type="number"
-                    step="0.01"
-                    value={formData.taxa_reajuste_custom_aa}
-                    onChange={(e) => setFormData(prev => ({ ...prev, taxa_reajuste_custom_aa: Number(e.target.value) }))}
-                    className="bg-background text-foreground border-input"
-                  />
+                {/* Indicadores do Mercado - Seção ampliada */}
+                <div className="mb-6">
+                  <IndicadoresMercado className="max-w-full mx-auto" />
                 </div>
-              )}
 
-              <div>
-                <Label htmlFor="intervalo_reajuste_meses" className="text-foreground">Intervalo Reajuste (meses)</Label>
-                <Select 
-                  value={String(formData.intervalo_reajuste_meses)} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, intervalo_reajuste_meses: Number(value) }))}
-                >
-                  <SelectTrigger className="bg-background text-foreground border-input">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border-border">
-                    <SelectItem value="12">12 meses</SelectItem>
-                    <SelectItem value="24">24 meses</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Separator className="bg-border" />
-
-              <div className="flex items-center justify-between">
-                <Label htmlFor="toggle_depreciacao" className="text-foreground">Incluir Depreciação?</Label>
-                <Switch
-                  id="toggle_depreciacao"
-                  checked={formData.toggle_depreciacao}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, toggle_depreciacao: checked }))}
-                />
-              </div>
-
-              {formData.toggle_depreciacao && (
-                <div>
-                  <Label htmlFor="taxa_depreciacao_aa" className="text-foreground">Taxa Depreciação (% a.a.)</Label>
-                  <Input
-                    id="taxa_depreciacao_aa"
-                    type="number"
-                    step="0.01"
-                    value={formData.taxa_depreciacao_aa}
-                    onChange={(e) => setFormData(prev => ({ ...prev, taxa_depreciacao_aa: Number(e.target.value) }))}
-                    className="bg-background text-foreground border-input"
-                  />
-                </div>
-              )}
-
-              <div>
-                <Label htmlFor="aliquota_ir_percent" className="text-foreground">Alíquota IR (%)</Label>
-                <Input
-                  id="aliquota_ir_percent"
-                  type="number"
-                  step="0.01"
-                  value={formData.aliquota_ir_percent}
-                  onChange={(e) => setFormData(prev => ({ ...prev, aliquota_ir_percent: Number(e.target.value) }))}
-                  className="bg-background text-foreground border-input"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Carteira de Imóveis */}
-          <Card className="bg-card dark:bg-card border border-border dark:border-border">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-foreground">
-                  <Building2 className="w-5 h-5" />
-                  Carteira de Imóveis
-                </CardTitle>
-                <Button
-                  onClick={adicionarImovel}
-                  size="sm"
-                  variant="outline"
-                  className="bg-background text-foreground border-input hover:bg-accent"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Adicionar
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {formData.imoveis.map((imovel, index) => (
-                <div key={index} className="p-4 border border-border dark:border-border rounded-lg bg-accent/10 dark:bg-accent/10">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-medium text-foreground">Imóvel {index + 1}</h4>
-                    {formData.imoveis.length > 1 && (
-                      <Button
-                        onClick={() => removerImovel(index)}
-                        size="sm"
-                        variant="ghost"
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
+                <div className="grid grid-cols-1 gap-6">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <Calendar className="h-4 w-4 inline-block mr-2" />Horizonte (anos)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.horizonte_anos}
+                      onChange={(e) => setFormData(prev => ({ ...prev, horizonte_anos: Number(e.target.value) }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
+                    />
                   </div>
 
-                  <div className="space-y-3">
-                    <div>
-                      <Label className="text-foreground">Valor do Imóvel (R$)</Label>
-                      <Input
-                        type="text"
-                        placeholder="R$ 0,00"
-                        value={imovel.valor_imovel}
-                        onChange={(e) => atualizarImovel(index, 'valor_imovel', handleInputChange('valor_imovel', e.target.value))}
-                        className="bg-background text-foreground border-input"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <TrendingUp className="h-4 w-4 inline-block mr-2" />Índice de Reajuste
+                    </label>
+                    <Select 
+                      value={formData.indice_reajuste} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, indice_reajuste: value }))}
+                    >
+                      <SelectTrigger className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="igpm">IGP-M ({INDICADORES_MERCADO.igpM}% a.a.)</SelectItem>
+                        <SelectItem value="ipca">IPCA ({INDICADORES_MERCADO.ipca}% a.a.)</SelectItem>
+                        <SelectItem value="custom">Taxa Customizada</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                    <div>
-                      <Label className="text-foreground">Aluguel Mensal Inicial (R$)</Label>
-                      <Input
-                        type="text"
-                        placeholder="R$ 0,00"
-                        value={imovel.aluguel_mensal_inicial}
-                        onChange={(e) => atualizarImovel(index, 'aluguel_mensal_inicial', handleInputChange('aluguel_mensal_inicial', e.target.value))}
-                        className="bg-background text-foreground border-input"
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-foreground">Vacância (% a.a.)</Label>
-                      <Input
+                  {formData.indice_reajuste === 'custom' && (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Taxa Custom (% a.a.)
+                      </label>
+                      <input
                         type="number"
-                        step="0.1"
-                        value={imovel.vacancia_percent_aa}
-                        onChange={(e) => atualizarImovel(index, 'vacancia_percent_aa', Number(e.target.value))}
-                        className="bg-background text-foreground border-input"
+                        step="0.01"
+                        value={formData.taxa_reajuste_custom_aa}
+                        onChange={(e) => setFormData(prev => ({ ...prev, taxa_reajuste_custom_aa: Number(e.target.value) }))}
+                        className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
                       />
                     </div>
+                  )}
 
-                    <div className="flex items-center justify-between">
-                      <Label className="text-foreground">Condomínio</Label>
-                      <Switch
-                        checked={imovel.toggle_condominio}
-                        onCheckedChange={(checked) => atualizarImovel(index, 'toggle_condominio', checked)}
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Intervalo Reajuste (meses)
+                    </label>
+                    <Select 
+                      value={String(formData.intervalo_reajuste_meses)} 
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, intervalo_reajuste_meses: Number(value) }))}
+                    >
+                      <SelectTrigger className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="12">12 meses</SelectItem>
+                        <SelectItem value="24">24 meses</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                    {imovel.toggle_condominio && (
-                      <div>
-                        <Label className="text-foreground">Condomínio Mensal (R$)</Label>
-                        <Input
-                          type="text"
-                          placeholder="R$ 0,00"
-                          value={imovel.condominio_mensal}
-                          onChange={(e) => atualizarImovel(index, 'condominio_mensal', handleInputChange('condominio_mensal', e.target.value))}
-                          className="bg-background text-foreground border-input"
-                        />
-                      </div>
-                    )}
+                  <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Incluir Depreciação?</label>
+                    <Switch
+                      checked={formData.toggle_depreciacao}
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, toggle_depreciacao: checked }))}
+                    />
+                  </div>
 
-                    <div className="flex items-center justify-between">
-                      <Label className="text-foreground">IPTU</Label>
-                      <Switch
-                        checked={imovel.toggle_iptu}
-                        onCheckedChange={(checked) => atualizarImovel(index, 'toggle_iptu', checked)}
-                      />
-                    </div>
-
-                    {imovel.toggle_iptu && (
-                      <div>
-                        <Label className="text-foreground">IPTU Anual (R$)</Label>
-                        <Input
-                          type="text"
-                          placeholder="R$ 0,00"
-                          value={imovel.iptu_anual}
-                          onChange={(e) => atualizarImovel(index, 'iptu_anual', handleInputChange('iptu_anual', e.target.value))}
-                          className="bg-background text-foreground border-input"
-                        />
-                      </div>
-                    )}
-
-                    <div>
-                      <Label className="text-foreground">Manutenção (% a.a. do valor)</Label>
-                      <Input
+                  {formData.toggle_depreciacao && (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Taxa Depreciação (% a.a.)
+                      </label>
+                      <input
                         type="number"
-                        step="0.1"
-                        value={imovel.manutencao_percent_aa}
-                        onChange={(e) => atualizarImovel(index, 'manutencao_percent_aa', Number(e.target.value))}
-                        className="bg-background text-foreground border-input"
+                        step="0.01"
+                        value={formData.taxa_depreciacao_aa}
+                        onChange={(e) => setFormData(prev => ({ ...prev, taxa_depreciacao_aa: Number(e.target.value) }))}
+                        className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
                       />
                     </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <DollarSign className="h-4 w-4 inline-block mr-2" />Alíquota IR (%)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={formData.aliquota_ir_percent}
+                      onChange={(e) => setFormData(prev => ({ ...prev, aliquota_ir_percent: Number(e.target.value) }))}
+                      className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600"
+                    />
                   </div>
                 </div>
-              ))}
 
-              <Button 
-                onClick={calcularSimulacao} 
-                disabled={loading}
-                className="w-full"
+                <motion.button
+                  onClick={calcularSimulacao}
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Building2 className="h-5 w-5" />
+                  {loading ? 'Processando...' : 'Simular Carteira'}
+                </motion.button>
+              </div>
+            </motion.div>
+
+            {/* Resultados */}
+            {resultado && (
+              <motion.div
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mt-6 w-full"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
               >
-                {loading ? "Calculando..." : "Simular Carteira"}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Resultados */}
-        <div className="xl:col-span-2">
-          {resultado && (
-            <div className="space-y-6">
+                <div className="space-y-6">
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Análise da Carteira</h2>
               {/* Métricas Principais */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="bg-card dark:bg-card border border-border dark:border-border">
@@ -670,22 +571,111 @@ export default function SimuladorRendaPassiva() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
+                </div>
+              </motion.div>
+            )}
 
-          {!resultado && (
-            <Card className="bg-card dark:bg-card border border-border dark:border-border">
-              <CardContent className="p-12 text-center">
-                <Building2 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">
-                  Configure sua carteira
+          </div>
+
+          {/* Coluna Direita (Fixa) */}
+          <div className="w-full lg:w-1/3">
+            <div className="sticky top-8 space-y-4">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 border-l-4 border-purple-400 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-400 mb-3 flex items-center">
+                    <BarChart3 className="h-5 w-5 mr-2" />
+                    Indicadores de Referência
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-purple-800 dark:text-purple-300">SELIC:</span>
+                      <span className="font-medium text-purple-900 dark:text-purple-200">{INDICADORES_MERCADO.selic}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-800 dark:text-purple-300">CDI:</span>
+                      <span className="font-medium text-purple-900 dark:text-purple-200">{INDICADORES_MERCADO.cdi}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-800 dark:text-purple-300">IPCA:</span>
+                      <span className="font-medium text-purple-900 dark:text-purple-200">{INDICADORES_MERCADO.ipca}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-purple-800 dark:text-purple-300">IGP-M:</span>
+                      <span className="font-medium text-purple-900 dark:text-purple-200">{INDICADORES_MERCADO.igpM}%</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-purple-700 dark:text-purple-400 mt-2">
+                    *Valores de referência para reajuste de aluguéis
+                  </p>
+                </div>
+              </motion.div>
+
+              {/* Informações sobre renda passiva */}
+              <motion.div
+                className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg shadow-sm p-6 border border-purple-200 dark:border-purple-700"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
+                <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-300 mb-4 flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  Dicas de Análise
                 </h3>
-                <p className="text-muted-foreground">
-                  Preencha os dados dos imóveis e configurações para simular o fluxo de caixa da sua carteira de aluguéis.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+
+                <div className="space-y-4 text-sm">
+                  <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-3 border border-purple-300 dark:border-purple-700">
+                    <div className="font-semibold text-purple-900 dark:text-purple-300 mb-2">Yield Bruto vs Líquido</div>
+                    <div className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
+                      <div>• Yield bruto: somente receita vs valor do imóvel</div>
+                      <div>• Yield líquido: descontados custos e impostos</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-indigo-100 dark:bg-indigo-900/30 rounded-lg p-3 border border-indigo-300 dark:border-indigo-700">
+                    <div className="font-semibold text-indigo-900 dark:text-indigo-300 mb-2">Fatores Importantes</div>
+                    <div className="text-xs text-indigo-700 dark:text-indigo-300 space-y-1">
+                      <div>• Vacância: períodos sem locatário</div>
+                      <div>• Manutenção: custos de reparo e reforma</div>
+                      <div>• Reajustes: periodicidade conforme contrato</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-3 border border-purple-300 dark:border-purple-700">
+                    <div className="font-semibold text-purple-900 dark:text-purple-300 mb-2">Benchmark de Yields</div>
+                    <div className="text-xs text-purple-700 dark:text-purple-300 space-y-1">
+                      <div>• Residencial: 4-7% a.a. (bruto)</div>
+                      <div>• Comercial: 6-10% a.a. (bruto)</div>
+                      <div>• CDI atual: {INDICADORES_MERCADO.cdi}% a.a.</div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {!resultado && (
+                <motion.div
+                  className="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg shadow-sm p-4 border border-purple-200 dark:border-purple-700"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.6 }}
+                >
+                  <div className="text-center space-y-3">
+                    <Building2 className="w-12 h-12 text-purple-400 mx-auto" />
+                    <h3 className="text-lg font-medium text-purple-900 dark:text-purple-300">
+                      Configure sua carteira
+                    </h3>
+                    <p className="text-purple-700 dark:text-purple-300 text-sm">
+                      Preencha os dados dos imóveis e configurações para simular o fluxo de caixa da sua carteira de aluguéis.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
+            </div>
+          </div>
         </div>
       </div>
     </div>

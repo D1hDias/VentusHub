@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { KPIGrid } from "@/components/responsive/ResponsiveGrid";
 
 // Garantir que crypto está disponível
 if (typeof crypto === 'undefined') {
@@ -125,7 +126,6 @@ export default function Dashboard() {
 
   // Função para navegar para detalhes da propriedade
   const handleViewProperty = (property: Property) => {
-    console.log('Navegando para propriedade:', property.id);
     setLocation(`/property/${property.id}`);
   };
 
@@ -183,11 +183,11 @@ export default function Dashboard() {
             <Skeleton className="h-4 w-96" />
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <KPIGrid animateItems>
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32" />
+            <Skeleton key={i} className="h-32 rounded-lg" />
           ))}
-        </div>
+        </KPIGrid>
       </div>
     );
   }
@@ -236,27 +236,27 @@ export default function Dashboard() {
       {/* Welcome Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold mb-1">
+          <h1 className="text-fluid-3xl font-bold mb-1">
             Bem-vindo, {(user as any)?.firstName || "Usuário"} {(user as any)?.lastName || ""}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-fluid-sm">
             CRECI: {(user as any)?.creci || "Não informado"} | Última atualização: {new Date().toLocaleString('pt-BR')}
           </p>
         </div>
       </div>
 
-      {/* KPI Cards - Agora clicáveis */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* KPI Cards - Responsivo com animações */}
+      <KPIGrid animateItems className="container-query">
         {kpiData.map((kpi, index) => (
           <div
             key={index}
-            className="cursor-pointer transition-transform hover:scale-105"
+            className="cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 touch-target"
             onClick={kpi.onClick}
           >
             <KPICard {...kpi} />
           </div>
         ))}
-      </div>
+      </KPIGrid>
 
       {/* Recent Activity and Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
