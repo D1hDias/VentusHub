@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
-import { useResponsive } from "@/hooks/useMediaQuery";
+import { useSmoothtTransitions, useLoadingAnimation } from "@/hooks/useSmoothtTransitions";
 import React from "react";
 
 interface KPICardProps {
@@ -28,7 +28,8 @@ export function KPICard({
   isLoading = false,
   animateValue = true
 }: KPICardProps) {
-  const { prefersReducedMotion } = useResponsive();
+  const { getCardVariants, classes, prefersReducedMotion } = useSmoothtTransitions();
+  const loadingAnimation = useLoadingAnimation();
   const [displayValue, setDisplayValue] = React.useState(0);
   
   // Animação do contador de valores
@@ -57,24 +58,15 @@ export function KPICard({
     return () => clearInterval(timer);
   }, [value, animateValue, prefersReducedMotion]);
 
-  const cardVariants = {
-    idle: { scale: 1 },
-    hover: { 
-      scale: prefersReducedMotion ? 1 : 1.02,
-      transition: { duration: 0.2 }
-    },
-    tap: { 
-      scale: prefersReducedMotion ? 1 : 0.98,
-      transition: { duration: 0.1 }
-    }
-  };
-
+  // Usar variantes otimizadas
+  const cardVariants = getCardVariants();
+  
   const iconVariants = {
     idle: { rotate: 0, scale: 1 },
     hover: {
       rotate: prefersReducedMotion ? 0 : 5,
       scale: prefersReducedMotion ? 1 : 1.1,
-      transition: { duration: 0.2 }
+      transition: { duration: 0.2, ease: "easeOut" }
     }
   };
 
@@ -85,23 +77,55 @@ export function KPICard({
       opacity: 1,
       transition: {
         width: { duration: prefersReducedMotion ? 0 : 1.5, ease: "easeOut" },
-        opacity: { duration: 0.3 }
+        opacity: { duration: prefersReducedMotion ? 0 : 0.3 }
       }
     }
   };
 
   const CardComponent = onClick ? motion.div : Card;
+  
+  // Converter cor do ícone para formato RGB para usar na sombra
+  const getShadowColor = (color: string) => {
+    // Se é uma cor hex, converter para rgb
+    if (color.startsWith('#')) {
+      const hex = color.slice(1);
+      const r = parseInt(hex.substr(0, 2), 16);
+      const g = parseInt(hex.substr(2, 2), 16);
+      const b = parseInt(hex.substr(4, 2), 16);
+      return `${r}, ${g}, ${b}`;
+    }
+    // Se é uma cor hsl, extrair e converter (básico)
+    if (color.startsWith('hsl')) {
+      // Para cores comuns do sistema, mapear manualmente
+      const colorMap: { [key: string]: string } = {
+        'hsl(159, 69%, 38%)': '30, 164, 117', // verde
+        'hsl(32, 81%, 46%)': '212, 124, 22', // laranja
+        'hsl(0, 72%, 51%)': '220, 38, 38', // vermelho
+      };
+      return colorMap[color] || '0, 31, 63'; // fallback para primary
+    }
+    // Fallback para primary color
+    return '0, 31, 63';
+  };
+  
+  const shadowColor = getShadowColor(iconBgColor);
+  
   const cardProps = onClick ? {
     as: Card,
     variants: cardVariants,
-    initial: "idle",
+    initial: "initial",
+    animate: "animate",
     whileHover: "hover",
     whileTap: "tap",
     onClick,
-    className: "hover:shadow-lg transition-shadow cursor-pointer touch-target",
-    style: { cursor: 'pointer' }
+    className: `${classes.cardInteractive} touch-target border rounded-md m-1 transition-shadow`,
+    style: { 
+      cursor: 'pointer',
+      '--tw-shadow-color': `rgb(${shadowColor})`,
+      '--hover-shadow': `0 4px 12px rgba(${shadowColor}, 0.15)`
+    } as React.CSSProperties
   } : {
-    className: "hover:shadow-md transition-shadow"
+    className: `${classes.transitionSmooth} border rounded-md m-1`
   };
 
   return (
@@ -119,19 +143,11 @@ export function KPICard({
             <Icon className="h-6 w-6 relative z-10" />
             
             {/* Pulse effect durante loading */}
-            {isLoading && !prefersReducedMotion && (
+            {isLoading && (
               <motion.div
                 className="absolute inset-0 rounded-xl"
                 style={{ backgroundColor: iconBgColor }}
-                animate={{ 
-                  scale: [1, 1.1, 1],
-                  opacity: [0.5, 0.8, 0.5]
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
+                {...loadingAnimation}
               />
             )}
           </motion.div>
@@ -143,13 +159,10 @@ export function KPICard({
               key={displayValue} // Re-trigger animation when value changes
               initial={prefersReducedMotion ? undefined : { scale: 1.1 }}
               animate={prefersReducedMotion ? undefined : { scale: 1 }}
-              transition={prefersReducedMotion ? undefined : { duration: 0.2 }}
+              transition={prefersReducedMotion ? undefined : { duration: 0.2, ease: "easeOut" }}
             >
-              {isLoading && !prefersReducedMotion ? (
-                <motion.span
-                  animate={{ opacity: [1, 0.5, 1] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                >
+              {isLoading ? (
+                <motion.span {...loadingAnimation}>
                   --
                 </motion.span>
               ) : (

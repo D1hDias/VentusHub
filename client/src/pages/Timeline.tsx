@@ -14,11 +14,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { KPICard } from "@/components/KPICard";
+import { motion } from "framer-motion";
+import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import { cn } from "@/lib/utils";
 
 export default function Timeline() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProperty, setSelectedProperty] = useState<string>("all");
+  const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ["/api/properties"],
@@ -274,71 +278,80 @@ export default function Timeline() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
-                  <FileText className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total</p>
-                  <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{overallStats.totalProperties}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <motion.div 
+        variants={getListVariants()}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+      >
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="Total"
+            value={overallStats.totalProperties}
+            icon={FileText}
+            iconBgColor="#001f3f"
+            progress={50}
+            subtitle="Propriedades"
+            onClick={() => {}}
+          />
+        </motion.div>
 
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#d47c16'}}>
-                  <Clock className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Em Andamento</p>
-                  <p className="text-2xl font-bold" style={{color: '#d47c16'}}>{overallStats.inProgress}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="Em Andamento"
+            value={overallStats.inProgress}
+            icon={Clock}
+            iconBgColor="#d47c16"
+            progress={75}
+            subtitle="Transações ativas"
+            onClick={() => {}}
+          />
+        </motion.div>
 
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#1ea475'}}>
-                  <CheckCircle className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Concluídos</p>
-                  <p className="text-2xl font-bold" style={{color: '#1ea475'}}>{overallStats.completed}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="Concluídos"
+            value={overallStats.completed}
+            icon={CheckCircle}
+            iconBgColor="#1ea475"
+            progress={100}
+            subtitle="Finalizados"
+            onClick={() => {}}
+          />
+        </motion.div>
 
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#dc2828'}}>
-                  <AlertTriangle className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Alertas</p>
-                  <p className="text-2xl font-bold" style={{color: '#dc2828'}}>{overallStats.alerts}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="Alertas"
+            value={overallStats.alerts}
+            icon={AlertTriangle}
+            iconBgColor="#dc2828"
+            progress={overallStats.alerts > 0 ? 25 : 0}
+            subtitle="Requer atenção"
+            onClick={() => {}}
+          />
+        </motion.div>
+      </motion.div>
 
       {/* Search and Filters */}
       <Card>
@@ -392,7 +405,14 @@ export default function Timeline() {
           </Card>
         ) : (
           filteredTimelines.map((timeline: any) => (
-            <Card key={timeline.id} className="hover:bg-accent/50 hover:shadow-md hover:border-primary/20 hover:scale-[1.02] cursor-pointer transition-all duration-300 ease-in-out">
+            <div 
+              key={timeline.id}
+              className="button-interactive border rounded-md m-1 transition-shadow"
+              style={{
+                '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.08)`
+              }}
+            >
+              <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -499,6 +519,7 @@ export default function Timeline() {
                 </div>
               </CardContent>
             </Card>
+            </div>
           ))
         )}
       </div>

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KPICard } from "@/components/KPICard";
+import { motion } from "framer-motion";
+import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import { 
   CheckCircle, 
   Camera, 
@@ -20,6 +22,7 @@ import {
 
 export default function MarketListing() {
   const [searchTerm, setSearchTerm] = useState("");
+  const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();
   
   // Carregar propriedades da API
   const { data: allProperties = [], isLoading } = useQuery({
@@ -100,40 +103,69 @@ export default function MarketListing() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="cursor-pointer transition-transform hover:scale-105">
+      <motion.div 
+        variants={getListVariants()}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+      >
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
           <KPICard
             title="Ativos"
             value={1}
             icon={CheckCircle}
             iconBgColor="#1ea475"
+            onClick={() => {}}
           />
-        </div>
-        <div className="cursor-pointer transition-transform hover:scale-105">
+        </motion.div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
           <KPICard
             title="Preparando"
             value={1}
             icon={Camera}
             iconBgColor="#001f3f"
+            onClick={() => {}}
           />
-        </div>
-        <div className="cursor-pointer transition-transform hover:scale-105">
+        </motion.div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
           <KPICard
             title="Visualizações"
             value={247}
             icon={Eye}
             iconBgColor="#d47c16"
+            onClick={() => {}}
           />
-        </div>
-        <div className="cursor-pointer transition-transform hover:scale-105">
+        </motion.div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
           <KPICard
             title="Leads"
             value={12}
             icon={TrendingUp}
             iconBgColor="#dc2828"
+            onClick={() => {}}
           />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Search and Filters */}
       <Card>
@@ -169,12 +201,16 @@ export default function MarketListing() {
                 ))}
               </div>
             ) : (
-            <div className="space-y-4 hover:space-y-2 transition-all duration-300">
+            <div className="space-y-4">
                 {marketProperties.map((property) => (
-                <Card 
+                <div 
                   key={property.id}
-                  className="hover:bg-accent/50 hover:shadow-md hover:border-primary/20 hover:scale-[1.02] cursor-pointer transition-all duration-300 ease-in-out"
+                  className="button-interactive border rounded-md m-1 transition-shadow"
+                  style={{
+                    '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.08)`
+                  }}
                 >
+                  <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div>
@@ -317,7 +353,8 @@ export default function MarketListing() {
                 </div>
               </div>
             </CardContent>
-                </Card>
+                  </Card>
+                </div>
               ))}
             </div>
           )}

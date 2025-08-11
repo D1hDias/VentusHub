@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { KPICard } from "@/components/KPICard";
+import { motion } from "framer-motion";
+import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import {
   Table,
   TableBody,
@@ -27,6 +30,7 @@ export default function FinalInstrument() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedInstrument, setSelectedInstrument] = useState<any>(null);
   const [showInstrumentModal, setShowInstrumentModal] = useState(false);
+  const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ["/api/properties"],
@@ -202,87 +206,97 @@ export default function FinalInstrument() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
-                  <Stamp className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total</p>
-                  <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{statsData.total}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <motion.div 
+        variants={getListVariants()}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-5 gap-6"
+      >
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="Total"
+            value={statsData.total}
+            icon={Stamp}
+            iconBgColor="#001f3f"
+            progress={50}
+            subtitle="Processos ativos"
+            onClick={() => {}}
+          />
+        </motion.div>
 
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#d47c16'}}>
-                  <Clock className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Preparando</p>
-                  <p className="text-2xl font-bold" style={{color: '#d47c16'}}>{statsData.preparing}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="Preparando"
+            value={statsData.preparing}
+            icon={Clock}
+            iconBgColor="#d47c16"
+            progress={25}
+            subtitle="Em elaboração"
+            onClick={() => {}}
+          />
+        </motion.div>
 
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#d47c16'}}>
-                  <AlertCircle className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Prontos</p>
-                  <p className="text-2xl font-bold" style={{color: '#d47c16'}}>{statsData.ready}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="Prontos"
+            value={statsData.ready}
+            icon={AlertCircle}
+            iconBgColor="#3b82f6"
+            progress={75}
+            subtitle="Para cartório"
+            onClick={() => {}}
+          />
+        </motion.div>
 
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
-                  <Building className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">No Cartório</p>
-                  <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{statsData.inRegistry}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="No Cartório"
+            value={statsData.inRegistry}
+            icon={Building}
+            iconBgColor="#fed700"
+            progress={85}
+            subtitle="Em processamento"
+            onClick={() => {}}
+          />
+        </motion.div>
 
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#1ea475'}}>
-                  <CheckCircle className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Concluídos</p>
-                  <p className="text-2xl font-bold" style={{color: '#1ea475'}}>{statsData.completed}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="Concluídos"
+            value={statsData.completed}
+            icon={CheckCircle}
+            iconBgColor="#1ea475"
+            progress={100}
+            subtitle="Escrituras finais"
+            onClick={() => {}}
+          />
+        </motion.div>
+      </motion.div>
 
       {/* Search and Filters */}
       <Card>
@@ -337,7 +351,7 @@ export default function FinalInstrument() {
               </TableHeader>
               <TableBody>
                 {filteredInstruments.map((instrument: any) => (
-                  <TableRow key={instrument.id} className="hover:bg-accent/50 hover:shadow-md hover:border-primary/20 hover:scale-[1.02] cursor-pointer transition-all duration-300 ease-in-out">
+                  <TableRow key={instrument.id} className="row-hover">
                     <TableCell>
                       <div className="font-mono text-sm text-muted-foreground">
                         {instrument.sequenceNumber}

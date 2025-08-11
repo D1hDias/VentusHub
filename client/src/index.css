@@ -170,6 +170,109 @@
 }
 
 @layer components {
+  /* =============================================
+     SISTEMA DE TRANSIÇÕES OTIMIZADO
+     ============================================= */
+  
+  /* Transições universais suaves */
+  * {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Transições específicas por propriedade */
+  .transition-smooth {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .transition-smooth-fast {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .transition-smooth-slow {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Transições especializadas */
+  .transition-transform {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .transition-opacity {
+    transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .transition-colors {
+    transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .transition-shadow {
+    transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  /* Efeitos hover sutis e minimalistas */
+  .hover-subtle {
+    @apply transition-smooth;
+  }
+  
+  .hover-subtle:hover {
+    background-color: rgb(var(--accent) / 0.5);
+  }
+  
+  .hover-border {
+    @apply transition-colors border;
+  }
+  
+  .hover-border:hover {
+    border-color: rgb(var(--primary) / 0.3);
+  }
+  
+  .hover-shadow-sm {
+    @apply transition-shadow;
+  }
+  
+  .hover-shadow-sm:hover {
+    box-shadow: 0 2px 8px rgba(0, 31, 63, 0.08);
+  }
+  
+  /* Cards com transições sutis */
+  .card-interactive {
+    @apply transition-smooth hover-subtle hover-border cursor-pointer;
+  }
+  
+  .card-interactive:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--hover-shadow, 0 2px 8px rgba(0, 31, 63, 0.08));
+  }
+  
+  .card-interactive:active {
+    transform: translateY(0);
+  }
+  
+  /* Botões com feedback minimalista */
+  .button-interactive {
+    @apply transition-smooth;
+  }
+  
+  .button-interactive:hover {
+    filter: brightness(1.02);
+  }
+  
+  .button-interactive:active {
+    filter: brightness(0.98);
+    transform: scale(0.99);
+  }
+  
+  /* Row hover suave para tabelas */
+  .row-hover {
+    @apply transition-smooth;
+  }
+  
+  .row-hover:hover {
+    background-color: rgb(var(--accent) / 0.3);
+  }
+  
   /* Container Queries */
   .container-query { container-type: inline-size; }
   .container-query-normal { container-type: normal; }
@@ -261,9 +364,9 @@
     @apply border-primary/50 bg-muted/50;
   }
   
-  /* KPI card animations */
+  /* KPI card animations - OTIMIZADO */
   .kpi-card {
-    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+    @apply card-interactive;
   }
   
   /* Status badges */
@@ -415,6 +518,24 @@
   100% {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes pulseSoft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
   }
 }
 

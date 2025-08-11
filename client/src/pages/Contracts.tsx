@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { KPICard } from "@/components/KPICard";
+import { motion } from "framer-motion";
+import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import {
   Table,
   TableBody,
@@ -27,6 +30,7 @@ export default function Contracts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedContract, setSelectedContract] = useState<any>(null);
   const [showContractModal, setShowContractModal] = useState(false);
+  const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ["/api/properties"],
@@ -185,87 +189,97 @@ export default function Contracts() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
-                  <File className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total</p>
-                  <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{statsData.total}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <motion.div 
+        variants={getListVariants()}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-5 gap-6"
+      >
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="Total"
+            value={statsData.total}
+            icon={File}
+            iconBgColor="#001f3f"
+            progress={50}
+            subtitle="Contratos cadastrados"
+            onClick={() => {}}
+          />
+        </motion.div>
 
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#d47c16'}}>
-                  <Clock className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Rascunhos</p>
-                  <p className="text-2xl font-bold" style={{color: '#d47c16'}}>{statsData.draft}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="Rascunhos"
+            value={statsData.draft}
+            icon={Clock}
+            iconBgColor="#d47c16"
+            progress={25}
+            subtitle="Em elaboração"
+            onClick={() => {}}
+          />
+        </motion.div>
 
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
-                  <Send className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Enviados</p>
-                  <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{statsData.sent}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="Enviados"
+            value={statsData.sent}
+            icon={Send}
+            iconBgColor="#001f3f"
+            progress={60}
+            subtitle="Para assinatura"
+            onClick={() => {}}
+          />
+        </motion.div>
 
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#1ea475'}}>
-                  <CheckCircle className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Assinados</p>
-                  <p className="text-2xl font-bold" style={{color: '#1ea475'}}>{statsData.signed}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="Assinados"
+            value={statsData.signed}
+            icon={CheckCircle}
+            iconBgColor="#1ea475"
+            progress={85}
+            subtitle="Contratos válidos"
+            onClick={() => {}}
+          />
+        </motion.div>
 
-        <div className="cursor-pointer transition-transform hover:scale-105">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#dc2828'}}>
-                  <AlertTriangle className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Expirando</p>
-                  <p className="text-2xl font-bold" style={{color: '#dc2828'}}>{statsData.expiringSoon}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
+          <KPICard
+            title="Expirando"
+            value={statsData.expiringSoon}
+            icon={AlertTriangle}
+            iconBgColor="#dc2828"
+            progress={15}
+            subtitle="Atenção urgente"
+            onClick={() => {}}
+          />
+        </motion.div>
+      </motion.div>
 
       {/* Search and Filters */}
       <Card>

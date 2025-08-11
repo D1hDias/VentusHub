@@ -254,7 +254,9 @@ export default function DueDiligence() {
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="cursor-pointer transition-transform hover:scale-105">
+          <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
+            '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.15)`
+          }}>
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
@@ -270,7 +272,9 @@ export default function DueDiligence() {
             </Card>
           </div>
 
-          <div className="cursor-pointer transition-transform hover:scale-105">
+          <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
+            '--hover-shadow': `0 4px 12px rgba(212, 124, 22, 0.15)`
+          }}>
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
@@ -286,7 +290,9 @@ export default function DueDiligence() {
             </Card>
           </div>
 
-          <div className="cursor-pointer transition-transform hover:scale-105">
+          <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
+            '--hover-shadow': `0 4px 12px rgba(30, 164, 117, 0.15)`
+          }}>
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
@@ -302,7 +308,9 @@ export default function DueDiligence() {
             </Card>
           </div>
 
-          <div className="cursor-pointer transition-transform hover:scale-105">
+          <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
+            '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.15)`
+          }}>
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-4">
@@ -377,17 +385,21 @@ export default function DueDiligence() {
                 ))}
               </div>
             ) : currentProperties.length > 0 ? (
-              <div className="space-y-6 hover:space-y-4 transition-all duration-300 p-6">
+              <div className="space-y-6 p-6">
                 {currentProperties.map((property: Property) => {
                   const statusInfo = getStatusInfo(property.diligenceStatus);
                   const StatusIcon = statusInfo.box.icon;
                   
                   return (
-                    <Card 
+                    <div 
                       key={property.id} 
-                      className="border-gray-200 hover:bg-accent/50 hover:shadow-md hover:border-primary/20 hover:scale-[1.02] cursor-pointer transition-all duration-300 ease-in-out"
+                      className="button-interactive border rounded-md m-1 transition-shadow"
                       onClick={() => handleViewProperty(property)}
+                      style={{
+                        '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.08)`
+                      }}
                     >
+                      <Card>
                       <CardContent className="p-6">
                         
                         {/* Property Header */}
@@ -525,7 +537,8 @@ export default function DueDiligence() {
                         </div>
 
                       </CardContent>
-                    </Card>
+                      </Card>
+                    </div>
                   );
                 })}
               </div>

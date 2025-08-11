@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { KPICard } from "@/components/KPICard";
+import { motion } from "framer-motion";
+import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import {
   Table,
   TableBody,
@@ -28,6 +30,7 @@ export default function Proposals() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProposal, setSelectedProposal] = useState<any>(null);
   const [showProposalModal, setShowProposalModal] = useState(false);
+  const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ["/api/properties"],
@@ -156,48 +159,83 @@ export default function Proposals() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="cursor-pointer transition-transform hover:scale-105">
+      <motion.div 
+        variants={getListVariants()}
+        initial="hidden"
+        animate="visible"
+        className="grid grid-cols-1 md:grid-cols-5 gap-6"
+      >
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
           <KPICard
             title="Total"
             value={statsData.total}
             icon={Eye}
             iconBgColor="#001f3f"
+            onClick={() => {}}
           />
-        </div>
-        <div className="cursor-pointer transition-transform hover:scale-105">
+        </motion.div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
           <KPICard
             title="Pendentes"
             value={statsData.pending}
             icon={Clock}
             iconBgColor="#d47c16"
+            onClick={() => {}}
           />
-        </div>
-        <div className="cursor-pointer transition-transform hover:scale-105">
+        </motion.div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
           <KPICard
             title="Aceitas"
             value={statsData.accepted}
             icon={Check}
             iconBgColor="#1ea475"
+            onClick={() => {}}
           />
-        </div>
-        <div className="cursor-pointer transition-transform hover:scale-105">
+        </motion.div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
           <KPICard
             title="Negociando"
             value={statsData.negotiating}
             icon={DollarSign}
             iconBgColor="#001f3f"
+            onClick={() => {}}
           />
-        </div>
-        <div className="cursor-pointer transition-transform hover:scale-105">
+        </motion.div>
+        <motion.div
+          variants={getListItemVariants()}
+          className={`${classes.cardInteractive} touch-target`}
+          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+        >
           <KPICard
             title="Rejeitadas"
             value={statsData.rejected}
             icon={X}
             iconBgColor="#dc2828"
+            onClick={() => {}}
           />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Search and Filters */}
       <Card>
@@ -252,7 +290,7 @@ export default function Proposals() {
             </TableHeader>
             <TableBody>
               {filteredProposals.map((proposal: any) => (
-                <TableRow key={proposal.id} className="hover:bg-accent/50 hover:shadow-md hover:border-primary/20 hover:scale-[1.02] cursor-pointer transition-all duration-300 ease-in-out">
+                <TableRow key={proposal.id} className="row-hover">
                   <TableCell>
                     <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
                       {proposal.sequenceNumber || String(proposal.propertyId).padStart(5, '0')}

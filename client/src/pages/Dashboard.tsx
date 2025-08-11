@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Home, Store, Handshake, File, Plus, TrendingUp, Search, Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { KPIGrid } from "@/components/responsive/ResponsiveGrid";
+import { useSmoothtTransitions, useEntranceAnimation } from "@/hooks/useSmoothtTransitions";
 
 // Garantir que crypto está disponível
 if (typeof crypto === 'undefined') {
@@ -63,6 +65,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();
 
   // Buscar todas as propriedades para calcular estatísticas
   const { data: allProperties = [], isLoading: propertiesLoading, error } = useQuery({
@@ -245,18 +248,28 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* KPI Cards - Responsivo com animações */}
-      <KPIGrid animateItems className="container-query">
-        {kpiData.map((kpi, index) => (
-          <div
-            key={index}
-            className="cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95 touch-target"
-            onClick={kpi.onClick}
-          >
-            <KPICard {...kpi} />
-          </div>
-        ))}
-      </KPIGrid>
+      {/* KPI Cards - Responsivo com animações OTIMIZADAS */}
+      <motion.div 
+        variants={getListVariants()}
+        initial="hidden"
+        animate="visible"
+        className="container-query"
+      >
+        <KPIGrid animateItems>
+          {kpiData.map((kpi, index) => (
+            <motion.div
+              key={index}
+              variants={getListItemVariants()}
+              className={`${classes.cardInteractive} touch-target`}
+              onClick={kpi.onClick}
+              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+            >
+              <KPICard {...kpi} />
+            </motion.div>
+          ))}
+        </KPIGrid>
+      </motion.div>
 
       {/* Recent Activity and Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -289,7 +302,7 @@ export default function Dashboard() {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-4 hover:space-y-2 transition-all duration-300">
+                <div className="space-y-4 transition-smooth">
                   {recentTransactions.map((property, index) => {
                     const formattedValue = typeof property.value === 'number' 
                       ? property.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -298,7 +311,7 @@ export default function Dashboard() {
                     return (
                       <div
                         key={property.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 hover:shadow-md hover:border-primary/20 hover:scale-[1.02] cursor-pointer transition-all duration-300 ease-in-out"
+                        className="button-interactive flex items-center justify-between p-4 border rounded-lg cursor-pointer"
                         onClick={() => handleViewProperty(property)}
                       >
                         <div className="flex items-center space-x-4">
@@ -369,7 +382,7 @@ export default function Dashboard() {
               <CardTitle>Alertas e Pendências</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Alert>
+              <Alert className="button-interactive">
                 <TrendingUp className="h-4 w-4" />
                 <AlertDescription>
                   <strong>Performance do mês:</strong><br />
@@ -378,7 +391,7 @@ export default function Dashboard() {
               </Alert>
 
               {dueDiligenceCount > 0 && (
-                <Alert className="cursor-pointer hover:bg-accent/50" onClick={() => navigateToSection('due-diligence')}>
+                <Alert className="cursor-pointer button-interactive" onClick={() => navigateToSection('due-diligence')}>
                   <File className="h-4 w-4" />
                   <AlertDescription>
                     <strong>{dueDiligenceCount} imóveis em Due Diligence</strong><br />
@@ -388,7 +401,7 @@ export default function Dashboard() {
               )}
               
               {stats.propostas > 0 && (
-                <Alert className="cursor-pointer hover:bg-accent/50" onClick={() => navigateToSection('propostas')}>
+                <Alert className="cursor-pointer button-interactive" onClick={() => navigateToSection('propostas')}>
                   <Handshake className="h-4 w-4" />
                   <AlertDescription>
                     <strong>{stats.propostas} propostas pendentes</strong><br />
@@ -398,7 +411,7 @@ export default function Dashboard() {
               )}
 
               {stats.contratos > 0 && (
-                <Alert className="cursor-pointer hover:bg-accent/50" onClick={() => navigateToSection('contratos')}>
+                <Alert className="cursor-pointer button-interactive" onClick={() => navigateToSection('contratos')}>
                   <File className="h-4 w-4" />
                   <AlertDescription>
                     <strong>{stats.contratos} contratos ativos</strong><br />

@@ -649,7 +649,7 @@ export default function PropertyCapture() {
                   </TableHeader>
                   <TableBody>
                     {filteredProperties.map((property: Property, index: number) => (
-                      <TableRow key={property.id || Math.random()} className="border-gray-200 hover:bg-gray-50/50">
+                      <TableRow key={property.id || Math.random()} className="border-gray-200 row-hover">
                         <TableCell className="px-4 py-3">
                           <span className="text-sm font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
                             {property.sequenceNumber || String(index + 1).padStart(5, '0')}

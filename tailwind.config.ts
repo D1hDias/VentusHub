@@ -83,6 +83,16 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fadeIn 0.3s ease-in-out",
+        "slide-in-right": "slideInRight 0.3s ease-in-out",
+        "bounce-in": "bounceIn 0.6s ease-in-out",
+        "float": "float 3s ease-in-out infinite",
+        "pulse-soft": "pulseSoft 2s ease-in-out infinite",
+      },
+      transitionTimingFunction: {
+        'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
+        'bounce': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'spring': 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
       },
     },
   },
