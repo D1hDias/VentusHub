@@ -51,4 +51,4 @@ USER appuser
 EXPOSE 80
 
 # Comando para iniciar a aplicação (usando o script 'start' do package.json)
-CMD ["node", "dist/index.js"]
+CMD ["npm", "start"]
