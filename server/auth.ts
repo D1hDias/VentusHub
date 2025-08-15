@@ -5,8 +5,8 @@ import session from "express-session";
 import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
 import connectPgSimple from "connect-pg-simple";
-import { storage } from "./storage.js";
-import { pool } from "./db.js"; // Importar o pool de conexão do Neon
+import { storage } from "./storage";
+import { pool } from "./db"; // Importar o pool de conexão do Neon
 
 // Configuração da sessão
 export function setupAuth(app: Express) {

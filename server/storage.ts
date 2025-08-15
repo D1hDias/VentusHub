@@ -1,4 +1,4 @@
-import { db } from "./db.js";
+import { db } from "./db";
 import { eq, and, desc, or, ilike, ne, count } from "drizzle-orm";
 import { 
   users, 
@@ -10,7 +10,7 @@ import {
   timelineEntries,
   registros,
   clients
-} from "../shared/schema.js";
+} from "../shared/schema";
 
 // Wrapper para operações com timeout
 const withTimeout = async <T>(operation: () => Promise<T>, timeoutMs: number = 8000): Promise<T> => {
