@@ -76,13 +76,24 @@ const conectarComRetry = async (tentativas = 3): Promise<boolean> => {
 
 // Função para inicializar a conexão (será chamada pelo index.ts)
 export const initializeDB = async () => {
+  console.log("🔧 Iniciando inicialização do banco...");
+  console.log(`🔧 Ambiente: ${isDevelopment ? 'development' : 'production'}`);
+  console.log(`🔧 DATABASE_URL definida: ${!!process.env.DATABASE_URL}`);
+  
   try {
-    const conectado = await conectarComRetry(2);
+    // Adicionar timeout geral para inicialização
+    const conectado = await Promise.race([
+      conectarComRetry(2),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout na inicialização do banco (30s)')), 30000)
+      )
+    ]);
     
     if (!conectado) {
       throw new Error("Não foi possível conectar após várias tentativas");
     }
     
+    console.log("✅ Inicialização do banco concluída com sucesso");
     return { db, pool };
 
   } catch (error) {
@@ -91,12 +102,13 @@ export const initializeDB = async () => {
     if (isDevelopment) {
       console.log("🔧 Modo desenvolvimento: Usando banco fallback...");
       
-      const { createFallbackDB } = await import('./db-fallback');
+      const { createFallbackDB } = await import('./db-fallback.js');
       db = createFallbackDB();
       
       console.log("✅ Banco fallback criado para desenvolvimento");
       return { db, pool: null };
     } else {
+      console.log("💥 Em produção - falhando se não conseguir conectar ao banco");
       throw error; // Em produção, falhar se não conseguir conectar
     }
   }
