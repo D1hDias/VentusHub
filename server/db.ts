@@ -74,26 +74,32 @@ const conectarComRetry = async (tentativas = 3): Promise<boolean> => {
   return false;
 };
 
-try {
-  const conectado = await conectarComRetry(2);
-  
-  if (!conectado) {
-    throw new Error("Não foi possível conectar após várias tentativas");
-  }
+// Função para inicializar a conexão (será chamada pelo index.ts)
+export const initializeDB = async () => {
+  try {
+    const conectado = await conectarComRetry(2);
+    
+    if (!conectado) {
+      throw new Error("Não foi possível conectar após várias tentativas");
+    }
+    
+    return { db, pool };
 
-} catch (error) {
-  console.log(`❌ Falha definitiva na conexão Neon: ${error.message}`);
-  
-  if (isDevelopment) {
-    console.log("🔧 Modo desenvolvimento: Usando banco fallback...");
+  } catch (error) {
+    console.log(`❌ Falha definitiva na conexão Neon: ${error.message}`);
     
-    const { createFallbackDB } = await import('./db-fallback.js');
-    db = createFallbackDB();
-    
-    console.log("✅ Banco fallback criado para desenvolvimento");
-  } else {
-    throw error; // Em produção, falhar se não conseguir conectar
+    if (isDevelopment) {
+      console.log("🔧 Modo desenvolvimento: Usando banco fallback...");
+      
+      const { createFallbackDB } = await import('./db-fallback');
+      db = createFallbackDB();
+      
+      console.log("✅ Banco fallback criado para desenvolvimento");
+      return { db, pool: null };
+    } else {
+      throw error; // Em produção, falhar se não conseguir conectar
+    }
   }
-}
+};
 
 export { db, pool };

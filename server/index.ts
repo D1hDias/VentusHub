@@ -6,6 +6,7 @@ import cors from "cors";
 import { createServer } from "http";
 import { setupAuth, setupAuthRoutes } from "./auth";
 import { registerApiRoutes } from "./routes"; // Renomeado para maior clareza
+import { initializeDB } from "./db";
 // Vite imports condicionais
 
 // Função de log simples
@@ -28,6 +29,15 @@ log(`
     const httpServer = createServer(app);
 
     log("✅ Express criado");
+    
+    // 0. Inicializar banco de dados
+    try {
+      await initializeDB();
+      log("✅ Banco de dados inicializado");
+    } catch (error) {
+      log(`❌ Erro fatal na inicialização do banco: ${error.message}`);
+      process.exit(1);
+    }
 
     // 1. Confiar no proxy reverso (essencial para o secure cookie em produção)
     app.set('trust proxy', 1);
