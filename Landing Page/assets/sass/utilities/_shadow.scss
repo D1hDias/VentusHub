@@ -1,0 +1,123 @@
+
+/* Box shadow start */
+.common-shadow {
+  &-one {
+    box-shadow: 0 8px 22px 0px rgba(0, 0, 0, 0.04);
+  }
+  &-two {
+    box-shadow: 0 30px 50px 0px #12111614;
+  }
+  &-three {
+    box-shadow: 9px -2px 19px 9px rgba(0, 0, 0, 0.02);
+  }
+  &-four {
+    box-shadow: 0px 4px 15px 0px rgba(0, 0, 0, 0.09);
+  }
+  &-five {
+    box-shadow: 0px 10px 100px 0px rgba(0, 0, 0, 0.05);
+  }
+  &-six {
+    box-shadow: 0px 4px 30px 0px #364F8314;
+  }
+  &-seven {
+    box-shadow: 0px 4px 32px 0px #0000000A;
+  }
+  &-eight {
+    box-shadow: 0px 4px 32px 10px #0000000D;
+  }
+  &-nine {
+    box-shadow: 0px 4px 21px 0px #00000012;
+  }
+  &-ten {
+    box-shadow: 0px 4px 18px 0px #0000000D;
+  }
+  &-eleven {
+      box-shadow: 0 30px 50px 0px #0106141F;
+  }
+  &-twelve {
+      box-shadow: 0 10px 30px 0px #3955781A;
+  }
+  &-thirteen {
+      box-shadow: 0px 12px 23px 0px #3D3E4114;
+  }
+  &-fourteen {
+      box-shadow: 0px 10px 60px 0px #8D8D8D1A;
+  }
+  &-fifteen {
+      box-shadow: 0px 4px 25px 0px #00000014;
+  }
+  &-sixteen {
+      box-shadow: 0px 13px 19px -2px #2021240A;
+  }
+  &-seventeen {
+    box-shadow: 0px 7px 29px 0px #0000000F;
+  }
+  &-eighteen {
+    box-shadow: 0px 4px 8px 0px #0000000D;
+  }
+  &-nineteen {
+    box-shadow: 0px 4px 21px 0px #0000000D;
+  }
+  &-twenty {
+    box-shadow: 0px 10px 15px 0px #DDDDDD26;
+  }
+  &-twentyOne {
+    box-shadow: 0px 4px 30px 0px #025A451A;
+  }
+  &-twentyTwo {
+    box-shadow: 0px 5.22px 19.84px 0px #0000001F;
+  }
+  &-twentyThree {
+    box-shadow: 0px 4px 12px 0px #0000000F;
+  }
+  &-twentyFour {
+    box-shadow: 0px 20px 50px 0px #20212424;
+  }
+  &-twentyFive {
+    box-shadow: 0px 20px 20px 0px #2021241A;
+  }
+  &-twentySix {
+    box-shadow: 0px 4px 42px 0px #00000024;
+  }
+  &-twentySeven {
+    box-shadow: 0px 6px 17px 0px #0000000D;
+  }
+  &-twentyEight {
+    box-shadow: 0px 4px 11px 0px #0000000D;
+  }
+  &-twentyNine {
+    box-shadow: 0px 4px 4px 0px #0000000D;
+  }
+}
+
+
+.common-shadow-inset {
+  &-one {
+    box-shadow: -2px -2px 2px 0px #070D1D4D inset;
+  }
+}
+
+.hover-common-shadow {
+  &-four {
+    &:hover {
+      box-shadow: 0px 4px 15px 0px rgba(0, 0, 0, 0.09);
+    }
+  }
+  &-fourteen {
+    &:hover {
+      box-shadow: 0px 10px 60px 0px #8D8D8D1A;
+    }
+  }
+  &-sixteen {
+    &:hover {
+      box-shadow: 0px 14px 31px -2px #2021241A;
+    }
+  }
+}
+
+
+
+.active-domain {
+  box-shadow: 0px 4px 24px 0px #00000026 !important;
+}
+/* Box shadow End */

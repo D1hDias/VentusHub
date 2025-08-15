@@ -1,0 +1,15 @@
+/* Pricing Plan Start */
+.pricing-item {
+    .feature-list {
+        max-height: 330px;
+        overflow: hidden;
+        transition: max-height 0.5s ease-in-out;
+    }
+
+    &.expand {
+        .feature-list {
+            max-height: 1000px;
+        }
+    }
+}
+/* Pricing Plan End */

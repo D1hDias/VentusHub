@@ -1,0 +1,42 @@
+/* ============================= Distraction section start ======================================== */
+.distraction__inner {
+    padding-block: 64px;
+    @media (max-width: 575px) {
+        padding-block: 120px;
+    }
+}
+
+.distraction-icon {
+    max-width: 12%;
+    &.seven {
+        inset-inline-start: 50%;
+        inset-block-start: 64%;
+        transform: translate(-50%, -50%);
+    }
+    &.six {
+        inset-block-end: 6px;
+        inset-inline-start: 8%;
+    }
+    &.five {
+        inset-inline-start: 22%;
+        inset-block-end: 26%;
+    }
+    &.four {
+        inset-inline-end: 20%;
+        inset-block-end: 10%;
+    }
+    &.three {
+        inset-inline-end: 13%;
+        inset-block-start: 44%;
+    }
+    &.two {
+        inset-inline-end: 2%;
+        inset-block-start: 23%;
+    }
+    &.one {
+        inset-inline-start: 10%;
+        inset-block-start: 24%;
+    }
+}
+
+/* ============================= Distraction section End ======================================== */

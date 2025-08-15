@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en" class="heading-black">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="description"
+      content="IT Solution, Sass and Multipurpose HTML Template"
+    />
+    <meta
+      name="keywords"
+      content="IT Solution, Sass and Multipurpose HTML Template"
+    />
+    <meta name="robots" content="INDEX,FOLLOW" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Title -->
+    <title>
+      SassTech - Saas Software and IT Solution Multipurpose HTML Template
+    </title>
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="assets/images/logo/favicon.png" />
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+    <!-- aos -->
+    <link rel="stylesheet" href="assets/css/aos.css" />
+    <!-- Swiper -->
+    <link rel="stylesheet" href="assets/css/swiper-bundle.min.css" />
+    <!-- Magnific -->
+    <link rel="stylesheet" href="assets/css/magnific-popup.css" />
+    <!-- Satoshi -->
+    <link rel="stylesheet" href="assets/css/satoshi.css" />
+    <!-- Main css -->
+    <link rel="stylesheet" href="assets/css/main.css" />
+  </head>
+  <body>
+    <!--==================== Preloader Start ====================-->
+    <div class="preloader">
+      <div class="cssload-loading"><i></i><i></i><i></i><i></i></div>
+    </div>
+    <!--==================== Preloader End ====================-->
+
+    <!-- ========================== Settings Panel start ==================================== -->
+<div
+  class="settings-panel position-fixed top-50 translate-middle-y tw-z-999 d-flex align-items-center"
+>
+  <button
+    type="button"
+    class="settings-button tw-w-12 tw-h-12 bg-main-600 text-white hover-bg-main-800 tw-duration-100 d-flex justify-content-center align-items-center"
+  >
+    <i
+      class="ph-fill ph-gear-six setting-icon tw-text-2xl tw-leading-none animation-rotate tw-w-6 tw-h-6"
+    ></i>
+    <i
+      class="ph-bold ph-x close-icon tw-text-2xl tw-leading-none tw-w-6 tw-h-6"
+    ></i>
+  </button>
+
+  <div
+    class="settings-panel__content bg-white tw-px-6 tw-py-13 shadow-lg d-flex flex-column tw-gap-10 scroll-sm overflow-y-auto"
+  >
+    <div class="d-flex flex-column tw-gap-10">
+      <div class="">
+        <h6 class="settings-panel__title text-center tw-mb-6 text-uppercase">
+          Cursor
+        </h6>
+        <div class="settings-panel__buttons cursor__buttons d-flex tw-gap-4">
+          <button
+            type="button"
+            class="settings-panel__button cursor-animate bg-main-two-600 hover-bg-main-600 tw-duration-300 text-white tw-text-base tw-py-305 tw-px-3 fw-medium active-scale-094 flex-grow-1 active"
+          >
+            Animate
+          </button>
+          <button
+            type="button"
+            class="settings-panel__button cursor-default bg-main-two-600 hover-bg-main-600 tw-duration-300 text-white tw-text-base tw-py-305 tw-px-3 fw-medium active-scale-094 flex-grow-1"
+          >
+            Default
+          </button>
+        </div>
+      </div>
+      <div class="">
+        <h6 class="settings-panel__title text-center tw-mb-6 text-uppercase">
+          Direction
+        </h6>
+        <div class="settings-panel__buttons d-flex tw-gap-4">
+          <button
+            type="button"
+            class="settings-panel__button direction-ltr bg-main-two-600 hover-bg-main-600 tw-duration-300 text-white tw-text-base tw-py-305 tw-px-3 fw-medium active-scale-094 flex-grow-1 active"
+          >
+            LTR
+          </button>
+          <button
+            type="button"
+            class="settings-panel__button direction-rtl bg-main-two-600 hover-bg-main-600 tw-duration-300 text-white tw-text-base tw-py-305 tw-px-3 fw-medium active-scale-094 flex-grow-1"
+          >
+            RTL
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ========================== Settings Panel end ==================================== -->
+
+
+    <!--==================== Overlay Start ====================-->
+    <div class="overlay"></div>
+    <!--==================== Overlay End ====================-->
+
+    <!--==================== Sidebar Overlay End ====================-->
+    <div class="side-overlay"></div>
+    <!--==================== Sidebar Overlay End ====================-->
+
+    <!-- Custom Toast Message start -->
+    <div id="toast-container"></div>
+    <!-- Custom Toast Message End -->
+
+    <!-- ==================== Scroll to Top End Here ==================== -->
+    <div class="progress-wrap">
+      <svg
+        class="progress-circle svg-content"
+        width="100%"
+        height="100%"
+        viewBox="-1 -1 102 102"
+      >
+        <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" />
+      </svg>
+    </div>
+    <!-- ==================== Scroll to Top End Here ==================== -->
+
+    <!-- Custom Cursor Start -->
+    <div class="cursor"></div>
+    <span class="dot"></span>
+    <!-- Custom Cursor End -->
+
+    <!-- ==================== Mobile Menu Start Here ==================== -->
+<div class="mobile-menu d-lg-none d-block scroll-sm position-fixed bg-white tw-w-300-px tw-h-screen overflow-y-auto tw-p-6 tw-z-999 tw--translate-x-full tw-pb-68 ">
+
+    <button type="button" class="close-button position-absolute tw-end-0 top-0 tw-me-2 tw-mt-2 tw-w-605 tw-h-605 rounded-circle d-flex justify-content-center align-items-center text-neutral-900 bg-neutral-200 hover-bg-neutral-900 hover-text-white"> 
+        <i class="ph ph-x"></i>
+    </button>
+
+    <div class="mobile-menu__inner">
+        <a href="index.html" class="mobile-menu__logo">
+            <img src="assets/images/logo/logo.png" alt="Logo">
+        </a>
+        <div class="mobile-menu__menu">
+            <!-- Nav menu Start -->
+<ul class="nav-menu d-lg-flex align-items-center nav-menu--mobile d-block tw-mt-8">
+    <li class="nav-menu__item has-submenu position-relative activePage">
+        <a href="javascript:void(0)" class="nav-menu__link hover--translate-y-1 tw-pe-5 text-heading tw-py-9 fw-semibold w-100">Home</a>
+        <ul class="nav-submenu scroll-sm position-absolute tw-start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-y-auto tw-p-2 tw-mt-4 tw-duration-200 tw-z-99">
+            <li class="nav-menu__item activePage">
+                <a href="index.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    IT Solution
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="index-2.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Web Hosting
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="index-3.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Task Management
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="index-4.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    CRM Software
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="index-5.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    App Landing
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-menu__item has-submenu position-relative">
+        <a href="javascript:void(0)" class="nav-menu__link hover--translate-y-1 tw-pe-5 text-heading tw-py-9 fw-semibold w-100">Pages</a>
+         <ul class="nav-submenu scroll-sm position-absolute tw-start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-y-auto tw-p-2 tw-mt-4 tw-duration-200 tw-z-99">
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="pricing-plan.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Pricing
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="about.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    About Us
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="app-intigration.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    App Integration
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="intigration-details.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Integration Details
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="policy-privacy.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Privacy Policy
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="faq.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    FAQ
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="project-details.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Project Details
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="service-details.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Service Details
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-menu__item has-submenu position-relative">
+        <a href="javascript:void(0)" class="nav-menu__link hover--translate-y-1 tw-pe-5 text-heading tw-py-9 fw-semibold w-100">Shop</a>
+         <ul class="nav-submenu scroll-sm position-absolute tw-start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-y-auto tw-p-2 tw-mt-4 tw-duration-200 tw-z-99">
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="shop.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Shop
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="shop-details.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Shop Details
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="cart.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Cart
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="checkout.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Checkout
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-menu__item has-submenu position-relative">
+        <a href="javascript:void(0)" class="nav-menu__link hover--translate-y-1 tw-pe-5 text-heading tw-py-9 fw-semibold w-100">Blog</a>
+         <ul class="nav-submenu scroll-sm position-absolute tw-start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-y-auto tw-p-2 tw-mt-4 tw-duration-200 tw-z-99">
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="blog.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Blog 
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="blog-details.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Blog Details
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-menu__item">
+        <a href="contact.html" class="nav-menu__link hover--translate-y-1 text-heading tw-py-9 fw-semibold w-100">Contact</a>
+    </li>
+</ul>
+<!-- Nav menu End  -->
+
+        </div>
+        <a href="register.html" class="btn btn-main-two hover-style-two button--stroke d-sm-none d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-px-8 rounded-pill tw-mt-6" data-block="button">
+            <span class="button__flair"></span>
+            <span class="button__label">Sign Up Now</span>
+        </a>
+    </div>
+</div>
+<!-- ==================== Mobile Menu End Here ==================== -->
+  </body>
+</html>
+
+
+<div id="smooth-wrapper">
+    
+    <!-- ==================== Header Two Start Here ==================== -->
+<header class="header home-two-header py-0 top-0 tw-start-0 tw-end-0 w-100 tw-z-99 tw-mt-9 position-absolute header-inner-page">
+    <div class="container">
+        <div class="header-box-inner py-2 py-lg-0 tw-gap-4 tw-lg-ps-12 tw-ps-6 tw-pe-705 bg-white transition-all tw-rounded-lg">
+            <nav class="d-flex align-items-center justify-content-between">
+                <!-- Logo Start -->
+                <div class="logo">
+                    <a href="index.html" class="link hover--translate-y-1 active--translate-y-scale-9">
+                        <img src="assets/images/logo/logo-four.png" alt="Logo" class="max-w-200-px">
+                    </a>
+                </div>
+                <!-- Logo End  -->
+    
+                <!-- Menu Start  -->
+                <div class="header-menu d-lg-block d-none">
+                    <!-- Nav menu Three Start -->
+<ul class="nav-menu d-lg-flex align-items-center tw-gap-7">
+    <li class="nav-menu__item has-submenu position-relative activePage">
+        <a href="javascript:void(0)" class="nav-menu__link hover--translate-y-1 tw-pe-5 text-white tw-py-9 fw-semibold w-100">Home</a>
+        <ul class="nav-submenu scroll-sm position-absolute tw-start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-y-auto tw-p-2 tw-mt-4 tw-duration-200 tw-z-99">
+            <li class="nav-menu__item activePage">
+                <a href="index.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                   IT Solution
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="index-2.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                   Web Hosting
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="index-3.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                   Task Management
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="index-4.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    CRM Software
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="index-5.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    App Landing
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-menu__item has-submenu position-relative">
+        <a href="javascript:void(0)" class="nav-menu__link hover--translate-y-1 tw-pe-5 text-white tw-py-9 fw-semibold w-100">Pages</a>
+         <ul class="nav-submenu scroll-sm position-absolute tw-start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-y-auto tw-p-2 tw-mt-4 tw-duration-200 tw-z-99">
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="pricing-plan.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Pricing
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="about.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    About Us
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="app-intigration.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    App Integration
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="intigration-details.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Integration Details
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="policy-privacy.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Privacy Policy
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="faq.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    FAQ
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="project-details.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Project Details
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="service-details.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Service Details
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-menu__item has-submenu position-relative">
+        <a href="javascript:void(0)" class="nav-menu__link hover--translate-y-1 tw-pe-5 text-white tw-py-9 fw-semibold w-100">Portfolio</a>
+         <ul class="nav-submenu scroll-sm position-absolute tw-start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-y-auto tw-p-2 tw-mt-4 tw-duration-200 tw-z-99">
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="javascript:void(0)" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Portfolio 
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-menu__item has-submenu position-relative">
+        <a href="javascript:void(0)" class="nav-menu__link hover--translate-y-1 tw-pe-5 text-white tw-py-9 fw-semibold w-100">Shop</a>
+         <ul class="nav-submenu scroll-sm position-absolute tw-start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-y-auto tw-p-2 tw-mt-4 tw-duration-200 tw-z-99">
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="shop.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Shop
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="shop-details.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Shop Details
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="cart.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Cart
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="checkout.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Checkout
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-menu__item has-submenu position-relative">
+        <a href="javascript:void(0)" class="nav-menu__link hover--translate-y-1 tw-pe-5 text-white tw-py-9 fw-semibold w-100">Blog</a>
+         <ul class="nav-submenu scroll-sm position-absolute tw-start-0 top-100 tw-w-max bg-white tw-rounded-md overflow-y-auto tw-p-2 tw-mt-4 tw-duration-200 tw-z-99">
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="blog.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Blog 
+                </a>
+            </li>
+            <li class="nav-submenu__item d-block tw-rounded tw-duration-200 position-relative">
+                <a href="blog-details.html" class="nav-submenu__link hover-bg-neutral-200 text-heading fw-semibold w-100 d-block tw-py-2 tw-px-305 tw-rounded">
+                    Blog Details
+                </a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-menu__item">
+        <a href="contact.html" class="nav-menu__link hover--translate-y-1 text-white tw-py-9 fw-semibold w-100">Contact</a>
+    </li>
+</ul>
+<!-- Nav menu Three End  -->
+
+                </div>
+                <!-- Menu End  -->
+                
+                <!-- Header Right start -->
+                 <div class="d-flex align-items-center tw-gap-6">
+                    <div class="d-flex align-items-center tw-gap-6">
+                        <a href="login.html" class="d-flex align-items-center tw-gap-105 d-xl-flex d-none text-heading hover-text-main-600">
+                            <span class="tw-text-base text-main-600 d-flex tw-leading-none">
+                                <i class="ph-bold ph-user"></i>
+                            </span>
+                            <span class="fw-semibold tw-text-sm ">Sign in</span>
+                        </a>
+
+                        <a href="register.html" class="hover--translate-y-1 active--translate-y-scale-9 btn button--stroke d-lg-flex d-none align-items-center justify-content-center tw-gap-5 group active--translate-y-2 px-xxl-5 px-xl-4 px-3 tw-py-405 fw-medium tw-rounded-xl btn-main-two hover-style-two" data-block="button">
+                            <span class="button__flair"></span>
+                            <span class="button__label">Get Started</span>
+                        </a>
+                    </div>
+                    <button type="button" class="toggle-mobileMenu leading-none d-lg-none text-neutral-800 tw-text-9"> 
+                        <i class="ph ph-list"></i>
+                    </button>
+                 </div>
+                <!-- Header Right End  -->
+            </nav>
+        </div>
+    </div>
+</header>
+<!-- ==================== Header Two End Here ==================== -->
+    
+    <div id="smooth-content">
+        <!-- ==================== Breadcrumb Start Here ==================== -->
+<section class="breadcrumb section-bg-two mb-0">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center">
+                    <span class="tw-mb-4">
+                        <img src="assets/images/logo/favicon-two.png" alt="Favicon Two">
+                    </span>
+                    <h1 class="mb-0 splitTextStyleOne text-capitalize"> blog Details</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- ==================== Breadcrumb End Here ==================== -->
+        
+        <!-- ========================= Blog Start ============================ -->
+        <section class="py-120">
+            <div class="container">
+                <div class="row gy-4">
+                    <div class="col-lg-8">
+                        <div  data-aos="fade-up" data-aos-duration="800">
+                            <div class="position-relative">
+                                <a href="blog-details.html" class="w-100 h-100 overflow-hidden">
+                                    <img src="assets/images/thumbs/blog-page-img1.png" alt="" class="w-100 h-100 object-fit-cover hover-scale-108 tw-duration-500">
+                                </a>
+                                <h6 class="blog-date tw-duration-300 tw-py-4 text-white d-flex justify-content-center align-items-center max-w-85-px w-100 tw-px-4 text-center tw-rounded-lg fw-medium position-absolute top-0 tw-start-0 tw-mt-4 tw-ms-4 bg-main-600 fw-bold font-body">
+                                    24 Feb
+                                </h6>
+                            </div>
+                            <div class="tw-mt-10">
+                                <div class="tw-mb-4 d-flex align-items-center tw-gap-205 flex-wrap">
+                                    <div class="d-flex align-items-center tw-gap-2">
+                                        <span class="text-main-600 tw-text-lg">
+                                            <i class="ph ph-user"></i>
+                                        </span>
+                                        <span class="text-neutral-600 tw-text-sm">Mehedii .H</span>
+                                    </div>
+                                    <span class="tw-w-205 border border-neutral-200"></span>
+                                    <div class="d-flex align-items-center tw-gap-2">
+                                        <span class="text-main-600 tw-text-lg">
+                                            <i class="ph-bold ph-chats-circle"></i>
+                                        </span>
+                                        <span class="text-neutral-600 tw-text-sm">Comments (03)</span>
+                                    </div>
+                                    <span class="tw-w-205 border border-neutral-200"></span>
+                                    <div class="d-flex align-items-center tw-gap-2">
+                                        <span class="text-main-600 tw-text-lg">
+                                            <i class="ph ph-clock"></i>
+                                        </span>
+                                        <span class="text-neutral-600 tw-text-sm">3 min Read</span>
+                                    </div>
+                                </div>
+                                <h3 class="tw-mb-4 splitTextStyleOne">The whimsically named Egg Canvas brainch</h3>
+                                <p class="tw-text-base text-neutral-600 tw-my-9">he whimsically named Egg Canvas is the brainchild of Erica Choi, a design director and photo Sit amet consect velit integer tincidunt scelerisque volutpat neque fermeny massa lacus. grapher based in York. Why the name “Egg Canvas Erica was inspired by her Korean childhood nickname, which means egg while “canvas” medium with wh art is created. “Egg Canvas therefore, is her life—creating beautiful things each day a blank canvas. </p>
+                                <p class="tw-text-base text-neutral-600 tw-my-9"> We have covered many special events such as fireworks, fairs, parades, races, walks, awards ceremonies, fashion shows, sporting events, and even a memorial service.</p>
+                                <p class="tw-text-base text-neutral-600 tw-my-9"> Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur vulputate vestibulum rhon cus, dolor eget viverra pretium, dolor tellus aliquet nunc, vitae ultricies erat elit eu lacus. Vestibulum non justo fun consectetur, cursus ante, tincidunt sapien. Nulla quis diam sit amet turpis interd enim. Vivamus fauc ex sed nibh egestas elementum. Mauris et bibendum</p>
+        
+                                <div class="bg-neutral-100 tw-py-9 tw-px-8" data-aos="fade-up" data-aos-duration="800">
+                                    <p class="tw-text-xl text-main-two-600 fw-bold max-w-660-px">Your time is limited, so don't waste it living someone else's life. Don't be trapped by dogma - which is living with the results </p>
+                                    <div class="tw-mt-9 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center tw-gap-3">
+                                            <span class="tw-w-405 border border-main-two-600"></span>
+                                            <span class="fw-medium text-main-two-600">John Mehedii</span>
+                                        </div>
+                                        <span class=""><img src="assets/images/icons/quate-blog.svg" alt=""></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="tw-mt-10" data-aos="fade-up" data-aos-duration="800">
+                                    <h4 class="tw-mb-8">Let our investment management team</h4>
+                                    <div class="d-flex align-items-center flex-wrap justify-content-between flex-wrap-reverse tw-gap-4">
+                                        <ul class="d-flex flex-column tw-gap-5">
+                                            <li class="d-flex align-items-center tw-gap-4 group">
+                                                <span class="tw-w-705 tw-h-705 common-shadow-seven bg-white d-flex justify-content-center align-items-center rounded-circle text-main-600 tw-text-lg group-hover-bg-main-600 group-hover-text-white tw-duration-500">
+                                                    <i class="ph-bold ph-check"></i>
+                                                </span>
+                                                <p class="text-neutral-600">Lorem Ipsum generators on the tend to repeat.</p>
+                                            </li>
+                                            <li class="d-flex align-items-center tw-gap-4 group">
+                                                <span class="tw-w-705 tw-h-705 common-shadow-seven bg-white d-flex justify-content-center align-items-center rounded-circle text-main-600 tw-text-lg group-hover-bg-main-600 group-hover-text-white tw-duration-500">
+                                                    <i class="ph-bold ph-check"></i>
+                                                </span>
+                                                <p class="text-neutral-600"> If you are going to use a passage.</p>
+                                            </li>
+                                            <li class="d-flex align-items-center tw-gap-4 group">
+                                                <span class="tw-w-705 tw-h-705 common-shadow-seven bg-white d-flex justify-content-center align-items-center rounded-circle text-main-600 tw-text-lg group-hover-bg-main-600 group-hover-text-white tw-duration-500">
+                                                    <i class="ph-bold ph-check"></i>
+                                                </span>
+                                                <p class="text-neutral-600">Lorem Ipsum generators on the tend to repeat.</p>
+                                            </li>
+                                            <li class="d-flex align-items-center tw-gap-4 group">
+                                                <span class="tw-w-705 tw-h-705 common-shadow-seven bg-white d-flex justify-content-center align-items-center rounded-circle text-main-600 tw-text-lg group-hover-bg-main-600 group-hover-text-white tw-duration-500">
+                                                    <i class="ph-bold ph-check"></i>
+                                                </span>
+                                                <p class="text-neutral-600"> If you are going to use a passage.</p>
+                                            </li>
+                                            <li class="d-flex align-items-center tw-gap-4 group">
+                                                <span class="tw-w-705 tw-h-705 common-shadow-seven bg-white d-flex justify-content-center align-items-center rounded-circle text-main-600 tw-text-lg group-hover-bg-main-600 group-hover-text-white tw-duration-500">
+                                                    <i class="ph-bold ph-check"></i>
+                                                </span>
+                                                <p class="text-neutral-600">Lorem Ipsum generators on the tend to repeat.</p>
+                                            </li>
+                                        </ul>
+                                        <div class="h-100">
+                                            <img src="assets/images/thumbs/invest-img.png" alt="" class="w-100 h-100 object-fit-cover">
+                                        </div>
+                                    </div>
+                                </div>    
+                                
+                                <div class="tw-my-16" data-aos="fade-up" data-aos-duration="800">
+                                    <div class="row gy-4">
+                                        <div class="col-sm-6">
+                                            <div class="">
+                                                <img src="assets/images/thumbs/blog-details-img1.png" alt="" class="w-100 h-100 object-fit-cover">
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="">
+                                                <img src="assets/images/thumbs/blog-details-img2.png" alt="" class="w-100 h-100 object-fit-cover">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-neutral-600 tw-mt-11">We have covered many special events such as fireworks, fairs, parades, races, walks, awards ceremonies, fashion shows, sporting events, and even a memorial service.Lorem ipsum dolor sit amet, consectetur adipiscing elit. vestibulum rhoncus, dolor eget viverra pretium, dolor ellus aliquet nunc,</p>
+                                </div>
+                                
+                                <div class="tw-my-11 d-flex justify-content-between flex-wrap tw-gap-6" data-aos="fade-up" data-aos-duration="800">
+                                    <div class="d-flex align-items-start tw-gap-5">
+                                        <span class="tw-text-lg fw-semibold text-main-two-600 flex-shrink-0">Tag:</span>
+                                        <div class="d-flex align-items-center flex-wrap tw-gap-3">
+                                            <a href="blog.html" class="tw-px-5 tw-py-2 border border-neutral-200 hover-bg-main-600 hover-border-main-600 hover-text-white text-main-two-600 tw-text-sm text-uppercase fw-medium">Business</a>
+                                            <a href="blog.html" class="tw-px-5 tw-py-2 border border-neutral-200 hover-bg-main-600 hover-border-main-600 hover-text-white text-main-two-600 tw-text-sm text-uppercase fw-medium">Design</a>
+                                            <a href="blog.html" class="tw-px-5 tw-py-2 border border-neutral-200 hover-bg-main-600 hover-border-main-600 hover-text-white text-main-two-600 tw-text-sm text-uppercase fw-medium">apps</a>
+                                            <a href="blog.html" class="tw-px-5 tw-py-2 border border-neutral-200 hover-bg-main-600 hover-border-main-600 hover-text-white text-main-two-600 tw-text-sm text-uppercase fw-medium">data</a>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-start tw-gap-5">
+                                        <span class="tw-text-lg fw-semibold text-main-two-600 flex-shrink-0">Share:</span>
+                                        <ul class="d-flex align-items-center tw-gap-3 justify-content-center">
+                                            <li>
+                                                <a href="https://www.facebook.com" class="tw-w-10 tw-h-10 rounded-0 text-main-two-600 tw-text-xl d-flex justify-content-center align-items-center bg-neutral-100 hover-bg-main-600 hover-text-white hover-border-main-600 active-scale-09 tw-duration-200">
+                                                    <i class="ph-bold ph-facebook-logo"></i>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="https://www.twitter.com" class="tw-w-10 tw-h-10 rounded-0 text-main-two-600 tw-text-xl d-flex justify-content-center align-items-center bg-neutral-100 hover-bg-main-600 hover-text-white hover-border-main-600 active-scale-09 tw-duration-200">
+                                                    <i class="ph-bold ph-x-logo"></i>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="https://www.instagram.com" class="tw-w-10 tw-h-10 rounded-0 text-main-two-600 tw-text-xl d-flex justify-content-center align-items-center bg-neutral-100 hover-bg-main-600 hover-text-white hover-border-main-600 active-scale-09 tw-duration-200">
+                                                    <i class="ph-bold ph-instagram-logo"></i>
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a href="https://www.youtube.com" class="tw-w-10 tw-h-10 rounded-0 text-main-two-600 tw-text-xl d-flex justify-content-center align-items-center bg-neutral-100 hover-bg-main-600 hover-text-white hover-border-main-600 active-scale-09 tw-duration-200">
+                                                    <i class="ph-bold ph-youtube-logo"></i>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+        
+                                </div>
+                                
+                                <span class="d-block border-top border-neutral-100 tw-my-11"></span>
+                                
+                                <h5 class="tw-mb-11 splitTextStyleOne">(04) Comment</h5>
+                                
+                                <div class="tw-mb-15" data-aos="fade-up" data-aos-duration="800">
+                                    <div class="d-flex align-items-start tw-gap-42-px">
+                                        <div class="tw-w-75-px tw-h-75-px rounded-circle overflow-hidden flex-shrink-0">
+                                            <img src="assets/images/thumbs/comment-img1.jpg" alt="" class="w-100 h-100 object-fit-cover">
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-start justify-content-between tw-gap-1">
+                                                <div class="">
+                                                    <h6 class="tw-text-lg line-clamp-1">Rohan De Spond</h6>
+                                                    <span class="text-neutral-600 tw-text-sm">25 january 2021</span>
+                                                </div>
+                                                <button type="button" class="hover-scale-2 tw-duration-500 flex-shrink-0"><img src="assets/images/icons/reply.svg" alt=""></button>
+                                            </div>
+                                            <p class="text-neutral-600 tw-mt-3">There are many variations of passages of Lorem Ipsum available, but the leap into electronic
+                                                type setting, remaining essentiallyuncha opularisedthe with the release of Letrasetsheets
+                                                containingth leap electrtypesetting remainingmajority have. There are many variations
+                                                of passages of Lorem Ipsum</p>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-start tw-gap-42-px tw-mt-10 tw-ms-106-px">
+                                        <div class="tw-w-75-px tw-h-75-px rounded-circle overflow-hidden flex-shrink-0">
+                                            <img src="assets/images/thumbs/comment-img2.png" alt="" class="w-100 h-100 object-fit-cover">
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex align-items-start justify-content-between tw-gap-1">
+                                                <div class="">
+                                                    <h6 class="tw-text-lg line-clamp-1">Rohan De Spond</h6>
+                                                    <span class="text-neutral-600 tw-text-sm">25 january 2021</span>
+                                                </div>
+                                                <button type="button" class="hover-scale-2 tw-duration-500 flex-shrink-0"><img src="assets/images/icons/reply.svg" alt=""></button>
+                                            </div>
+                                            <p class="text-neutral-600 tw-mt-3">There are many variations of passages of Lorem Ipsum available, but the leap into electronic
+                                                type setting, remaining essentiallyuncha opularisedthe with the release of Letrasetsheets
+                                                containingth leap electrtypesetting remainingmajority have. There are many variations
+                                                of passages of Lorem Ipsum</p>
+                                        </div>
+                                    </div>
+                                </div>
+        
+                                <div class="bg-neutral-100 tw-py-16 tw-px-54-px" data-aos="fade-up" data-aos-duration="800">
+                                    <h5 class="splitTextStyleOne tw-mb-9">Write your comment</h5>
+                                    <form action="#">
+                                        <div class="row gy-4">
+                                            <div class="col-sm-6">
+                                                <input type="text" class="tw-px-6 tw-py-4 bg-white tw-placeholder-text-main-two-600 focus-outline-0 w-100 tw-placeholder-transition-2 focus-tw-placeholder-text-hidden rounded-0 shadow-none flex-grow-1 border border-white focus-border-main-600 tw-duration-300" placeholder="Enter your name*" required>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <input type="email" class="tw-px-6 tw-py-4 bg-white tw-placeholder-text-main-two-600 focus-outline-0 w-100 tw-placeholder-transition-2 focus-tw-placeholder-text-hidden rounded-0 shadow-none flex-grow-1 border border-white focus-border-main-600 tw-duration-300" placeholder="Enter your mail*" required>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <input type="number" class="tw-px-6 tw-py-4 bg-white tw-placeholder-text-main-two-600 focus-outline-0 w-100 tw-placeholder-transition-2 focus-tw-placeholder-text-hidden rounded-0 shadow-none flex-grow-1 border border-white focus-border-main-600 tw-duration-300" placeholder="Enter your number*" required>
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <input type="url" class="tw-px-6 tw-py-4 bg-white tw-placeholder-text-main-two-600 focus-outline-0 w-100 tw-placeholder-transition-2 focus-tw-placeholder-text-hidden rounded-0 shadow-none flex-grow-1 border border-white focus-border-main-600 tw-duration-300" placeholder="Website*" required>
+                                            </div>
+                                            <div class="col-sm-12">
+                                                <textarea class="tw-px-6 tw-py-4 bg-white tw-placeholder-text-main-two-600 focus-outline-0 w-100 tw-placeholder-transition-2 focus-tw-placeholder-text-hidden rounded-0 shadow-none flex-grow-1 border border-white focus-border-main-600 tw-duration-300 tw-h-280-px" placeholder="Enter your Massage*" required></textarea>
+                                            </div>
+                                            <div class="col-sm-12">
+                                                <div class="form-check common-check d-flex tw-gap-205 tw-my-4">
+                                                    <input class="form-check-input" type="checkbox" id="comment-check" required>
+                                                    <label class="form-check-label text-neutral-600 tw-text-sm fw-medium" for="comment-check">Save my name, email, and website in this browser for the next time I comment.</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-12">
+                                                <button type="submit" class="btn btn-main hover-style-one button--stroke d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 rounded-0 tw-px-13 tw-py-505 tw-mt-8" data-block="button">
+                                                    <span class="button__flair"></span>
+                                                    <span class="button__label">Send Messege</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+        
+                    <div class="col-lg-4 ps-xl-5 ps-lg-4">
+                        <!-- Sidebar Start -->
+                        <div class="d-flex flex-column tw-gap-8">
+                            <div class="bg-neutral-100 tw-px-8 text-center tw-py-17" data-aos="fade-up" data-aos-duration="800">
+                                <div class="tw-w-95-px tw-h-95-px rounded-circle d-inline-flex">
+                                    <img src="assets/images/thumbs/blogger.png" alt="" class="w-100 h-100 object-fit-cover">
+                                </div>
+                                <h6 class="tw-text-base tw-mb-1 tw-mt-4 splitTextStyleOne">Rosalina D. Willaim</h6>
+                                <span class="text-neutral-600 tw-text-sm splitTextStyleTwo">Blogger/Photographer</span>
+                                <p class="tw-mt-5 text-neutral-600">he whimsically named Egg Canvas is the design director and photographer in New York. Why the nam</p>
+                                <ul class="d-flex align-items-center tw-gap-3 justify-content-center tw-mt-6">
+                                    <li>
+                                        <a href="https://www.facebook.com" class="tw-w-11 tw-h-11 border border-neutral-200 rounded-0 text-main-two-600 tw-text-xl d-flex justify-content-center align-items-center bg-white hover-bg-main-600 hover-text-white hover-border-main-600 active-scale-09 tw-duration-200">
+                                            <i class="ph ph-facebook-logo"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://www.twitter.com" class="tw-w-11 tw-h-11 border border-neutral-200 rounded-0 text-main-two-600 tw-text-xl d-flex justify-content-center align-items-center bg-white hover-bg-main-600 hover-text-white hover-border-main-600 active-scale-09 tw-duration-200">
+                                            <i class="ph ph-x-logo"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://www.instagram.com" class="tw-w-11 tw-h-11 border border-neutral-200 rounded-0 text-main-two-600 tw-text-xl d-flex justify-content-center align-items-center bg-white hover-bg-main-600 hover-text-white hover-border-main-600 active-scale-09 tw-duration-200">
+                                            <i class="ph ph-instagram-logo"></i>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="https://www.youtube.com" class="tw-w-11 tw-h-11 border border-neutral-200 rounded-0 text-main-two-600 tw-text-xl d-flex justify-content-center align-items-center bg-white hover-bg-main-600 hover-text-white hover-border-main-600 active-scale-09 tw-duration-200">
+                                            <i class="ph ph-youtube-logo"></i>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+        
+                            <div class="bg-neutral-100 tw-px-8 tw-py-8" data-aos="fade-up" data-aos-duration="800">
+                                <h5 class="border-start border-4 border-main-600 text-main-two-600 tw-ps-2 splitTextStyleOne tw-mb-6">Search Here</h5>
+                                <form action="#" class="position-relative">
+                                    <input type="text" class="tw-ps-4 tw-pe-12 tw-py-4 bg-white tw-placeholder-text-main-two-600 focus-outline-0 w-100 tw-placeholder-transition-2 focus-tw-placeholder-text-hidden rounded-0 shadow-none flex-grow-1 border border-white focus-border-main-600 tw-duration-300" placeholder="Search here...">
+                                    <button type="submit" class="position-absolute top-50 tw--translate-y-50 tw-end-0 text-main-two-600 tw-text-lg d-flex tw-me-5">
+                                        <i class="ph-bold ph-magnifying-glass"></i>
+                                    </button>
+                                </form>
+                            </div>
+        
+                            <div class="bg-neutral-100 tw-px-8 tw-py-8" data-aos="fade-up" data-aos-duration="800">
+                                <h5 class="border-start border-4 border-main-600 text-main-two-600 tw-ps-2 splitTextStyleOne tw-mb-6">Recent News</h5>
+                                <div class="d-flex flex-column tw-gap-8">
+                                    <div class="d-flex align-items-center tw-gap-6">
+                                        <a href="blog-details.html" class="tw-rounded-md overflow-hidden flex-shrink-0">
+                                            <img src="assets/images/thumbs/recent-post-img1.png" alt="" class="w-100 h-100 object-fit-cover hover-scale-2 tw-duration-500">
+                                        </a>
+                                        <div class="">
+                                            <div class="d-flex align-items-center tw-gap-2">
+                                                <span class="text-main-600 tw-text-lg">
+                                                    <i class="ph-bold ph-calendar-dots"></i>
+                                                </span>
+                                                <span class="text-main-two-600 fw-medium tw-text-sm tw-text-sm">Jan 23,2022</span>
+                                            </div>
+                                            <h6 class="tw-mt-2">
+                                                <a href="blog-details.html" class="tw-text-base line-clamp-2 text-main-two-600 hover-text-main-600 splitTextStyleOne">Budget Issues Force The Our To Become</a>
+                                            </h6>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center tw-gap-6">
+                                        <a href="blog-details.html" class="tw-rounded-md overflow-hidden flex-shrink-0">
+                                            <img src="assets/images/thumbs/recent-post-img2.png" alt="" class="w-100 h-100 object-fit-cover hover-scale-2 tw-duration-500">
+                                        </a>
+                                        <div class="">
+                                            <div class="d-flex align-items-center tw-gap-2">
+                                                <span class="text-main-600 tw-text-lg">
+                                                    <i class="ph-bold ph-calendar-dots"></i>
+                                                </span>
+                                                <span class="text-main-two-600 fw-medium tw-text-sm tw-text-sm">Jan 23,2022</span>
+                                            </div>
+                                            <h6 class="tw-mt-2">
+                                                <a href="blog-details.html" class="tw-text-base line-clamp-2 text-main-two-600 hover-text-main-600 splitTextStyleOne">The Best Products That Shape Fashion</a>
+                                            </h6>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center tw-gap-6">
+                                        <a href="blog-details.html" class="tw-rounded-md overflow-hidden flex-shrink-0">
+                                            <img src="assets/images/thumbs/recent-post-img3.png" alt="" class="w-100 h-100 object-fit-cover hover-scale-2 tw-duration-500">
+                                        </a>
+                                        <div class="">
+                                            <div class="d-flex align-items-center tw-gap-2">
+                                                <span class="text-main-600 tw-text-lg">
+                                                    <i class="ph-bold ph-calendar-dots"></i>
+                                                </span>
+                                                <span class="text-main-two-600 fw-medium tw-text-sm tw-text-sm">Jan 23,2022</span>
+                                            </div>
+                                            <h6 class="tw-mt-2">
+                                                <a href="blog-details.html" class="tw-text-base line-clamp-2 text-main-two-600 hover-text-main-600 splitTextStyleOne">The Best Products That Shape Fashion</a>
+                                            </h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+        
+                            <div class="bg-neutral-100 tw-px-8 tw-py-8" data-aos="fade-up" data-aos-duration="800">
+                                <h5 class="border-start border-4 border-main-600 text-main-two-600 tw-ps-2 splitTextStyleOne tw-mb-6">Catagories</h5>
+                                <div class="d-flex flex-column tw-gap-5">
+                                    <a href="blog.html" class="bg-white tw-py-4 tw-px-6 text-main-two-600 hover-text-white hover-bg-main-600 group tw-text-lg fw-medium d-flex align-items-center justify-content-between">
+                                        Mobile Set 
+                                        <span class="text-main-two-600 group-hover-text-white tw-duration-300 d-flex">
+                                            03
+                                        </span>
+                                    </a>
+                                    <a href="blog.html" class="bg-white tw-py-4 tw-px-6 text-main-two-600 hover-text-white hover-bg-main-600 group tw-text-lg fw-medium d-flex align-items-center justify-content-between">
+                                        Mobile Set 
+                                        <span class="text-main-two-600 group-hover-text-white tw-duration-300 d-flex">
+                                            03
+                                        </span>
+                                    </a>
+                                    <a href="blog.html" class="bg-white tw-py-4 tw-px-6 text-main-two-600 hover-text-white hover-bg-main-600 group tw-text-lg fw-medium d-flex align-items-center justify-content-between">
+                                        Mobile Set 
+                                        <span class="text-main-two-600 group-hover-text-white tw-duration-300 d-flex">
+                                            03
+                                        </span>
+                                    </a>
+                                    <a href="blog.html" class="bg-white tw-py-4 tw-px-6 text-main-two-600 hover-text-white hover-bg-main-600 group tw-text-lg fw-medium d-flex align-items-center justify-content-between">
+                                        Mobile Set 
+                                        <span class="text-main-two-600 group-hover-text-white tw-duration-300 d-flex">
+                                            03
+                                        </span>
+                                    </a>
+                                </div>
+                            </div>
+        
+                            <div class="bg-neutral-100 tw-px-8 tw-py-8" data-aos="fade-up" data-aos-duration="800">
+                                <h5 class="border-start border-4 border-main-600 text-main-two-600 tw-ps-2 splitTextStyleOne tw-mb-6">Populer Tags</h5>
+                                <div class="d-flex tw-gap-3 flex-wrap">
+                                    <a href="blog.html" class="bg-white tw-py-4 tw-px-6 text-main-two-600 hover-text-white hover-bg-main-600 tw-text-sm fw-medium text-center d-inline-block">Tourist</a>
+                                    <a href="blog.html" class="bg-white tw-py-4 tw-px-6 text-main-two-600 hover-text-white hover-bg-main-600 tw-text-sm fw-medium text-center d-inline-block">Traveling</a>
+                                    <a href="blog.html" class="bg-white tw-py-4 tw-px-6 text-main-two-600 hover-text-white hover-bg-main-600 tw-text-sm fw-medium text-center d-inline-block">Cave</a>
+                                    <a href="blog.html" class="bg-white tw-py-4 tw-px-6 text-main-two-600 hover-text-white hover-bg-main-600 tw-text-sm fw-medium text-center d-inline-block">Sky Dive</a>
+                                    <a href="blog.html" class="bg-white tw-py-4 tw-px-6 text-main-two-600 hover-text-white hover-bg-main-600 tw-text-sm fw-medium text-center d-inline-block">hill Climb</a>
+                                    <a href="blog.html" class="bg-white tw-py-4 tw-px-6 text-main-two-600 hover-text-white hover-bg-main-600 tw-text-sm fw-medium text-center d-inline-block">Oppos</a>
+                                    <a href="blog.html" class="bg-white tw-py-4 tw-px-6 text-main-two-600 hover-text-white hover-bg-main-600 tw-text-sm fw-medium text-center d-inline-block">landing </a>
+                                    <a href="blog.html" class="bg-white tw-py-4 tw-px-6 text-main-two-600 hover-text-white hover-bg-main-600 tw-text-sm fw-medium text-center d-inline-block">Oppos</a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Sidebar End -->
+        
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- ========================= Blog End ============================ -->
+        
+        <!-- ================================= Task Management Section Start ============================== -->
+<section class="task-management bg-pink-more-light-half drag-rotate-element-section bg-neutral-light-half">
+    <div class="container">
+        <div class="text-end tw--mb-40-px position-relative z-2">
+            <img src="assets/images/thumbs/laptop-man.png" alt="Image" class="tw-me-84-px">
+        </div>
+
+        <div class="bg-green-deep tw-rounded-3xl bg-green-deep tw-pt-100-px position-relative z-1">
+            <img src="assets/images/shapes/hill-shape.png" alt="Hill Shape" class="position-absolute w-100 h-100 top-0 tw-start-0 z-n1">
+            <img src="assets/images/thumbs/task-management-img.png" alt="Image" class="position-absolute tw-end-0 top-0 tw-me-5 tw-mt-5 d-lg-block d-none">
+            
+            <div class="tw-mb-8 text-center max-w-570-px mx-auto">
+                <div class="tw-py-3 tw-px-305 rounded-pill fw-medium text-capitalize tw-leading-none d-inline-flex align-items-center tw-gap-2 tw-mb-405 min-w-max text-white bg-white-13" data-aos="fade-up" data-aos-anchor-placement="top-bottom" data-aos-duration="600" >
+                    <div class="">
+                        Up to <span class="text-yellow text-stroke-yellow">70%</span> off managed cloud hosting
+                    </div>
+                </div>
+                <h3 class="splitTextStyleOne text-white">
+                    Ready to revolutionize our service?
+                </h3>
+
+                <div class="d-none">
+                    <a href="javascript:void(0)" class="hover--translate-y-1 active--translate-y-scale-9 btn btn-main hover-style-one button--stroke d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-px-13 rounded-0 tw-py-6 fw-bold tw-mt-7" data-block="button">
+                        <span class="button__flair"></span>
+                        <div class="d-flex align-items-center tw-gap-2 z-1">
+                            <span class="button__label">Download for free</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="d-block">
+                    <div class="d-flex align-items-center tw-gap-4 justify-content-center flex-wrap">
+                        <a href="javascript:void(0)" class="hover--translate-y-1 active--translate-y-scale-9 btn btn-main hover-style-one button--stroke d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-px-705 tw-rounded-2xl tw-py-6 fw-bold tw-mt-7" data-block="button">
+                            <span class="button__flair"></span>
+                            <div class="d-flex align-items-center tw-gap-2 z-1">
+                                <span class="button__label">Get Started Trial</span>
+                            </div>
+                        </a>
+                        <a href="javascript:void(0)" class="hover--translate-y-1 active--translate-y-scale-9 btn hover-style-two button--stroke d-inline-flex align-items-center justify-content-center tw-gap-5 group active--translate-y-2 tw-px-705 tw-rounded-2xl tw-py-6 fw-bold tw-mt-7" data-block="button">
+                            <span class="button__flair"></span>
+                            <div class="d-flex align-items-center tw-gap-2 z-1">
+                                <span class="button__label">Get Started Trial</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+            <div class="tw-pt-8 text-center"> 
+                <div class="myContainer position-relative d-flex flex-wrap align-items-center justify-content-center tw-gap-6 tw-pt-16 overflow-hidden w-100 tw-px-6">
+                    <span class="drag-rotate-element cursor-grab min-w-max z-1 tw-px-9 tw-py-2 fw-semibold text-white gradient-bg-six rounded-pill">Project management</span>
+                    <span class="drag-rotate-element cursor-grab min-w-max z-1 tw-px-9 tw-py-2 fw-semibold text-heading bg-paste rounded-pill">Technology</span>
+                    <span class="drag-rotate-element cursor-grab min-w-max z-1 tw-px-9 tw-py-2 fw-semibold text-heading gradient-bg-six rounded-pill">Technology</span>
+                    <span class="drag-rotate-element cursor-grab min-w-max z-1 tw-px-9 tw-py-2 fw-semibold text-heading bg-yellow rounded-pill">Project management</span>
+                    <span class="drag-rotate-element cursor-grab min-w-max z-1 tw-px-9 tw-py-2 fw-semibold text-heading bg-orange rounded-pill">Technology</span>
+                    <span class="drag-rotate-element cursor-grab min-w-max z-1 tw-px-9 tw-py-2 fw-semibold text-heading gradient-bg-six rounded-pill">Technology</span>
+                    <span class="drag-rotate-element cursor-grab min-w-max z-1 tw-px-9 tw-py-2 fw-semibold text-heading bg-orange rounded-pill">Project management</span>
+                    <span class="drag-rotate-element cursor-grab min-w-max z-1 tw-px-9 tw-py-2 fw-semibold text-heading gradient-bg-six rounded-pill">Technology</span>
+                    <span class="drag-rotate-element cursor-grab min-w-max z-1 tw-px-9 tw-py-2 fw-semibold text-heading bg-paste rounded-pill">Project management</span>
+                    <span class="drag-rotate-element cursor-grab min-w-max z-1 tw-px-9 tw-py-2 fw-semibold text-heading bg-pink rounded-pill">Technology</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- ================================= Task Management Section End ============================== -->
+         
+        <!-- ========================== Footer Three Section Start ========================= -->
+<section class="footer-three bg-pink-more-light bg-neutral-light">
+    <div class="py-120">
+        <div class="container">
+            <div class="row gy-5">
+                <div class="col-xl-3 col-sm-4 col-xs-6" data-aos="fade-up" data-aos-duration="600">
+                    <div class="">
+                        <h5 class="fw-medium tw-mb-8 splitTextStyleOne">Collaborate</h5>
+                        <ul class="d-flex flex-column tw-gap-4">
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">Partners</a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">Partners Program</a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">Affiliate Program</a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">Community</a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">HR Partner Program</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-sm-4 col-xs-6" data-aos="fade-up" data-aos-duration="700">
+                    <div class="">
+                        <h5 class="fw-medium tw-mb-8 splitTextStyleOne">My account</h5>
+                        <ul class="d-flex flex-column tw-gap-4">
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">Company</a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">Customer Success</a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">Resources</a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">Talk an Expert</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-xl-2 col-sm-4 col-xs-6" data-aos="fade-up" data-aos-duration="800">
+                    <div class="">
+                        <h5 class="fw-medium tw-mb-8 splitTextStyleOne">Service</h5>
+                        <ul class="d-flex flex-column tw-gap-4">
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">Software Development</a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">Cloud Services</a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">AI Machine Learning</a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">Data Security</a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0)" class="hover-arrow-start text-neutral-600 hover-text-heading hover-underline hover--translate-y-1 active--translate-y-scale-9 fw-bold">Software Development</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-xl-5 col-lg-6" data-aos="fade-up" data-aos-duration="900">
+                    <div class="ps-xl-5">
+                        <a href="index.html" class="link hover--translate-y-1 active--translate-y-scale-9 tw-mb-10">
+                            <img src="assets/images/logo/logo-three.png" alt="">
+                        </a>
+                        <form action="#" class="d-flex flex-md-row flex-column tw-gap-5 form-submit">
+                            <div class="position-relative flex-grow-1">
+                                <input type="email" class="tw-h-14 tw-rounded-lg bg-white tw-ps-12 border border-transparent focus-border-main-600 text-heading focus-outline-0 w-100 tw-pe-6" placeholder="Email Address" required>
+                                <span class="text-heading tw-text-lg position-absolute top-50 tw-start-0 tw--translate-y-50 tw-ms-5 d-flex">
+                                    <i class="ph ph-envelope-simple"></i>
+                                </span>
+                            </div>
+                            <button type="submit" class="btn btn-main hover-style-one button--stroke d-inline-flex align-items-center justify-content-center tw-gap-2 group active--translate-y-2 fw-semibold flex-shrink-0 hover--translate-y-1 active--translate-y-scale-9" data-block="button">
+                                <span class="button__flair"></span>
+                                <span class="button__label">Sign Up</span>
+                                <span class="text-white tw-text-sm tw-rounded d-flex justify-content-center align-items-center position-relative group-hover-text-main-600 tw-duration-500">
+                                    <i class="ph-bold ph-caret-right"></i>
+                                </span>
+                            </button>
+                        </form>
+                        <p class="text-heading fw-semibold tw-mt-9">By subscribing, you're accept
+                            <a href="javascript:void(0)" class="text-heading text-decoration-underline hover-text-main-600 hover--translate-y-1 active--translate-y-scale-9">Privacy Policy</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="container">
+        <!-- bottom Footer -->
+        <div class="border-top border-neutral-200 border-0 tw-py-8">
+            <div class="container container-two">
+                <div class="d-flex align-items-center justify-content-between tw-gap-4 flex-wrap">
+                    <p class="text-heading text-line-1 fw-semibold"> 
+                        &copy; 2025 
+                        <a href="https://themeforest.net/user/wowtheme7" class="fw-bold text-gradient-teal hover-underline hover--translate-y-1 active--translate-y-scale-9">WowTheme7</a>
+                        - IT Services. All rights reserved.
+                    </p>
+                    <div class="d-flex align-items-center tw-gap-6">
+                        <a href="javascript:void(0)" class="text-neutral-600 fw-semibold hover-text-heading hover-text-neutral-900 hover-underline hover--translate-y-1 active--translate-y-scale-9">Faqs</a>
+                        <a href="javascript:void(0)" class="text-neutral-600 fw-semibold hover-text-heading hover-text-neutral-900 hover-underline hover--translate-y-1 active--translate-y-scale-9">Setting</a>
+                        <a href="javascript:void(0)" class="text-neutral-600 fw-semibold hover-text-heading hover-text-neutral-900 hover-underline hover--translate-y-1 active--translate-y-scale-9">Privacy</a>
+                        <a href="javascript:void(0)" class="text-neutral-600 fw-semibold hover-text-heading hover-text-neutral-900 hover-underline hover--translate-y-1 active--translate-y-scale-9">Contact</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer Bottom End -->
+</section>
+<!-- ========================== Footer Three Section End ========================= -->
+        
+  </div>
+</div>
+    
+        <!-- Jquery js -->
+    <script src="assets/js/jquery-3.7.1.min.js"></script>
+    <!-- phosphor Js -->
+    <script src="assets/js/phosphor-icon.js"></script>
+    <!-- Bootstrap Bundle Js -->
+    <script src="assets/js/boostrap.bundle.min.js"></script>
+
+    <!-- GSAP js -->
+    <script src="assets/js/gsap.min.js"></script>
+    <!-- Scroll Trigger -->
+    <script src="assets/js/ScrollTrigger.min.js"></script>
+    <!-- ScrollSmoother -->
+    <script src="assets/js/ScrollSmoother.min.js"></script>
+    <!-- SplitText -->
+    <script src="assets/js/SplitText.min.js"></script>
+    <!-- custom GSAP -->
+    <script src="assets/js/custom-gsap.js"></script>
+
+    <!-- aos Js -->
+    <script src="assets/js/aos.js"></script>
+    <!-- counter up Js -->
+    <script src="assets/js/counterup.min.js"></script>
+    <!-- swiper Js -->
+    <script src="assets/js/swiper-bundle.min.js"></script>
+    <!-- Marquee js -->
+    <script src="assets/js/jquery.marquee.min.js"></script>
+    <!-- magnific js -->
+    <script src="assets/js/magnific-popup.min.js"></script>
+
+    <!-- main js -->
+    <script src="assets/js/main.js"></script>
+
+</body>
+</html>

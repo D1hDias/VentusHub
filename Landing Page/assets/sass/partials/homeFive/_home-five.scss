@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+
+.home-five {
+    &:root {    
+        --heading-one: clamp(2.125rem, -0.0733rem + 5.5vw, 4.375rem); // Min:34px - Max: 70px
+        --heading-two: clamp(2rem, 0.3353rem + 2.1661vw, 3.5rem); // Min: 32px - Max: 56px
+        --heading-three: clamp(1.5rem, 0.7133rem + 2.8846vw, 1.75rem); // Min: 24px - Max: 28px
+        --heading-four: clamp(1.25rem, 1.2rem + 0.722vw, 1.5rem); // Min: 20px - Max: 24px
+        --heading-five: clamp(1.125rem, 0.769rem + 0.6813vw, 1.25rem); // Min: 18px - Max-20px
+        --heading-six: clamp(1rem, 0.769rem + 0.6813vw, 1.125rem); // Min: 16px - Max-18px
+    
+        /* template main color */
+        --main-h: 184;
+        --main-s: 84%;
+        --main-l: 30%;
+        --main: var(--main-h) var(--main-s) var(--main-l);
+
+        /* template main two color */
+        --main-two-h: 205;
+        --main-two-s: 75%;
+        --main-two-l: 11%;
+        --main-two: var(--main-two-h) var(--main-two-s) var(--main-two-l);
+
+        --heading-color: #072032;
+    }
+    
+    h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
+        color: var(--heading-color);
+    }
+    h1, .h1 {
+        font-size: var(--heading-one);
+    }
+    h2, .h2 {
+        font-size: var(--heading-two);
+    }
+    h3, .h3 {
+        font-size: var(--heading-three);
+    }
+    h4, .h4 {
+        font-size: var(--heading-four);
+    }
+    h5, .h5 {
+        font-size: var(--heading-five);
+    }
+    h6, .h6 {
+        font-size: var(--heading-six);
+    }
+    .font-dm-serif {
+        font-family: var(--dm-serif);
+    }   
+    .text-heading {
+        color: var(--heading-color);
+    }
+    .bg-main-three {
+        background-color: var(--bg-main-green);
+    }
+    .btn-main {
+        background: var(--main-600);
+        &-two {
+            background-color: var(--main-two-600) !important;
+            color: hsl(var(--white)) !important;
+            &:hover, &:hover span{
+                color: hsl(var(--white)) !important;
+            }
+        }
+    }
+
+    .hover-style-two {
+        .button__flair::before {
+            background: var(--main-600);
+        }
+    }
+    .hover-style-one {
+        .button__flair::before {
+            background-color: var(--main-two-600) !important;
+        }
+    }
+
+    .header {
+        &.fixed-header {
+            position: fixed !important;
+            margin-block-start: 0;
+            background-color: #0f6555;
+            .header-three__inner {
+                box-shadow: none !important;
+                background-color: transparent;
+            }
+        }
+    }
+    
+}

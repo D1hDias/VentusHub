@@ -6,8 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { KPICard } from "@/components/KPICard";
+import { CompactKPICard } from "@/components/CompactKPICard";
+import { SimpleKPICard } from "@/components/SimpleKPICard";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
+import { useResponsive } from "@/hooks/useMediaQuery";
 import {
   Table,
   TableBody,
@@ -31,6 +34,16 @@ export default function Contracts() {
   const [selectedContract, setSelectedContract] = useState<any>(null);
   const [showContractModal, setShowContractModal] = useState(false);
   const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();
+  const { isMobile } = useResponsive();
+
+  // Dados dos KPI Cards
+  const kpiData = [
+    { title: "Total", value: 1, icon: File, iconBgColor: "#001f3f", progress: 75, subtitle: "Contratos ativos" },
+    { title: "Rascunhos", value: 1, icon: CheckCircle, iconBgColor: "#d47c16", progress: 50, subtitle: "Em elaboração" },
+    { title: "Enviados", value: 1, icon: CheckCircle, iconBgColor: "#1ea475", progress: 90, subtitle: "Aguardando assinatura" },
+    { title: "Assinados", value: 1, icon: CheckCircle, iconBgColor: "#dc2828", progress: 100, subtitle: "Finalizados" },
+    { title: "Expirando", value: 1, icon: CheckCircle, iconBgColor: "#d47c16", progress: 25, subtitle: "Requer atenção" }
+  ];
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ["/api/properties"],
@@ -188,97 +201,150 @@ export default function Contracts() {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards - Responsivo */}
       <motion.div 
         variants={getListVariants()}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 md:grid-cols-5 gap-6"
       >
-        <motion.div
-          variants={getListItemVariants()}
-          className={`${classes.cardInteractive} touch-target`}
-          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-        >
-          <KPICard
-            title="Total"
-            value={statsData.total}
-            icon={File}
-            iconBgColor="#001f3f"
-            progress={50}
-            subtitle="Contratos cadastrados"
-            onClick={() => {}}
-          />
-        </motion.div>
+        {isMobile ? (
+          // Layout em grid 2x2 para mobile - otimizado para espaço
+          <div className="grid grid-cols-2 gap-2">
+            <motion.div variants={getListItemVariants()}>
+              <SimpleKPICard
+                title="Total"
+                value={statsData.total}
+                icon={File}
+                iconBgColor="#001f3f"
+                subtitle="Contratos cadastrados"
+              />
+            </motion.div>
+            <motion.div variants={getListItemVariants()}>
+              <SimpleKPICard
+                title="Rascunhos"
+                value={statsData.draft}
+                icon={Clock}
+                iconBgColor="#d47c16"
+                subtitle="Em elaboração"
+              />
+            </motion.div>
+            <motion.div variants={getListItemVariants()}>
+              <SimpleKPICard
+                title="Enviados"
+                value={statsData.sent}
+                icon={Send}
+                iconBgColor="#001f3f"
+                subtitle="Para assinatura"
+              />
+            </motion.div>
+            <motion.div variants={getListItemVariants()}>
+              <SimpleKPICard
+                title="Assinados"
+                value={statsData.signed}
+                icon={CheckCircle}
+                iconBgColor="#1ea475"
+                subtitle="Contratos válidos"
+              />
+            </motion.div>
+            <motion.div variants={getListItemVariants()}>
+              <SimpleKPICard
+                title="Expirando"
+                value={statsData.expiringSoon}
+                icon={AlertTriangle}
+                iconBgColor="#dc2828"
+                subtitle="Atenção urgente"
+              />
+            </motion.div>
+          </div>
+        ) : (
+          // Layout desktop - grid original
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <motion.div
+              variants={getListItemVariants()}
+              className={`${classes.cardInteractive} touch-target`}
+              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+            >
+              <KPICard
+                title="Total"
+                value={statsData.total}
+                icon={File}
+                iconBgColor="#001f3f"
+                progress={50}
+                subtitle="Contratos cadastrados"
+                onClick={() => {}}
+              />
+            </motion.div>
 
-        <motion.div
-          variants={getListItemVariants()}
-          className={`${classes.cardInteractive} touch-target`}
-          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-        >
-          <KPICard
-            title="Rascunhos"
-            value={statsData.draft}
-            icon={Clock}
-            iconBgColor="#d47c16"
-            progress={25}
-            subtitle="Em elaboração"
-            onClick={() => {}}
-          />
-        </motion.div>
+            <motion.div
+              variants={getListItemVariants()}
+              className={`${classes.cardInteractive} touch-target`}
+              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+            >
+              <KPICard
+                title="Rascunhos"
+                value={statsData.draft}
+                icon={Clock}
+                iconBgColor="#d47c16"
+                progress={25}
+                subtitle="Em elaboração"
+                onClick={() => {}}
+              />
+            </motion.div>
 
-        <motion.div
-          variants={getListItemVariants()}
-          className={`${classes.cardInteractive} touch-target`}
-          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-        >
-          <KPICard
-            title="Enviados"
-            value={statsData.sent}
-            icon={Send}
-            iconBgColor="#001f3f"
-            progress={60}
-            subtitle="Para assinatura"
-            onClick={() => {}}
-          />
-        </motion.div>
+            <motion.div
+              variants={getListItemVariants()}
+              className={`${classes.cardInteractive} touch-target`}
+              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+            >
+              <KPICard
+                title="Enviados"
+                value={statsData.sent}
+                icon={Send}
+                iconBgColor="#001f3f"
+                progress={60}
+                subtitle="Para assinatura"
+                onClick={() => {}}
+              />
+            </motion.div>
 
-        <motion.div
-          variants={getListItemVariants()}
-          className={`${classes.cardInteractive} touch-target`}
-          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-        >
-          <KPICard
-            title="Assinados"
-            value={statsData.signed}
-            icon={CheckCircle}
-            iconBgColor="#1ea475"
-            progress={85}
-            subtitle="Contratos válidos"
-            onClick={() => {}}
-          />
-        </motion.div>
+            <motion.div
+              variants={getListItemVariants()}
+              className={`${classes.cardInteractive} touch-target`}
+              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+            >
+              <KPICard
+                title="Assinados"
+                value={statsData.signed}
+                icon={CheckCircle}
+                iconBgColor="#1ea475"
+                progress={85}
+                subtitle="Contratos válidos"
+                onClick={() => {}}
+              />
+            </motion.div>
 
-        <motion.div
-          variants={getListItemVariants()}
-          className={`${classes.cardInteractive} touch-target`}
-          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-        >
-          <KPICard
-            title="Expirando"
-            value={statsData.expiringSoon}
-            icon={AlertTriangle}
-            iconBgColor="#dc2828"
-            progress={15}
-            subtitle="Atenção urgente"
-            onClick={() => {}}
-          />
-        </motion.div>
+            <motion.div
+              variants={getListItemVariants()}
+              className={`${classes.cardInteractive} touch-target`}
+              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+            >
+              <KPICard
+                title="Expirando"
+                value={statsData.expiringSoon}
+                icon={AlertTriangle}
+                iconBgColor="#dc2828"
+                progress={15}
+                subtitle="Atenção urgente"
+                onClick={() => {}}
+              />
+            </motion.div>
+          </div>
+        )}
       </motion.div>
 
       {/* Search and Filters */}

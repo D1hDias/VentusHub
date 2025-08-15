@@ -1,0 +1,24 @@
+/* Banner Two Start */
+.banner-two {
+    padding-block-start: 148px;
+    @media (min-width: 992px) {
+        padding-block-end: 180px;
+    }
+    &__inner {
+        padding-block-start: 152px;
+        padding-block-end: 152px;
+        @media (max-width: 767px) {
+            padding-block-start: 100px;
+            padding-block-end: 100px;
+        }
+    }
+    &-thumb {
+        @media (min-width: 992px) {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            max-width: 54%;
+        }
+    }
+}
+/* Banner Two End */

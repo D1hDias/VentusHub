@@ -1,0 +1,27 @@
+
+.bg-white-gradient {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.0224) 0%, rgba(255, 255, 255, 0) 100%);
+}
+.backdrop-blur-20 {
+    backdrop-filter: blur(20px);
+}
+
+.banner-gradient-bg {
+    height: 60%;
+
+    @media (max-width: 1200px) {
+        height: 60%;
+    }
+
+    @media (max-width: 992px) {
+        height: 70%;
+    }
+
+    @media (max-width: 768px) {
+        height: 80%;
+    }
+
+    @media (max-width: 576px) {
+        height: 84%;
+    }
+}

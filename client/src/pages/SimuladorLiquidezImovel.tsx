@@ -76,7 +76,7 @@ export default function SimuladorLiquidezImovel() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-background min-h-screen">
+    <div className="simulador-container p-6 space-y-6 bg-background min-h-screen">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

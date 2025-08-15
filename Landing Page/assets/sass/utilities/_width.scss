@@ -1,0 +1,59 @@
+/* width Css Class start */
+@each $property, $value in $spaces {
+  .tw-w-#{$property} {
+    width: $value;
+  }
+}
+
+.min-w {
+  &-max {
+    min-width: max-content;
+  }
+  &-144-px {
+    min-width: 144px;
+  }
+}
+
+.tw-w {
+  &-1-px {
+    width: 1px;
+  }
+  &-300-px {
+    width: 300px;
+  }
+  &-w-max {
+    width: max-content;
+  }
+  &-75-px {
+    width: 75px;
+  }
+  &-84-px {
+    width: 84px;
+  }
+  &-92-px {
+    width: 92px;
+  }
+  &-92-px {
+    width: 92px;
+  }
+  &-140-px {
+    width: 140px;
+  }
+  &-180-px {
+    width: 180px;
+  }
+  &-100--40-px {
+    width: calc(100% - 40px) !important;
+  }
+}
+
+.max-md-w-100 {
+  @media (max-width: 991px) {
+    width: 100%;
+  }
+}
+
+.max-w-54-percent {
+  max-width: 50%;
+}
+/* width Css Class End */

@@ -1,0 +1,14 @@
+.col-border-wrapper > div {
+    border-inline-end: 1px solid var(--neutral-200);
+    border-block-end: 1px solid var(--neutral-200);
+    &:nth-child(4n + 4) {
+        @media (min-width: 1200px) {
+            border-inline-end: 0;
+        }
+    }
+    &:nth-child(8n + 5), &:nth-child(8n + 6), &:nth-child(8n + 7), &:nth-child(8n + 8) {
+        @media (min-width: 1200px) {
+            border-block-end: 0;
+        }
+    }
+}

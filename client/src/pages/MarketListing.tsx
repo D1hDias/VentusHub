@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KPICard } from "@/components/KPICard";
+import { CompactKPICard } from "@/components/CompactKPICard";
+import { SimpleKPICard } from "@/components/SimpleKPICard";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
+import { useResponsive } from "@/hooks/useMediaQuery";
 import { 
   CheckCircle, 
   Camera, 
@@ -23,6 +26,7 @@ import {
 export default function MarketListing() {
   const [searchTerm, setSearchTerm] = useState("");
   const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();
+  const { isMobile } = useResponsive();
   
   // Carregar propriedades da API
   const { data: allProperties = [], isLoading } = useQuery({
@@ -102,13 +106,39 @@ export default function MarketListing() {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards - Responsivo com layout compacto para mobile */}
       <motion.div 
         variants={getListVariants()}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
       >
+        {isMobile ? (
+          // Layout em grid 2x2 para mobile - otimizado para espaço
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { title: "Ativos", value: 1, icon: CheckCircle, iconBgColor: "#1ea475", subtitle: "Imóveis no mercado" },
+              { title: "Preparando", value: 1, icon: Camera, iconBgColor: "#001f3f", subtitle: "Aguardando fotos" },
+              { title: "Visualizações", value: 247, icon: Eye, iconBgColor: "#d47c16", subtitle: "Este mês" },
+              { title: "Leads", value: 12, icon: TrendingUp, iconBgColor: "#dc2828", subtitle: "Interessados" }
+            ].map((kpi, index) => (
+              <motion.div
+                key={index}
+                variants={getListItemVariants()}
+                className="w-full"
+              >
+                <SimpleKPICard 
+                  title={kpi.title}
+                  value={kpi.value}
+                  icon={kpi.icon}
+                  iconBgColor={kpi.iconBgColor}
+                  subtitle={kpi.subtitle}
+                />
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          // Layout em grid para desktop
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <motion.div
           variants={getListItemVariants()}
           className={`${classes.cardInteractive} touch-target`}
@@ -120,6 +150,8 @@ export default function MarketListing() {
             value={1}
             icon={CheckCircle}
             iconBgColor="#1ea475"
+            progress={75}
+            subtitle="Imóveis no mercado"
             onClick={() => {}}
           />
         </motion.div>
@@ -164,7 +196,9 @@ export default function MarketListing() {
             iconBgColor="#dc2828"
             onClick={() => {}}
           />
-        </motion.div>
+            </motion.div>
+          </div>
+        )}
       </motion.div>
 
       {/* Search and Filters */}

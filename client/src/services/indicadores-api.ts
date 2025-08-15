@@ -42,33 +42,51 @@ export const fetchIndicadoresMercado = async (): Promise<IndicadoresResponse> =>
     
     const data: IndicadoresResponse = await response.json();
     
-    return {
-      ...data,
-      ultimaAtualizacao: new Date().toISOString(), // Adiciona timestamp do cliente
-    };
+    return data; // Não sobrescrever timestamp do servidor
     
   } catch (error) {
     console.error('Erro ao buscar indicadores do backend:', error);
     
     // Em caso de falha total da nossa API, retorna um objeto de fallback
     return {
-      selic: 10.50,
-      cdi: 10.40,
-      ipca: 4.62,
-      igpM: -0.47,
+      selic: 15.0,
+      cdi: 13.25,
+      ipca: 5.23,
+      igpM: 4.39,
       erro: 'Não foi possível conectar ao servidor. Usando dados de fallback.',
     };
   }
 };
 
 /**
- * Força a atualização dos indicadores.
- * No novo modelo, isso pode ser um endpoint específico no backend
- * ou simplesmente refazer a chamada. Por simplicidade, vamos refazer a chamada.
+ * Força a atualização dos indicadores limpando o cache do backend.
+ * Usa o endpoint dedicado de refresh que limpa o cache e busca dados frescos.
  */
 export const forceUpdateIndicadores = async (): Promise<IndicadoresResponse> => {
-  // O backend pode ter seu próprio mecanismo de cache, então uma chamada
-  // pode não necessariamente buscar dados novos.
-  // Para uma atualização real, o backend precisaria de uma rota como /api/indicadores/force-refresh
-  return fetchIndicadoresMercado();
+  try {
+    const response = await fetch(`${API_BASE_URL}/indicadores/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erro no force refresh: ${response.status}`);
+    }
+    
+    const result = await response.json();
+    return result.data || result; // Retorna os dados atualizados
+    
+  } catch (error) {
+    console.warn('Erro no force refresh, fallback para fetch normal:', error);
+    // Fallback para o fetch normal se o force refresh falhar
+    return fetchIndicadoresMercado();
+  }
 };
+
+// === ALIAS PARA COMPATIBILIDADE ===
+/**
+ * Alias para fetchIndicadoresMercado para manter compatibilidade com código existente
+ */
+export const getIndicadoresFromAPI = fetchIndicadoresMercado;

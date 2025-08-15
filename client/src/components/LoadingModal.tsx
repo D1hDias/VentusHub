@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Loader2, FileText, Calculator, Building2, Search } from "lucide-react";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -30,53 +30,52 @@ export function LoadingModal({
 }: LoadingModalProps) {
   const LOADING_MESSAGES = customMessages || DEFAULT_LOADING_MESSAGES;
   const [progress, setProgress] = useState(0);
-  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
-  const [currentMessage, setCurrentMessage] = useState(LOADING_MESSAGES[0]);
   const { prefersReducedMotion } = useResponsive();
+  
+  // Otimizar cálculo da mensagem atual com useMemo
+  const currentMessageData = useMemo(() => {
+    const messageIndex = progress <= 33.33 ? 0 : progress <= 66.66 ? 1 : 2;
+    return {
+      index: messageIndex,
+      message: LOADING_MESSAGES[messageIndex]
+    };
+  }, [progress, LOADING_MESSAGES]);
+  // Forçar animações para o modal de loading (ignorar preferência do usuário)
+  const forceAnimations = true; // Ativado para garantir animações no loading
 
   useEffect(() => {
     if (!isOpen) {
       setProgress(0);
-      setCurrentMessageIndex(0);
-      setCurrentMessage(LOADING_MESSAGES[0]);
       return;
     }
 
-    // Simular progresso
+    const totalSteps = duration / 100; // Total de atualizações (40 steps para 4000ms)
+    const incremento = 100 / totalSteps; // Incremento preciso: 2.5% por step
+    let stepCount = 0;
+
+    console.log(`🔄 Loading iniciado: ${totalSteps} steps, incremento ${incremento.toFixed(2)}% cada 100ms`);
+
+    // Simular progresso linear
     const progressInterval = setInterval(() => {
-      setProgress(prev => {
-        const newProgress = prev + (100 / (duration / 100));
-        
-        // Sincronizar mensagens com progresso
-        if (newProgress <= 33.33 && currentMessageIndex !== 0) {
-          setCurrentMessageIndex(0);
-          setCurrentMessage(LOADING_MESSAGES[0]);
-        } else if (newProgress > 33.33 && newProgress <= 66.66 && currentMessageIndex !== 1) {
-          setCurrentMessageIndex(1);
-          setCurrentMessage(LOADING_MESSAGES[1]);
-        } else if (newProgress > 66.66 && currentMessageIndex !== 2) {
-          setCurrentMessageIndex(2);
-          setCurrentMessage(LOADING_MESSAGES[2]);
-        }
-        
-        // Garantir que nunca ultrapasse 100%
-        if (newProgress >= 100) {
-          clearInterval(progressInterval);
-          // Fechar o modal automaticamente quando progresso atinge 100%
-          setTimeout(() => {
-            onClose();
-          }, 500); // Pequeno delay para mostrar 100%
-          return 100;
-        }
-        
-        return newProgress;
-      });
+      stepCount++;
+      const newProgress = Math.min((stepCount * incremento), 100);
+      
+      setProgress(newProgress);
+      
+      // Fechar quando completar
+      if (newProgress >= 100) {
+        clearInterval(progressInterval);
+        console.log('✅ Loading completado, fechando em 500ms');
+        setTimeout(() => {
+          onClose();
+        }, 500);
+      }
     }, 100);
 
     return () => {
       clearInterval(progressInterval);
     };
-  }, [isOpen, duration, currentMessageIndex]);
+  }, [isOpen, duration, onClose]);
 
   if (!isOpen) return null;
 
@@ -92,8 +91,8 @@ export function LoadingModal({
           {/* Ícone Principal Animado */}
           <div className="relative">
             <motion.div
-              animate={prefersReducedMotion ? undefined : { rotate: 360 }}
-              transition={prefersReducedMotion ? undefined : { duration: 2, repeat: Infinity, ease: "linear" }}
+              animate={prefersReducedMotion && !forceAnimations ? undefined : { rotate: 360 }}
+              transition={prefersReducedMotion && !forceAnimations ? undefined : { duration: 2, repeat: Infinity, ease: "linear" }}
               className="relative"
             >
               <FileText className="h-16 w-16 text-primary" />
@@ -101,24 +100,24 @@ export function LoadingModal({
 
             {/* Ícones Orbitais */}
             <motion.div
-              animate={prefersReducedMotion ? undefined : { rotate: -360 }}
-              transition={prefersReducedMotion ? undefined : { duration: 3, repeat: Infinity, ease: "linear" }}
+              animate={prefersReducedMotion && !forceAnimations ? undefined : { rotate: -360 }}
+              transition={prefersReducedMotion && !forceAnimations ? undefined : { duration: 3, repeat: Infinity, ease: "linear" }}
               className="absolute -top-2 -right-2"
             >
               <Calculator className="h-6 w-6 text-green-600" />
             </motion.div>
 
             <motion.div
-              animate={prefersReducedMotion ? undefined : { rotate: -360 }}
-              transition={prefersReducedMotion ? undefined : { duration: 4, repeat: Infinity, ease: "linear" }}
+              animate={prefersReducedMotion && !forceAnimations ? undefined : { rotate: -360 }}
+              transition={prefersReducedMotion && !forceAnimations ? undefined : { duration: 4, repeat: Infinity, ease: "linear" }}
               className="absolute -bottom-2 -left-2"
             >
               <Building2 className="h-6 w-6 text-blue-600" />
             </motion.div>
 
             <motion.div
-              animate={prefersReducedMotion ? undefined : { rotate: -360 }}
-              transition={prefersReducedMotion ? undefined : { duration: 3.5, repeat: Infinity, ease: "linear" }}
+              animate={prefersReducedMotion && !forceAnimations ? undefined : { rotate: -360 }}
+              transition={prefersReducedMotion && !forceAnimations ? undefined : { duration: 3.5, repeat: Infinity, ease: "linear" }}
               className="absolute top-0 -left-4"
             >
               <Search className="h-5 w-5 text-orange-600" />
@@ -140,7 +139,10 @@ export function LoadingModal({
                 className="h-full bg-gradient-to-r from-blue-500 to-green-500"
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.1 }}
+                transition={{ 
+                  duration: 0.05, // Mais rápido para melhor sincronização
+                  ease: "linear"  // Movimento linear uniforme
+                }}
               />
             </div>
           </div>
@@ -149,14 +151,14 @@ export function LoadingModal({
           <div className="h-12 flex items-center justify-center">
             <AnimatePresence mode="wait">
               <motion.p
-                key={currentMessageIndex}
-                initial={prefersReducedMotion ? undefined : { opacity: 0, y: 20 }}
-                animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-                exit={prefersReducedMotion ? undefined : { opacity: 0, y: -20 }}
-                transition={prefersReducedMotion ? undefined : { duration: 0.3 }}
+                key={currentMessageData.index}
+                initial={prefersReducedMotion && !forceAnimations ? undefined : { opacity: 0, y: 20 }}
+                animate={prefersReducedMotion && !forceAnimations ? undefined : { opacity: 1, y: 0 }}
+                exit={prefersReducedMotion && !forceAnimations ? undefined : { opacity: 0, y: -20 }}
+                transition={prefersReducedMotion && !forceAnimations ? undefined : { duration: 0.3 }}
                 className="text-center text-sm font-medium text-gray-700 dark:text-gray-200"
               >
-                {currentMessage}
+                {currentMessageData.message}
               </motion.p>
             </AnimatePresence>
           </div>
@@ -172,8 +174,8 @@ export function LoadingModal({
                     ? 'bg-blue-500'
                     : 'bg-gray-300 dark:bg-gray-600'
                   }`}
-                animate={prefersReducedMotion ? undefined : progress > index * 33 ? { scale: [1, 1.2, 1] } : {}}
-                transition={prefersReducedMotion ? undefined : { duration: 0.5, repeat: progress > index * 33 ? Infinity : 0 }}
+                animate={prefersReducedMotion && !forceAnimations ? undefined : progress > index * 33 ? { scale: [1, 1.2, 1] } : {}}
+                transition={prefersReducedMotion && !forceAnimations ? undefined : { duration: 0.5, repeat: progress > index * 33 ? Infinity : 0 }}
               />
             ))}
           </div>

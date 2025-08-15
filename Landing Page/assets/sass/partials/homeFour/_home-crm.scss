@@ -1,0 +1,90 @@
+
+/* Home CRM css start */
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+.home-crm {
+
+    &:root {    
+        --heading-one: clamp(2.25rem, -0.0733rem + 5.5vw, 5.625rem); // Min:36px - Max: 90px
+        --heading-two: clamp(2rem, 0.3353rem + 2.1661vw, 3.5rem); // Min: 32px - Max: 56px
+        --heading-three: clamp(1.5rem, 0.7133rem + 2.8846vw, 1.75rem); // Min: 24px - Max: 28px
+        --heading-four: clamp(1.25rem, 1.2rem + 0.722vw, 1.5rem); // Min: 20px - Max: 24px
+        --heading-five: clamp(1.125rem, 0.769rem + 0.6813vw, 1.25rem); // Min: 18px - Max-20px
+        --heading-six: clamp(1rem, 0.769rem + 0.6813vw, 1.125rem); // Min: 16px - Max-18px
+    
+        /* template main color */
+        --main-h: 40;
+        --main-s: 100%;
+        --main-l: 54%;
+        --main: var(--main-h) var(--main-s) var(--main-l);
+
+        /* template main two color */
+        --main-two-h: 205;
+        --main-two-s: 75%;
+        --main-two-l: 11%;
+        --main-two: var(--main-two-h) var(--main-two-s) var(--main-two-l);
+
+        --heading-color: #072032;
+        --crm-color: #256BFE;
+        --blue-color: #1351D8;
+
+        --font-caveat: "Caveat", cursive;
+        --font-montserrat-alternates: "Montserrat Alternates", sans-serif;
+
+    }
+    
+    h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
+        color: var(--heading-color);
+        font-family: var(--font-montserrat-alternates);
+    }
+    h1, .h1 {
+        font-size: var(--heading-one);
+    }
+    h2, .h2 {
+        font-size: var(--heading-two);
+    }
+    h3, .h3 {
+        font-size: var(--heading-three);
+    }
+    h4, .h4 {
+        font-size: var(--heading-four);
+    }
+    h5, .h5 {
+        font-size: var(--heading-five);
+    }
+    h6, .h6 {
+        font-size: var(--heading-six);
+    }
+    .font-caveat {
+        font-family: var(--font-caveat);
+    }
+    .text-crm {
+        color: var(--crm-color)
+    }
+    .text-blue {
+        color: var(--blue-color)
+    }
+    
+    
+    .btn-main {
+        color: var(--heading-color) !important;
+        &:hover {
+            color: #fff !important;
+        }
+    }
+
+    .hover-style-two {
+        &:hover {
+            color: var(--heading-color) !important;
+        }
+    }
+
+    .header {
+        .header-box-inner {
+            border-radius: 50rem;
+            padding-inline: 24px;
+        }
+    }
+    
+}
+/* Home CRM css end */

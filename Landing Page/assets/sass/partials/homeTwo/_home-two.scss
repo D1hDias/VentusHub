@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+
+.home-two {
+    &:root {    
+        --urbanist: "Urbanist", serif;
+        --dm-serif: "DM Serif Display", serif;
+
+        --heading-one: clamp(2.125rem, -0.0733rem + 5.5vw, 4.375rem); // Min:34px - Max: 70px
+        --heading-two: clamp(1.875rem, 0.7133rem + 2.8846vw, 3.125rem); // Min: 30px - Max: 50px
+        --heading-three: clamp(1.75rem, 0.3353rem + 2.1661vw, 1.875rem); // Min: 28px - Max: 36px
+        --heading-four: clamp(1.5rem, 0.5569rem + 1.444vw, 1.875rem); // Min: 24px - Max: 30px
+        --heading-five: clamp(1.125rem, 1.2rem + 0.722vw, 1.5rem); // Min: 18px - Max: 24px
+        --heading-six: clamp(1rem, 0.769rem + 0.6813vw, 1.25rem); // Min: 16px - Max-20px
+
+        --purple-h: 255;
+        --purple-s: 77%;
+        --purple-l: 57%;
+        --purple: var(--purple-h) var(--purple-s) var(--purple-l);
+
+        --heading-color: #150E3D;
+    }
+    
+    h1 {
+        font-family: var(--urbanist);
+    }
+    h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
+        color: var(--heading-color);
+    }
+    h1, .h1 {
+        font-size: var(--heading-one);
+    }
+    h2, .h2 {
+        font-size: var(--heading-two);
+    }
+    h3, .h3 {
+        font-size: var(--heading-three);
+    }
+    h4, .h4 {
+        font-size: var(--heading-four);
+    }
+    h5, .h5 {
+        font-size: var(--heading-five);
+    }
+    h6, .h6 {
+        font-size: var(--heading-six);
+    }
+    .font-dm-serif {
+        font-family: var(--dm-serif);
+    }   
+    .text-heading {
+        color: var(--heading-color);
+    }
+
+    .home-two-header {
+        position: absolute;
+        &.fixed-header {
+            position: fixed;
+            margin-block-start: 0 ;
+        }
+    }
+
+    .has-submenu > a::before {
+        color: var(--heading-color);
+    }
+
+    .selected-text::before {
+        color: hsl(var(--white)) !important;
+    }
+
+    .btn-main {
+        background: linear-gradient(270deg, #2B85D6 0.5%, #254BE5 49%, #195AFB 98.5%) !important;
+    }
+}

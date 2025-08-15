@@ -102,19 +102,33 @@ const ResponsiveGrid: React.FC<ResponsiveGridProps> = ({
 };
 
 // Variações específicas para casos comuns
-export const KPIGrid: React.FC<Omit<ResponsiveGridProps, 'minItemWidth' | 'maxColumns'>> = (props) => (
-  <ResponsiveGrid
-    {...props}
-    minItemWidth={240}
-    maxColumns={4}
-    breakpoints={{
-      sm: 300,
-      md: 600,
-      lg: 900,
-      xl: 1200
-    }}
-  />
-);
+export const KPIGrid: React.FC<Omit<ResponsiveGridProps, 'minItemWidth' | 'maxColumns'>> = (props) => {
+  const { isMobile } = useResponsive();
+  
+  // Para mobile, usar layout de coluna única otimizado (lista)
+  if (isMobile) {
+    return (
+      <div className="space-y-2">
+        {props.children}
+      </div>
+    );
+  }
+  
+  // Para desktop, usar grid responsivo
+  return (
+    <ResponsiveGrid
+      {...props}
+      minItemWidth={240}
+      maxColumns={4}
+      breakpoints={{
+        sm: 300,
+        md: 600,
+        lg: 900,
+        xl: 1200
+      }}
+    />
+  );
+};
 
 export const CardGrid: React.FC<Omit<ResponsiveGridProps, 'minItemWidth' | 'maxColumns'>> = (props) => (
   <ResponsiveGrid

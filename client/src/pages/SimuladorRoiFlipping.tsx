@@ -434,7 +434,7 @@ export default function SimuladorRoiFlipping() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-background min-h-screen">
+    <div className="simulador-container p-6 space-y-6 bg-background min-h-screen">
       <div className="space-y-6">
         {/* Header */}
 

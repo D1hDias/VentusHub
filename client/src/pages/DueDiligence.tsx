@@ -8,6 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DueDiligenceModal } from "@/components/DueDiligenceModal";
+import { SimpleKPICard } from "@/components/SimpleKPICard";
+import { useResponsive } from "@/hooks/useMediaQuery";
+import { motion } from "framer-motion";
+import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 
 import {
   DropdownMenu,
@@ -64,6 +68,8 @@ export default function DueDiligence() {
   });
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isMobile } = useResponsive();
+  const { getListItemVariants } = useSmoothtTransitions();
 
   const propertiesPerPage = 10;
 
@@ -252,80 +258,123 @@ export default function DueDiligence() {
           </Button>
         </div>
 
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
-            '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.15)`
-          }}>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
-                    <Clock className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Em Andamento</p>
-                    <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{stats.inProgress}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        {/* KPI Cards - Responsivo */}
+        {isMobile ? (
+          // Layout em grid 2x2 para mobile - otimizado para espaço
+          <div className="grid grid-cols-2 gap-2">
+            <motion.div variants={getListItemVariants()} className="w-full">
+              <SimpleKPICard 
+                title="Em Andamento"
+                value={stats.inProgress}
+                icon={Clock}
+                iconBgColor="#001f3f"
+                subtitle="Processos ativos"
+              />
+            </motion.div>
+            <motion.div variants={getListItemVariants()} className="w-full">
+              <SimpleKPICard 
+                title="Pendentes"
+                value={stats.pending}
+                icon={AlertTriangle}
+                iconBgColor="#d47c16"
+                subtitle="Aguardando início"
+              />
+            </motion.div>
+            <motion.div variants={getListItemVariants()} className="w-full">
+              <SimpleKPICard 
+                title="Concluídas"
+                value={stats.completed}
+                icon={CheckCircle}
+                iconBgColor="#1ea475"
+                subtitle="Documentação completa"
+              />
+            </motion.div>
+            <motion.div variants={getListItemVariants()} className="w-full">
+              <SimpleKPICard 
+                title="Total"
+                value={stats.total}
+                icon={Users}
+                iconBgColor="#001f3f"
+                subtitle="Imóveis cadastrados"
+              />
+            </motion.div>
           </div>
+        ) : (
+          // Layout desktop mantém o design atual
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
+              '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.15)`
+            }}>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
+                      <Clock className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Em Andamento</p>
+                      <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{stats.inProgress}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
-            '--hover-shadow': `0 4px 12px rgba(212, 124, 22, 0.15)`
-          }}>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#d47c16'}}>
-                    <AlertTriangle className="h-6 w-6 text-white" />
+            <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
+              '--hover-shadow': `0 4px 12px rgba(212, 124, 22, 0.15)`
+            }}>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#d47c16'}}>
+                      <AlertTriangle className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
+                      <p className="text-2xl font-bold" style={{color: '#d47c16'}}>{stats.pending}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
-                    <p className="text-2xl font-bold" style={{color: '#d47c16'}}>{stats.pending}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
-            '--hover-shadow': `0 4px 12px rgba(30, 164, 117, 0.15)`
-          }}>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#1ea475'}}>
-                    <CheckCircle className="h-6 w-6 text-white" />
+            <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
+              '--hover-shadow': `0 4px 12px rgba(30, 164, 117, 0.15)`
+            }}>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#1ea475'}}>
+                      <CheckCircle className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Concluídas</p>
+                      <p className="text-2xl font-bold" style={{color: '#1ea475'}}>{stats.completed}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Concluídas</p>
-                    <p className="text-2xl font-bold" style={{color: '#1ea475'}}>{stats.completed}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
-            '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.15)`
-          }}>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
-                    <Users className="h-6 w-6 text-white" />
+            <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
+              '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.15)`
+            }}>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
+                      <Users className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Total</p>
+                      <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{stats.total}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total</p>
-                    <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{stats.total}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Search and Filters */}
         <Card>

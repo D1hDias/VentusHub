@@ -37,6 +37,9 @@ import CreditoConsorcio from "./pages/CreditoConsorcio";
 import CreditoCGI from "./pages/CreditoCGI";
 import CreditoPJ from "./pages/CreditoPJ";
 import SimuladorCreditoPJ from "./pages/SimuladorCreditoPJ";
+import Notifications from "./pages/Notifications";
+import Registro from "./pages/Registro";
+import Clientes from "./pages/Clientes";
 
 // Components
 import Layout from "./components/Layout";
@@ -97,6 +100,12 @@ function AppRoutes() {
       <Route path="/configuracoes">
         <ProtectedRoute>
           <Settings />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/notifications">
+        <ProtectedRoute>
+          <Notifications />
         </ProtectedRoute>
       </Route>
 
@@ -175,6 +184,18 @@ function AppRoutes() {
       <Route path="/instrumento">
         <ProtectedRoute>
           <DefinitiveInstrument />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/registro">
+        <ProtectedRoute>
+          <Registro />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/clientes">
+        <ProtectedRoute>
+          <Clientes />
         </ProtectedRoute>
       </Route>
 

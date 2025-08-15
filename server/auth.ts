@@ -29,28 +29,49 @@ export function setupAuth(app: Express) {
     },
   };
 
-  // Usar store do PostgreSQL apenas se o pool estiver disponível
+  // Configuração robusta do store de sessão
   if (pool) {
     try {
       const PgSession = connectPgSimple(session);
       const store = new PgSession({
         pool: pool,
-        tableName: 'user_sessions',
-        createTableIfMissing: false,
+        tableName: 'sessions',
+        createTableIfMissing: true,
         pruneSessionInterval: false,
+        // Configurações de timeout mais robustas
+        ttl: 86400, // 24 horas em segundos
+        schemaName: 'public',
         errorLog: (error: any) => {
-          if (isDevelopment) {
-            console.warn('Session store warning:', error.message);
+          // Só logar erros críticos, ignorar timeouts menores
+          if (!error.message.includes('timeout') && !error.message.includes('Connection terminated')) {
+            console.warn('⚠️ Session store warning:', error.message);
           }
         }
       });
+      
+      // Middleware de fallback para erros de sessão
+      const originalTouch = store.touch;
+      store.touch = function(sid: string, sess: any, callback: Function) {
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session touch timeout')), 3000)
+        );
+        
+        Promise.race([
+          new Promise(resolve => originalTouch.call(this, sid, sess, resolve)),
+          timeoutPromise
+        ]).then(callback).catch(() => {
+          // Falha silenciosa em caso de timeout
+          callback();
+        });
+      };
+      
       sessionConfig.store = store;
-      console.log("✅ Sessão usando PostgreSQL store");
+      console.log("✅ Sessão usando PostgreSQL store com fallback");
     } catch (error) {
-      console.log("⚠️ Usando sessão em memória (desenvolvimento)");
+      console.log("⚠️ Fallback para sessão em memória:", error.message);
     }
   } else {
-    console.log("⚠️ Usando sessão em memória (sem banco)");
+    console.log("⚠️ Usando sessão em memória (desenvolvimento ou sem banco)");
   }
 
   app.use(session(sessionConfig));
@@ -163,12 +184,6 @@ export function setupAuthRoutes(app: Express) {
         creci: user.creci,
       };
 
-      console.log("=== LOGIN DEBUG ===");
-      console.log("Session created:", req.session.user);
-      console.log("Session ID:", req.sessionID);
-      console.log("Session:", req.session);
-      console.log("==================");
-
       // Salvar sessão explicitamente
       req.session.save((err: any) => {
         if (err) {
@@ -176,9 +191,6 @@ export function setupAuthRoutes(app: Express) {
           return res.status(500).json({ message: "Erro ao salvar sessão" });
         }
 
-        console.log("Session saved successfully");
-        console.log("Headers after session save:", res.getHeaders());
-        
         // Remover senha da resposta
         const { password: _, ...userWithoutPassword } = user;
 

@@ -36,7 +36,7 @@ export default function Login() {
     mutationFn: async (data: LoginFormData) => {
       console.log("=== MUTATION STARTED ===");
       console.log("Data:", data);
-      
+
       try {
         const response = await apiRequest("POST", "/api/auth/login", data);
         console.log("Response:", response);
@@ -54,7 +54,7 @@ export default function Login() {
     onSuccess: (data) => {
       console.log("=== LOGIN SUCCESS ===");
       console.log("Success data:", data);
-      
+
       toast({
         title: "Login realizado com sucesso!",
         description: "Redirecionando para o dashboard...",
@@ -68,7 +68,7 @@ export default function Login() {
       console.log("=== LOGIN ERROR ===");
       console.log("Error:", error);
       console.log("===================");
-      
+
       toast({
         title: "Erro no login",
         description: error.message || "E-mail ou senha incorretos",
@@ -85,7 +85,7 @@ export default function Login() {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat relative"
       style={{
         backgroundImage: `url('https://i.ibb.co/MDH82jQG/the-deal-was-successfully-done-hose-agent-and-cus-2025-01-10-05-36-33-utc.jpg')`
@@ -93,21 +93,21 @@ export default function Login() {
     >
       {/* Overlay para melhorar legibilidade */}
       <div className="absolute inset-0 bg-black/70"></div>
-      
+
       {/* Card do login com z-index maior */}
       <div className="relative z-10 w-full max-w-md">
         <Card className="w-full">
           <CardHeader className="space-y-1 text-center">
             <div className="flex items-center justify-center mb-4">
-              <img 
-                src="https://i.ibb.co/jPmggGSj/4-1.png" 
-                alt="Ventus Hub" 
+              <img
+                src="https://i.ibb.co/GQgj134N/logo2.png"
+                alt="Ventus Hub"
                 className="w-[120px] h-auto"
               />
             </div>
             <p className="text-muted-foreground">Entre na sua conta</p>
           </CardHeader>
-          
+
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

@@ -329,7 +329,7 @@ const SimuladorCreditoPJ = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-background min-h-screen">
+    <div className="simulador-container p-6 space-y-6 bg-background min-h-screen">
       <LoadingModal isOpen={isLoading} title="Processando simulação..." />
 
       <div className="space-y-6">

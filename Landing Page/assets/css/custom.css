@@ -1,0 +1,12 @@
+
+
+.como-funciona-item {
+    padding: 30px;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+
+.como-funciona-item:hover {
+    transform: scale(1.05);
+}

@@ -3,6 +3,7 @@ import { Progress } from "@/components/ui/progress";
 import { LucideIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions, useLoadingAnimation } from "@/hooks/useSmoothtTransitions";
+import { useResponsive } from "@/hooks/useMediaQuery";
 import React from "react";
 
 interface KPICardProps {
@@ -15,6 +16,7 @@ interface KPICardProps {
   onClick?: () => void;
   isLoading?: boolean;
   animateValue?: boolean;
+  forceListLayout?: boolean;
 }
 
 export function KPICard({ 
@@ -26,11 +28,16 @@ export function KPICard({
   subtitle, 
   onClick,
   isLoading = false,
-  animateValue = true
+  animateValue = true,
+  forceListLayout = false
 }: KPICardProps) {
   const { getCardVariants, classes, prefersReducedMotion } = useSmoothtTransitions();
+  const { isMobile } = useResponsive();
   const loadingAnimation = useLoadingAnimation();
   const [displayValue, setDisplayValue] = React.useState(0);
+  
+  // Determinar se deve usar layout em lista (mobile por padrão ou forçado)
+  const useListLayout = isMobile || forceListLayout;
   
   // Animação do contador de valores
   React.useEffect(() => {
@@ -128,6 +135,76 @@ export function KPICard({
     className: `${classes.transitionSmooth} border rounded-md m-1`
   };
 
+  if (useListLayout) {
+    // Layout em lista otimizado para mobile
+    return (
+      <CardComponent {...cardProps}>
+        <CardContent className="p-3">
+          <div className="flex items-center gap-2.5">
+            {/* Icon compacto */}
+            <motion.div
+              className="w-9 h-9 rounded-lg flex items-center justify-center text-white relative overflow-hidden flex-shrink-0"
+              style={{ backgroundColor: iconBgColor }}
+              variants={onClick ? iconVariants : undefined}
+              initial={onClick ? "idle" : undefined}
+              whileHover={onClick ? "hover" : undefined}
+            >
+              <Icon className="h-4 w-4 relative z-10" />
+              
+              {/* Pulse effect durante loading */}
+              {isLoading && (
+                <motion.div
+                  className="absolute inset-0 rounded-lg"
+                  style={{ backgroundColor: iconBgColor }}
+                  {...loadingAnimation}
+                />
+              )}
+            </motion.div>
+            
+            {/* Conteúdo principal - layout horizontal otimizado */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-0.5">
+                <p className="text-sm font-medium text-muted-foreground truncate">{title}</p>
+                <motion.p 
+                  className="text-lg font-bold text-primary tabular-nums"
+                  key={displayValue}
+                  initial={prefersReducedMotion ? undefined : { scale: 1.1 }}
+                  animate={prefersReducedMotion ? undefined : { scale: 1 }}
+                  transition={prefersReducedMotion ? undefined : { duration: 0.2, ease: "easeOut" }}
+                >
+                  {isLoading ? (
+                    <motion.span {...loadingAnimation}>
+                      --
+                    </motion.span>
+                  ) : (
+                    displayValue
+                  )}
+                </motion.p>
+              </div>
+              
+              {/* Progress bar compacto */}
+              <div className="flex items-center gap-2">
+                <div className="flex-1 relative h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <motion.div
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary/80 to-primary rounded-full"
+                    variants={prefersReducedMotion ? undefined : progressVariants}
+                    initial={prefersReducedMotion ? undefined : "initial"}
+                    animate={prefersReducedMotion ? undefined : "animate"}
+                    style={{ width: prefersReducedMotion ? `${progress}%` : undefined }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground whitespace-nowrap text-[10px] leading-none">{progress}%</p>
+              </div>
+              
+              <p className="text-xs text-muted-foreground truncate mt-0.5 text-[10px] leading-tight">{subtitle}</p>
+            </div>
+          </div>
+        </CardContent>
+      </CardComponent>
+    );
+  }
+
+  // Layout em grid para desktop (original)
   return (
     <CardComponent {...cardProps}>
       <CardContent className="p-6">

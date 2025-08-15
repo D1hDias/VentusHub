@@ -1,0 +1,40 @@
+/* Hover color class start */
+@each $color, $shades in $colors {
+    @each $shade, $value in $shades {
+        .hover-text-#{$color}-#{$shade} {
+            &:hover {
+                color: var(--#{$color}-#{$shade}) !important;
+            }
+        }
+    }
+}
+
+/* Text Color */
+.hover-text {
+   &-white {
+        &:hover {
+            color: #fff !important;
+        }
+    }
+    &-heading {
+        &:hover {
+            color: hsl(var(--heading-color)) !important;
+        }
+    }
+    &-body {
+        &:hover {
+            color: hsl(var(--body-color)) !important;
+        }
+    }
+    &-yellow {
+        &:hover {
+            color: hsl(var(--yellow)) !important;
+        }
+    }
+    &-spring-green {
+        &:hover {
+            color: hsl(var(--spring-green)) !important;
+        }
+    }
+}
+/* Hover color class end */

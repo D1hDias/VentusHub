@@ -1,0 +1,234 @@
+/* ================================= Padding Css Start =========================== */
+@each $property, $value in $spaces {
+  .tw-p-#{$property} {
+    padding: var(--size-#{$property});
+  }
+}
+
+@each $property, $value in $spaces {
+  .tw-px-#{$property} {
+    padding-inline: var(--size-#{$property});
+  }
+}
+
+@each $property, $value in $spaces {
+  .tw-py-#{$property} {
+    padding-block: var(--size-#{$property});
+  }
+}
+
+.important-tw-py-5  {
+  padding-block: 20px !important;
+}
+.important-tw-px-9 {
+  padding-inline: 36px !important;
+}
+
+@each $property, $value in $spaces {
+  .tw-ps-#{$property} {
+    padding-inline-start: var(--size-#{$property});
+  }
+}
+
+@each $property, $value in $spaces {
+  .tw-pe-#{$property} {
+    padding-inline-end: var(--size-#{$property});
+  }
+}
+
+@each $property, $value in $spaces {
+  .tw-pt-#{$property} {
+    padding-block-start: var(--size-#{$property});
+  }
+}
+
+@each $property, $value in $spaces {
+  .tw-pb-#{$property} {
+    padding-block-end: var(--size-#{$property});
+  }
+}
+
+.tw {
+  &-p-54-px {
+    padding: clamp(1rem, -6.1013rem + 9.4763vw, 3.375rem) !important;
+  }
+  &-p-44-px {
+    padding: clamp(1.5rem, -6.1013rem + 9.4763vw, 2.75rem) !important;
+  }
+  &-p-60-px {
+    padding: clamp(1.5rem, -6.1013rem + 9.4763vw, 3.75rem);
+  }
+  &-pt {
+    &-90-px {
+      padding-block-start: clamp(2.5rem, -1rem + 8vw, 5.625rem);
+    }
+    &-100-px {
+      padding-block-start: 100px;
+    }
+    &-134-px {
+      padding-block-start: 134px;
+    }
+    &-180-px {
+      padding-block-start: 180px;
+    }
+    &-224-px {
+      padding-block-start: 224px;
+    }
+  }
+  &-px {
+    &-36-px {
+      padding-inline: clamp(1rem, -1rem + 8vw, 2.25rem);
+    }
+    &-54-px {
+      padding-inline: clamp(1rem, -6.1013rem + 9.4763vw, 3.375rem);
+    }
+    &-90-px {
+      padding-inline: clamp(1.5rem, -1rem + 8vw, 5.625rem);
+    }
+  }
+  &-px {
+    &-40-px {
+      padding-inline: clamp(1.25rem, -1rem + 8vw, 2.5rem);
+    }
+    &-56-px {
+      padding-inline: clamp(1.5rem, -1rem + 8vw, 3.5rem);
+    }
+    &-88-px {
+      padding-inline: clamp(1.5rem, -1rem + 8vw, 5.5rem);
+    }
+  }
+  &-py {
+    &-76-px {
+      padding-block: clamp(2.5rem, -1rem + 8vw, 4.75rem);
+    }
+    &-84-px {
+      padding-block: clamp(2.5rem, -1rem + 8vw, 5.25rem);
+    }
+    &-90-px {
+      padding-block: clamp(2.5rem, -1rem + 8vw, 5.625rem);
+    }
+    &-80-px {
+      padding-block: 80px;
+    }
+    &-100-px {
+      padding-block: 100px;
+    }
+  }
+  &-pb {
+    &-80-px {
+      padding-block-end: 80px;
+    }
+    &-84-px {
+      padding-block-end: 84px;
+    }
+    &-94-px {
+      padding-block-end: 94px;
+    }
+    &-136-px {
+      padding-block-end: 136px;
+    }
+    &-180-px {
+      padding-block-end: 180px;
+    }
+    &-200-px {
+      padding-block-end: clamp(8.75rem, -1rem + 16vw, 12.5rem);
+    }
+  }
+  &-ps {
+    &-48-px {
+      padding-inline-start: clamp(1.5rem, -1rem + 8vw, 3rem);
+    }
+    &-56-px {
+      padding-inline-start: clamp(1.5rem, -1rem + 8vw, 3.5rem);
+    }
+    &-74-px {
+      padding-inline-start: clamp(1.5rem, -1rem + 8vw, 4.625rem);
+    }
+    &-98-px {
+      padding-inline-start: 98px;
+    }
+  }
+  &-pe {
+    &-100-px {
+      padding-inline-end: 100px;
+    }
+    &-140-px {
+      padding-inline-end: 140px;
+    }
+    &-200-px {
+      @media (min-width: 576px) { 
+        padding-inline-end: 200px;
+      }
+    }
+  }
+}
+
+.tw-lg-ps- {
+  &-12 {
+    @media (min-width: 992px) {
+      padding-inline-start: 48px;
+    }
+  }
+}
+
+.py-120 {
+  padding-block-start: 60px;
+  padding-block-end: 60px;
+  @media (min-width: 576px) {
+    padding-block-start: 80px;
+    padding-block-end: 80px;
+  }
+  @media (min-width: 992px) {
+    padding-block-start: 120px;
+    padding-block-end: 120px;
+  }
+}
+.pt-120 {
+    padding-block-start: 60px;
+    @media (min-width: 576px) {
+      padding-block-start: 80px;
+    }
+    @media (min-width: 992px) {
+    padding-block-start: 120px;
+  }
+}
+.pb-120 {
+    padding-block-end: 60px;
+    @media (min-width: 576px) {
+      padding-block-end: 80px;
+    }
+    @media (min-width: 992px) {
+      padding-block-end: 120px;
+    }
+}
+.py-60 {
+    padding-block-start: 30px;
+    padding-block-end: 30px;
+    @media (min-width: 576px) {
+      padding-block-start: 40px;
+      padding-block-end: 40px;
+    }
+    @media (min-width: 992px) {
+      padding-block-start: 60px;
+      padding-block-end: 60px;
+    }
+}
+.pt-60 {
+    padding-block-start: 30px;
+    @media (min-width: 576px) {
+      padding-block-start: 40px;
+    }
+    @media (min-width: 992px) {
+      padding-block-start: 60px;
+    }
+}
+  .pb-60 {
+    padding-block-end: 30px;
+    @media (min-width: 576px) {
+      padding-block-end: 40px;
+    }
+    @media (min-width: 992px) {
+      padding-block-end: 60px;
+    }
+}
+/* ================================= Padding Css End =========================== */

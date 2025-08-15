@@ -90,7 +90,7 @@ export default function Register() {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat relative"
       style={{
         backgroundImage: `url('https://i.ibb.co/MDH82jQG/the-deal-was-successfully-done-hose-agent-and-cus-2025-01-10-05-36-33-utc.jpg')`
@@ -98,15 +98,15 @@ export default function Register() {
     >
       {/* Overlay para melhorar legibilidade */}
       <div className="absolute inset-0 bg-black/20"></div>
-      
+
       {/* Card do registro com z-index maior */}
       <div className="relative z-10 w-full max-w-lg">
         <Card className="w-full">
           <CardHeader className="space-y-1 text-center">
             <div className="flex items-center justify-center mb-4">
-              <img 
-                src="https://i.ibb.co/jPmggGSj/4-1.png" 
-                alt="Ventus Hub" 
+              <img
+                src="https://i.ibb.co/GQgj134N/logo2.png"
+                alt="Ventus Hub"
                 className="w-[120px] h-auto"
               />
             </div>

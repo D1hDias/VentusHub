@@ -5,6 +5,8 @@ import { scroller, Element } from 'react-scroll';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { LoadingModal } from '@/components/LoadingModal';
+import IndicadoresMercado from '@/components/IndicadoresMercado';
+import { useIndicadoresMercado } from '@/hooks/useIndicadoresMercado';
 import logoInter from '@/assets/logo-inter.png';
 import logoItau from '@/assets/logo-itau.png';
 import logoSantander from '@/assets/logo-santander.png';
@@ -12,8 +14,43 @@ import logoGalleria from '@/assets/logo-galleria.png';
 import logoBari from '@/assets/logo-bari.png';
 import logoVentusHub from '@/assets/logo.png';
 
+// Interfaces TypeScript
+interface ImageData {
+  dataUrl: string;
+  width: number;
+  height: number;
+  aspectRatio: number;
+}
+
+interface ResultadoBanco {
+  banco?: string;
+  cor?: string;
+  logo?: string;
+  taxaJuros?: number;
+  primeiraParcela?: number;
+  ultimaParcela?: number;
+  totalPago?: number;
+  totalJuros?: number;
+  totalSeguros?: number;
+  cetAnual?: number;
+  comprometimentoRenda?: number;
+  aprovado?: boolean;
+  observacao?: string;
+  valorFinanciado?: number;
+  valorEntrada?: number;
+  parcelas?: number;
+  prazo?: number;
+  sistemaAdaptado?: boolean;
+  sistemaUsado?: string;
+  erro?: string;
+}
+
+interface Resultados {
+  [bancoKey: string]: ResultadoBanco;
+}
+
 // Função para converter imagem em base64 e obter dimensões
-const imageToBase64 = (url) => {
+const imageToBase64 = (url: string): Promise<ImageData> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -36,7 +73,7 @@ const imageToBase64 = (url) => {
 };
 
 // Função para converter hex para RGB
-const hexToRgb = (hex) => {
+const hexToRgb = (hex: string) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
     r: parseInt(result[1], 16),
@@ -46,17 +83,17 @@ const hexToRgb = (hex) => {
 };
 
 // Função TIR simplificada e robusta para cálculo do CET
-const calcularTIR = (fluxosCaixa, datas) => {
+const calcularTIR = (fluxosCaixa: number[], datas: Date[]) => {
   // Método de bissecção mais estável para TIR
   let taxaMin = -0.99; // Taxa mínima possível
   let taxaMax = 10.0;   // Taxa máxima razoável (1000% ao ano)
   const tolerancia = 1e-8;
   const maxIteracoes = 100;
 
-  const calcularVPL = (taxa) => {
+  const calcularVPL = (taxa: number) => {
     let vpl = 0;
     for (let j = 0; j < fluxosCaixa.length; j++) {
-      const diasDiferenca = (datas[j] - datas[0]) / (1000 * 60 * 60 * 24);
+      const diasDiferenca = (datas[j].getTime() - datas[0].getTime()) / (1000 * 60 * 60 * 24);
       const fator = Math.pow(1 + taxa, diasDiferenca / 365);
       vpl += fluxosCaixa[j] / fator;
     }
@@ -184,7 +221,8 @@ const BANCOS_CONFIG = {
     observacaoEspecial: "Taxa de juros pode variar de acordo com o seu relacionamento com o banco.",
     taxas: {
       PRICE_TR: 22.41,     // 1.70% a.m. efetiva = 22.41% a.a.
-      SAC_TR: 22.41        // 1.70% a.m. efetiva = 22.41% a.a.
+      SAC_TR: 22.41,       // 1.70% a.m. efetiva = 22.41% a.a.
+      PRICE_IPCA: 19.44    // 1.19% a.m. + IPCA (4.2%) = 19.44% a.a.
     },
     seguros: {
       mip: [
@@ -225,7 +263,8 @@ const BANCOS_CONFIG = {
     observacaoEspecial: "Percentual de financiamento e taxa de juros podem variar de acordo com o seu relacionamento com o banco.",
     taxas: {
       PRICE_TR: 22.41,     // 1.70% a.m. efetiva = 22.41% a.a.
-      SAC_TR: 22.41        // 1.70% a.m. efetiva = 22.41% a.a.
+      SAC_TR: 22.41,       // 1.70% a.m. efetiva = 22.41% a.a.
+      PRICE_IPCA: 19.44    // 1.19% a.m. + IPCA (4.2%) = 19.44% a.a.
     },
     seguros: {
       mip: [
@@ -537,7 +576,7 @@ const SimuladorCGI = () => {
   const [tipoFinanciamento, setTipoFinanciamento] = useState('PRICE_TR');
 
   // Estados dos resultados
-  const [resultados, setResultados] = useState(null);
+  const [resultados, setResultados] = useState<Resultados | null>(null);
   const [mostrarResultados, setMostrarResultados] = useState(false);
   const [erro, setErro] = useState('');
 
@@ -545,18 +584,24 @@ const SimuladorCGI = () => {
   const [bancoExibindo, setBancoExibindo] = useState('');
 
   // Estado para armazenar as tabelas de amortização
-  const [tabelasAmortizacao, setTabelasAmortizacao] = useState({});
+  const [tabelasAmortizacao, setTabelasAmortizacao] = useState<any>({});
 
   // Estado para controlar o modal de carregamento
   const [isLoadingModalOpen, setIsLoadingModalOpen] = useState(false);
 
   // Estado para controlar a exibição da tabela de amortização
   const [mostrarTabela, setMostrarTabela] = useState(false);
-  const [tabelaAtual, setTabelaAtual] = useState(null);
+  const [tabelaAtual, setTabelaAtual] = useState<any>(null);
+
+  // Estado para incluir previsão IPCA
+  const [incluirPrevisaoIPCA, setIncluirPrevisaoIPCA] = useState(false);
+
+  // Hook para indicadores de mercado
+  const { indicadores, loading: indicadoresLoading, error: indicadoresError } = useIndicadoresMercado();
 
 
   // Função para alternar seleção de banco
-  const toggleBanco = (codigoBanco) => {
+  const toggleBanco = (codigoBanco: string) => {
     setBancosEscolhidos(prev => {
       const novosBancos = prev.includes(codigoBanco)
         ? prev.filter(b => b !== codigoBanco)
@@ -797,14 +842,8 @@ const SimuladorCGI = () => {
         chaveIndexador = 'PRICE_IPCA';
         sistemaAdaptado = true;
       }
-      // Se selecionou PRICE_IPCA mas o banco trabalha com TR
-      else if (tipoFinanciamento === 'PRICE_IPCA' && (bancoKey === 'itau' || bancoKey === 'santander')) {
-        chaveIndexador = 'PRICE_TR';
-        sistemaAdaptado = true;
-      }
-      // Para banco Inter que trabalha com ambos, manter a seleção do usuário
-      else if (bancoKey === 'inter') {
-        // Inter aceita todos os sistemas, usar como solicitado
+      // Todos os bancos agora aceitam PRICE_IPCA, manter a seleção do usuário
+      else {
         chaveIndexador = tipoFinanciamento;
       }
 
@@ -834,9 +873,23 @@ const SimuladorCGI = () => {
       }
 
       // Calcular parcelas baseado no sistema selecionado
-      const parcelas = chaveIndexador.startsWith('SAC')
+      let parcelas = chaveIndexador.startsWith('SAC')
         ? calcularTabelaSAC(valorFinanciado, taxaMensal, prazo, bancoKey, idadeInt, valor, tipoImovel)
         : calcularTabelaPrice(valorFinanciado, taxaMensal, prazo, bancoKey, idadeInt, valor, tipoImovel);
+
+      // Aplicar previsão IPCA se habilitada e for sistema IPCA
+      if (incluirPrevisaoIPCA && chaveIndexador.includes('IPCA')) {
+        const taxaIPCAAnual = indicadores?.ipca || 4.2;
+        const taxaIPCAMensal = Math.pow(1 + taxaIPCAAnual / 100, 1 / 12) - 1;
+
+        parcelas = parcelas.map(parcela => ({
+          ...parcela,
+          // Aplicar correção IPCA acumulada nas parcelas futuras
+          parcela: parcela.numero > 1 ?
+            parcela.parcela * Math.pow(1 + taxaIPCAMensal, parcela.numero - 1) :
+            parcela.parcela
+        }));
+      }
 
       const primeiraParcela = parcelas[0];
       const ultimaParcela = parcelas[parcelas.length - 1];
@@ -864,10 +917,13 @@ const SimuladorCGI = () => {
         cetAnual: cetInfo.cetAnual,
         comprometimentoRenda: comprometimentoRenda,
         aprovado: aprovado,
-        observacao: banco.observacaoEspecial,
+        observacao: incluirPrevisaoIPCA && chaveIndexador.includes('IPCA')
+          ? `${banco.observacaoEspecial || ''} Previsão IPCA de ${indicadores?.ipca || 4.2}% a.a. aplicada nas parcelas futuras.`.trim()
+          : banco.observacaoEspecial,
         valorFinanciado: valorFinanciado,
         valorEntrada: valorEntrada,
         parcelas: parcelas.length,
+        prazo: prazo,
         sistemaAdaptado: sistemaAdaptado,
         sistemaUsado: chaveIndexador
       };
@@ -1225,7 +1281,7 @@ const SimuladorCGI = () => {
           } else {
             console.warn('Parcelas não encontradas para o banco:', key);
             // Gerar tabela básica se não houver parcelas detalhadas
-            const prazoNum = parseInt(prazo) || 240;
+            const prazoNum = parseInt(prazo.toString()) || 240;
             const valorParcela = resultado.primeiraParcela || 0;
             for (let i = 1; i <= Math.min(prazoNum, 12); i++) { // Mostrar apenas 12 primeiras se não houver dados
               parcelasData.push([
@@ -1498,16 +1554,26 @@ const SimuladorCGI = () => {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-background min-h-screen">
+    <div className="simulador-container p-6 space-y-6 bg-background min-h-screen">
+
       {/* Seleção de Bancos */}
       <div className="bg-white rounded-lg shadow-sm">
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Building className="h-5 w-5" />
-            Escolha os Bancos para Comparar
+            Escolha os bancos para comparar
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Selecione um ou mais bancos para ver as condições específicas de cada um</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Selecione um ou mais bancos para ver as condições específicas de cada um</p><br></br>
+
+          {/* Widget de Indicadores de Mercado */}
+          <IndicadoresMercado
+            indicadores={indicadores}
+            loading={indicadoresLoading}
+            error={indicadoresError}
+          />
         </div>
+
+
 
         <div className="p-6">
           <div className="flex justify-end items-center mb-4">
@@ -1544,8 +1610,12 @@ const SimuladorCGI = () => {
                           alt={`Logo ${config.nome}`}
                           className="w-[100px] h-16 object-contain rounded"
                           onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const nextSibling = target.nextSibling as HTMLElement;
+                            if (nextSibling) {
+                              nextSibling.style.display = 'flex';
+                            }
                           }}
                         />
                       ) : null}
@@ -1757,6 +1827,39 @@ const SimuladorCGI = () => {
                 </div>
               </div>
 
+              {/* Toggle de Previsão IPCA */}
+              {tipoFinanciamento.includes('IPCA') && (
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <div>
+                        <label className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                          Incluir previsão de IPCA nos cálculos
+                        </label>
+                        <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                          Aplica a taxa IPCA anual de {indicadores?.ipca ? `${indicadores.ipca}%` : '4.2%'} nas projeções de parcelas futuras
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIncluirPrevisaoIPCA(!incluirPrevisaoIPCA)}
+                      className="relative inline-flex items-center"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={incluirPrevisaoIPCA}
+                        onChange={() => setIncluirPrevisaoIPCA(!incluirPrevisaoIPCA)}
+                        className="sr-only"
+                      />
+                      <div className={`w-11 h-6 rounded-full relative transition-colors duration-200 ${incluirPrevisaoIPCA ? 'bg-green-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                        <div className={`absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform duration-200 ${incluirPrevisaoIPCA ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Botões de Ação */}
               <div className="border-t pt-6">

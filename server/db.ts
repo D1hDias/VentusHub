@@ -25,11 +25,20 @@ const conectarComRetry = async (tentativas = 3): Promise<boolean> => {
 
       neonConfig.webSocketConstructor = ws.default;
 
+      // Configuração mais robusta para lidar com timeouts
+      neonConfig.poolQueryViaFetch = true; // Usar fetch em vez de WebSocket quando possível
+      neonConfig.useSecureWebSocket = true;
+      
       pool = new Pool({ 
         connectionString: process.env.DATABASE_URL,
-        max: 5, // Reduzido para evitar muitas conexões
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 8000,
+        max: 3, // Reduzido ainda mais
+        min: 0, // Permitir zero conexões ativas
+        idleTimeoutMillis: 20000, // Reduzido
+        connectionTimeoutMillis: 5000, // Reduzido
+        query_timeout: 10000, // Timeout de query
+        statement_timeout: 10000, // Timeout de statement
+        // Configurações de reconexão
+        allowExitOnIdle: true,
       });
 
       // Teste de conectividade rápido
@@ -76,17 +85,12 @@ try {
   console.log(`❌ Falha definitiva na conexão Neon: ${error.message}`);
   
   if (isDevelopment) {
-    console.log("🔧 Modo desenvolvimento: Criando mock do banco...");
+    console.log("🔧 Modo desenvolvimento: Usando banco fallback...");
     
-    // Mock simples para desenvolvimento sem banco
-    db = {
-      select: () => ({ from: () => ({ where: () => [] }) }),
-      insert: () => ({ values: () => ({ returning: () => [{ id: 1 }] }) }),
-      update: () => ({ set: () => ({ where: () => ({ returning: () => [{ id: 1 }] }) }) }),
-      delete: () => ({ where: () => ({ returning: () => [{ id: 1 }] }) }),
-    };
+    const { createFallbackDB } = await import('./db-fallback.js');
+    db = createFallbackDB();
     
-    console.log("✅ Mock do banco criado para desenvolvimento");
+    console.log("✅ Banco fallback criado para desenvolvimento");
   } else {
     throw error; // Em produção, falhar se não conseguir conectar
   }

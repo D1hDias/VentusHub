@@ -1,0 +1,52 @@
+.positioned-image {
+    max-width: 10%;
+    z-index: -1;
+    &.one {
+        inset-block-start: 64px;
+        inset-inline-start: 0;
+    }
+    &.two {
+        inset-inline-start: 26%;
+        inset-block-start: 12px;
+    }
+    &.three {
+        inset-inline-start: 48%;
+        inset-block-start: 24px;
+    }
+    &.four {
+        inset-inline-end: 26%;
+        inset-block-start: 0;
+    }
+    &.five {
+        inset-inline-end: 9%;
+        inset-block-start: 64px;
+    }
+    &.six {
+        inset-block-start: 42%;
+        inset-inline-end: 0;
+    }
+    &.seven {
+        inset-block-end: 16%;
+        inset-inline-end: 105px;
+    }
+    &.eight {
+        inset-inline-end: 23%;
+        inset-block-end: 35px;
+    }
+    &.nine {
+        inset-inline-end: 46%;
+        inset-block-end: 0;
+    }
+    &.ten {
+        inset-inline-start: 25%;
+        inset-block-end: 64px;
+    }
+    &.eleven {
+        inset-inline-start: 68px;
+        inset-block-end: 20%;
+    }
+    &.twelve {
+        inset-block-start: 38%;
+        inset-inline-start: 10%;
+    }
+}

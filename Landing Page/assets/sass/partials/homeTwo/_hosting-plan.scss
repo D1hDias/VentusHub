@@ -1,0 +1,29 @@
+/* =========================== Hosting plan section start =============================== */
+.hosting-plan-slider {
+    height: 100%;
+    height: 450px;
+    .swiper-slide {
+        border-inline-end: 1px solid var(--neutral-100);
+        &:last-child {
+            border-inline-end: 0;
+        }
+    }
+}
+
+.hosting-plan-item {
+    .hosting-plan-btn {
+        // transition: 0s !important;
+    }
+    .button__label {
+        transition: 0s !important;
+    }
+    
+    &:hover {
+        .hosting-plan-btn {
+            &:hover {
+                color: #fff !important;
+            }            
+        }
+    }
+}
+/* =========================== Hosting plan section End =============================== */

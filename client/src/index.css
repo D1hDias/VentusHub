@@ -24,6 +24,27 @@
   --ring: hsl(20, 14.3%, 4.1%);
   --radius: 0.5rem;
   
+  /* Modern Mobile Menu Variables */
+  --component-inactive-color: var(--muted-foreground);
+  --component-bg: var(--card);
+  --component-shadow: var(--border);
+  --component-active-bg: var(--secondary);
+  --component-line-inactive-color: var(--border);
+  --component-active-color-default: var(--primary);
+  
+  /* Modern Interactive Menu Variables */
+  --menu-bg: var(--card);
+  --menu-border: var(--border);
+  --menu-shadow: 0 2px 10px rgba(0, 31, 63, 0.1);
+  --menu-item-hover-bg: var(--accent);
+  --menu-icon-size: 24px;
+  --menu-text-size: 0.875rem;
+  --menu-spacing: 0.75rem;
+  --chart-2: hsl(159, 69%, 38%);
+  --chart-3: hsl(32, 81%, 46%);
+  --chart-4: hsl(0, 72%, 51%);
+  --chart-5: hsl(224, 71%, 42%);
+  
   /* Fluid Typography Scale */
   --step--2: clamp(0.69rem, 0.66rem + 0.18vw, 0.83rem);
   --step--1: clamp(0.83rem, 0.78rem + 0.29vw, 1.04rem);
@@ -62,6 +83,104 @@
   --warning-foreground: hsl(0, 0%, 100%);
   --info: #001f3f;
   --info-foreground: hsl(0, 0%, 100%);
+}
+
+/* Enhanced Mobile Menu Scrollbar Styles for Chrome DevTools Compatibility */
+.mobile-submenu-scroll {
+  /* Ensure consistent scrolling behavior across devices and emulation */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+  overscroll-behavior-x: none;
+  /* Improved scrolling performance and momentum */
+  transform: translateZ(0);
+  will-change: scroll-position;
+  /* Chrome DevTools emulator specific fixes */
+  touch-action: auto !important;
+  overflow-anchor: none;
+  -webkit-scroll-behavior: smooth;
+  
+  /* Enhanced for Chrome DevTools emulation */
+  position: relative;
+  isolation: isolate;
+}
+
+.mobile-submenu-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.mobile-submenu-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.mobile-submenu-scroll::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 4px;
+  border: 1px solid transparent;
+  background-clip: content-box;
+  min-height: 20px;
+}
+
+.mobile-submenu-scroll::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+  background-clip: content-box;
+}
+
+.mobile-submenu-scroll::-webkit-scrollbar-thumb:active {
+  background: hsl(var(--muted-foreground) / 0.7);
+  background-clip: content-box;
+}
+
+/* Firefox scrollbar styling */
+.mobile-submenu-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+
+/* Enhanced scroll container for better DevTools compatibility */
+.mobile-submenu-scroll::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: transparent;
+  pointer-events: none;
+}
+
+/* Enhanced touch area for mobile menu items - Ultra Compact version */
+.mobile-submenu-item {
+  /* Ultra compact touch target size while maintaining usability */
+  min-height: 36px;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Smooth transitions for better UX */
+  transition: all 0.2s ease-in-out;
+  
+  /* Ultra compact spacing and typography */
+  line-height: 1.1;
+}
+
+.mobile-submenu-item:active {
+  transform: scale(0.97);
+  transition-duration: 0.1s;
+}
+
+/* Optimize scrollable container for compact layout */
+.mobile-submenu-scroll {
+  /* Reduce padding for more content visibility */
+  padding-bottom: 0.75rem;
+}
+
+.mobile-submenu-scroll .grid {
+  /* Tighter gap between items */
+  gap: 0.5rem;
 }
 
 .dark {
@@ -103,6 +222,23 @@
   
   /* Ring */
   --ring: hsl(210, 100%, 60%);
+  
+  /* Modern Mobile Menu Dark Variables */
+  --component-inactive-color: var(--muted-foreground);
+  --component-bg: var(--card);
+  --component-shadow: var(--border);
+  --component-active-bg: var(--secondary);
+  --component-line-inactive-color: var(--muted-foreground);
+  --component-active-color-default: var(--primary);
+  
+  /* Modern Interactive Menu Dark Variables */
+  --menu-bg: var(--card);
+  --menu-border: var(--border);
+  --menu-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  --menu-item-hover-bg: var(--accent);
+  --menu-icon-size: 24px;
+  --menu-text-size: 0.875rem;
+  --menu-spacing: 0.75rem;
   
   /* Sidebar Variables - Mantendo #001f3f original */
   --sidebar-background: linear-gradient(135deg, #001f3f, hsl(210, 100%, 18%));
@@ -323,6 +459,61 @@
   .main-content-collapsed {
     margin-left: 60px;
   }
+
+  /* Sidebar smooth transitions */
+  .sidebar-smooth-transition {
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar-smooth-transition-fast {
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Mobile sidebar transitions */
+  @media (max-width: 1023px) {
+    .sidebar-smooth-transition,
+    .sidebar-smooth-transition-fast {
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+
+  /* Elementos internos da sidebar */
+  .sidebar-content-transition {
+    transition: padding 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar-content-transition-fast {
+    transition: padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Logo transitions within sidebar */
+  .sidebar-content-transition img,
+  .sidebar-content-transition-fast img {
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar-content-transition-fast img {
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Header and main content transitions */
+  .layout-transition {
+    transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .layout-transition-fast {
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
   
   /* Custom gradient backgrounds */
   .gradient-primary {
@@ -393,6 +584,148 @@
   .dark .status-completed {
     @apply bg-blue-500/20 text-blue-400 border-blue-800;
   }
+  
+  /* Modern Interactive Menu Styles */
+  .menu {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: var(--menu-bg);
+    border-top: 1px solid var(--menu-border);
+    box-shadow: var(--menu-shadow);
+    padding: var(--menu-spacing);
+    padding-bottom: max(var(--menu-spacing), env(safe-area-inset-bottom));
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    gap: 0.5rem;
+  }
+
+  .menu__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 12px;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    min-height: 52px;
+    min-width: 52px;
+  }
+
+  .menu__item:hover {
+    background: var(--menu-item-hover-bg);
+    transform: translateY(-2px);
+  }
+
+  .menu__item.active {
+    background: var(--component-active-bg);
+  }
+
+  .menu__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.25rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .menu__icon .icon,
+  .menu__icon [data-avatar-root] {
+    width: var(--menu-icon-size);
+    height: var(--menu-icon-size);
+    color: var(--component-inactive-color);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .menu__item.active .menu__icon .icon,
+  .menu__item.active .menu__icon [data-avatar-root] {
+    color: var(--component-active-color, var(--component-active-color-default));
+    transform: scale(1.1);
+  }
+
+  .menu__item:hover .menu__icon .icon,
+  .menu__item:hover .menu__icon [data-avatar-root] {
+    transform: scale(1.05);
+  }
+
+  .menu__item.active:hover .menu__icon .icon,
+  .menu__item.active:hover .menu__icon [data-avatar-root] {
+    transform: scale(1.15);
+  }
+
+  .menu__text {
+    font-size: var(--menu-text-size);
+    font-weight: 500;
+    color: var(--component-inactive-color);
+    opacity: 0.8;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    line-height: 1.2;
+    position: relative;
+    text-transform: capitalize;
+  }
+
+  .menu__text.active {
+    color: var(--component-active-color, var(--component-active-color-default));
+    opacity: 1;
+    font-weight: 600;
+  }
+
+  .menu__text.active::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: var(--lineWidth, 0);
+    height: 2px;
+    background: var(--component-active-color, var(--component-active-color-default));
+    border-radius: 1px;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Bounce animation for active icons */
+  @keyframes menuIconBounce {
+    0%, 20%, 50%, 80%, 100% {
+      transform: scale(1.1);
+    }
+    40% {
+      transform: scale(1.2);
+    }
+    60% {
+      transform: scale(1.15);
+    }
+  }
+
+  .menu__item.active .menu__icon .icon,
+  .menu__item.active .menu__icon [data-avatar-root] {
+    animation: menuIconBounce 0.6s ease-in-out;
+  }
+
+  /* Responsive adjustments for smaller screens */
+  @media (max-width: 380px) {
+    .menu {
+      padding: 0.5rem 0.25rem;
+      gap: 0.25rem;
+    }
+    
+    .menu__item {
+      min-width: 44px;
+      min-height: 48px;
+      padding: 0.375rem;
+    }
+    
+    .menu__text {
+      font-size: 0.75rem;
+    }
+  }
 }
 
 @layer utilities {
@@ -413,7 +746,7 @@
     
     /* Mobile spacing improvements */
     .mobile-padding {
-      @apply px-4 py-3;
+      @apply px-4 pb-3;
     }
     
     .mobile-form-spacing {
@@ -679,3 +1012,147 @@ body, main, div, section, aside {
 .text-fluid-2xl { font-size: var(--step-3); }
 .text-fluid-3xl { font-size: var(--step-4); }
 .text-fluid-4xl { font-size: var(--step-5); }
+
+/* Classe específica para simuladores - reduz fonte no desktop */
+.simulador-container {
+  font-size: var(--step-0);
+}
+
+@media (min-width: 768px) {
+  .simulador-container {
+    font-size: var(--step--1); /* Usa uma fonte menor no desktop */
+  }
+}
+
+/* Slide Menu - Mobile Navigation com efeito deslizante */
+.slide-menu {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: var(--component-bg);
+  border-top: 1px solid var(--component-shadow);
+  padding: 0.5rem 1rem;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  gap: 0.5rem;
+}
+
+/* Garantir visibilidade dos ícones */
+.slide-menu * {
+  box-sizing: border-box;
+}
+
+.slide-menu svg {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.slide-menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  white-space: nowrap;
+  
+  /* Estado padrão: apenas ícone */
+  width: 48px;
+}
+
+.slide-menu__item:hover {
+  background: var(--component-active-bg);
+}
+
+.slide-menu__item.active {
+  background: var(--component-active-bg);
+  color: var(--component-active-color, var(--component-active-color-default));
+}
+
+.slide-menu__item.expanded {
+  /* Estado expandido: ícone + texto */
+  width: auto;
+  min-width: 120px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  background: var(--component-active-bg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.slide-menu__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 24px;
+  height: 24px;
+  opacity: 1;
+  visibility: visible;
+}
+
+.slide-menu__icon svg,
+.slide-menu__icon [data-avatar-root] {
+  color: var(--component-inactive-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 1;
+  visibility: visible;
+}
+
+.slide-menu__item.active .slide-menu__icon svg,
+.slide-menu__item.active .slide-menu__icon [data-avatar-root] {
+  color: var(--component-active-color, var(--component-active-color-default));
+  opacity: 1;
+  visibility: visible;
+}
+
+.slide-menu__item.expanded .slide-menu__icon svg,
+.slide-menu__item.expanded .slide-menu__icon [data-avatar-root] {
+  color: var(--component-active-color, var(--component-active-color-default));
+  transform: scale(1.1);
+  opacity: 1;
+  visibility: visible;
+}
+
+.slide-menu__text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--component-inactive-color);
+  margin-left: 0.5rem;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0s;
+}
+
+.slide-menu__item.expanded .slide-menu__text {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--component-active-color, var(--component-active-color-default));
+  transition-delay: 0.1s;
+}
+
+/* Animação de pulse para indicar interatividade */
+@keyframes subtlePulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.slide-menu__item.expanded .slide-menu__icon {
+  animation: subtlePulse 2s ease-in-out infinite;
+}

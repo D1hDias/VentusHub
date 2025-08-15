@@ -333,7 +333,7 @@ export default function SimuladorComissaoEMetas() {
   };
 
   return (
-    <div className="p-6 space-y-6 bg-background min-h-screen">
+    <div className="simulador-container p-6 space-y-6 bg-background min-h-screen">
       <div className="space-y-6">
 
         {/* Layout Principal com duas colunas */}

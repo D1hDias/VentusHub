@@ -1,0 +1,1705 @@
+/* ======================= Css table of contents =================================
+ * template name: SassTech
+ * version: 1.0
+ * description: SassTech - Saas Software and IT Solution Multipurpose HTML Template
+ * author: wowtheme7
+ * author-url: https://themeforest.net/user/wowtheme7
+
+  1. abstracts
+    1.1 --> functions
+    1.2 --> mixins
+    1.3 --> variables
+
+ 2. Components
+    2.1 --> accordion
+    2.2 --> button
+    2.3 --> form
+    2.4 --> swiper
+    2.5 --> tab
+    2.6 --> table
+    2.7 --> toast
+
+ 3. Layout
+    3.1 --> Custom Cursor
+    3.2 --> header
+    3.3 --> mobile nav menu
+    3.4 --> preloader
+    3.5 --> scroll top
+    3.6 --> slick
+
+ 4. Utilities
+    4.1 --> aspect
+    4.2 --> bg img
+    4.3 --> bg
+    4.4 --> border
+    4.5 --> classes
+    4.6 --> colors hover
+    4.7 --> colors
+    4.8 --> cursor
+    4.9 --> duration
+    4.10 --> font size
+    4.11 --> font
+    4.12 --> gap
+    4.13 --> grid
+    4.14 --> group
+    4.15 --> height
+    4.16 --> inset
+    4.17 --> line clamp
+    4.18 --> line height
+    4.19 --> margin
+    4.20 --> max height
+    4.21 --> max width
+    4.22 --> outline
+    4.23 --> overlay
+    4.24 --> padding
+    4.25 --> placeholder
+    4.26 --> rotate
+    4.27 --> rounded
+    4.28 --> scale
+    4.29 --> scrollbar
+    4.30 --> shadow
+    4.31 --> transition
+    4.32 --> translate
+    4.33 --> typography
+    4.34 --> underline
+    4.35 --> width
+    4.36 --> z index
+
+ 5. Partials
+    5.1 --> About
+    5.2 --> animated radial
+    5.3 --> animation
+    5.4 --> blur
+    5.5 --> breadcrumb
+    5.6 --> clip path
+    5.7 --> gradient
+    5.8 --> splitText
+    5.9 --> testimonials
+    5.10 --> top features
+
+ 6. Partials --> homeFive
+    6.1 --> Home five
+    6.2 --> offer five
+
+ 7. Partials --> homeFour
+    7.1 --> banner four
+    7.2 --> home crm
+    7.3 -->  testimonials four
+
+ 8. Partials --> homeThree
+    8.1 --> banner three
+    8.2 --> distraction
+    8.3 -->  feature three
+    8.4 -->  home three
+
+ 9. Partials --> homeTwo
+    9.1 --> banner two
+    9.2 --> home two
+    9.3 --> hosting plan
+    9.4 --> pricing plan
+    9.5 --> service
+
+ 10. Partials --> homeTwo
+    10.1 --> about page
+    10.2 --> app integration
+    10.3 --> crm page
+    10.4 --> play animation
+    10.5 --> shop
+======================= Css table of contents ================================= */
+/* Convert to Rem start */
+/* Convert to Rem End */
+/* ======================== Functions Css End ======================= */
+/* ======================== Functions Css End ======================= */
+/* Font Family*/
+@import url("https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&family=Vidaloka&display=swap");
+/* ========================= Variable Css Start ======================== */
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap");
+
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap");
+
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap");
+
+:root {
+  /* Font Family Variable */
+    --heading-font: "Satoshi", sans-serif;
+    --body-font: "Satoshi", sans-serif;
+  /* Font Size Variable Start */
+    --heading-one: clamp(2.125rem, -0.0733rem + 5.5vw, 4.4375rem);
+    --heading-two: clamp(1.875rem, 0.7133rem + 2.8846vw, 3.75rem);
+    --heading-three: clamp(1.75rem, 0.3353rem + 2.1661vw, 3rem);
+    --heading-four: clamp(1.5rem, 0.5569rem + 1.444vw, 1.875rem);
+    --heading-five: clamp(1.125rem, 1.2rem + 0.722vw, 1.5rem);
+    --heading-six: clamp(1rem, 0.769rem + 0.6813vw, 1.25rem);
+  /* Font Size End */
+  /* template main color */
+    --main-h: 221;
+    --main-s: 84%;
+    --main-l: 46%;
+    --main: var(--main-h) var(--main-s) var(--main-l);
+    --main-two-h: 249;
+    --main-two-s: 63%;
+    --main-two-l: 15%;
+    --main-two: var(--main-two-h) var(--main-two-s) var(--main-two-l);
+    --yellow-h: 40;
+    --yellow-s: 100%;
+    --yellow-l: 54%;
+    --yellow: var(--yellow-h) var(--yellow-s) var(--yellow-l);
+    --spring-green-h: 144;
+    --spring-green-s: 80%;
+    --spring-green-l: 55%;
+    --spring-green: var(--spring-green-h) var(--spring-green-s) var(--spring-green-l);
+    --app-landing-h: 184;
+    --app-landing-s: 84%;
+    --app-landing-l: 30%;
+    --app-landing: var(--app-landing-h) var(--app-landing-s) var(--app-landing-l);
+  /* White Color */
+    --white: 0 0% 100%;
+    --black: 249 63% 15%;
+    --body: 0 0% 43%;
+    --orange: 18 100% 55%;
+    --heading-color: var(--black);
+    --blue-color: #1351D8;
+    --translate-x-50: translateX(-50%);
+    --translate-y-50: translateY(-50%);
+    --size-05: 0.125rem;
+    --size-1: 0.25rem;
+    --size-105: 0.375rem;
+    --size-2: 0.5rem;
+    --size-205: 0.625rem;
+    --size-3: 0.75rem;
+    --size-305: 0.875rem;
+    --size-4: 1rem;
+    --size-405: 1.125rem;
+    --size-5: 1.25rem;
+    --size-505: 1.375rem;
+    --size-6: 1.5rem;
+    --size-605: 1.625rem;
+    --size-7: 1.75rem;
+    --size-705: 1.875rem;
+    --size-8: 2rem;
+    --size-9: 2.25rem;
+    --size-10: 2.5rem;
+    --size-11: 2.75rem;
+    --size-12: 3rem;
+    --size-13: 3.25rem;
+    --size-14: 3.5rem;
+    --size-15: 3.75rem;
+    --size-16: 4rem;
+    --size-17: 4.25rem;
+    --main-50: hsl(var(--main-h), var(--main-s), calc(var(--main-l) + (100% - var(--main-l)) * 0.9));
+    --main-100: hsl(var(--main-h), var(--main-s), calc(var(--main-l) + (100% - var(--main-l)) * 0.8));
+    --main-200: hsl(var(--main-h), var(--main-s), calc(var(--main-l) + (100% - var(--main-l)) * 0.7));
+    --main-300: hsl(var(--main-h), var(--main-s), calc(var(--main-l) + (100% - var(--main-l)) * 0.6));
+    --main-400: hsl(var(--main-h), var(--main-s), calc(var(--main-l) + (100% - var(--main-l)) * 0.5));
+    --main-500: hsl(var(--main-h), var(--main-s), calc(var(--main-l) + (100% - var(--main-l)) * 0.4));
+    --main-600: hsl(var(--main-h), var(--main-s), var(--main-l));
+    --main-700: hsl(var(--main-h), var(--main-s), calc(var(--main-l) - var(--main-l) * 0.1));
+    --main-800: hsl(var(--main-h), var(--main-s), calc(var(--main-l) - var(--main-l) * 0.2));
+    --main-900: hsl(var(--main-h), var(--main-s), calc(var(--main-l) - var(--main-l) * 0.3));
+    --main-two-50: hsl(var(--main-two-h), var(--main-two-s), calc(var(--main-two-l) + (100% - var(--main-two-l)) * 0.9));
+    --main-two-100: hsl(var(--main-two-h), var(--main-two-s), calc(var(--main-two-l) + (100% - var(--main-two-l)) * 0.8));
+    --main-two-200: hsl(var(--main-two-h), var(--main-two-s), calc(var(--main-two-l) + (100% - var(--main-two-l)) * 0.7));
+    --main-two-300: hsl(var(--main-two-h), var(--main-two-s), calc(var(--main-two-l) + (100% - var(--main-two-l)) * 0.6));
+    --main-two-400: hsl(var(--main-two-h), var(--main-two-s), calc(var(--main-two-l) + (100% - var(--main-two-l)) * 0.5));
+    --main-two-500: hsl(var(--main-two-h), var(--main-two-s), calc(var(--main-two-l) + (100% - var(--main-two-l)) * 0.4));
+    --main-two-600: hsl(var(--main-two-h), var(--main-two-s), var(--main-two-l));
+    --main-two-700: hsl(var(--main-two-h), var(--main-two-s), calc(var(--main-two-l) - var(--main-two-l) * 0.1));
+    --main-two-800: hsl(var(--main-two-h), var(--main-two-s), calc(var(--main-two-l) - var(--main-two-l) * 0.2));
+    --main-two-900: hsl(var(--main-two-h), var(--main-two-s), calc(var(--main-two-l) - var(--main-two-l) * 0.3));
+    --neutral-50: #f9fafb;
+    --neutral-100: #f3f4f6;
+    --neutral-200: #e5e7eb;
+    --neutral-300: #d1d5db;
+    --neutral-400: #9ca3af;
+    --neutral-500: #6b7280;
+    --neutral-600: #4b5563;
+    --neutral-700: #374151;
+    --neutral-800: #1f2937;
+    --neutral-900: #111827;
+    --neutral-950: #030712;
+    --font-xs: 0.75rem;
+    --font-sm: 0.875rem;
+    --font-base: 1rem;
+    --font-lg: 1.125rem;
+    --font-xl: 1.25rem;
+    --font-2xl: 1.5rem;
+    --font-3xl: 1.875rem;
+}
+
+/* ========================= Variable Css End ======================== */
+/* Media Breakpoint for Each Device End */
+/* =========================== Accordion Css start ============================= */
+.common-accordion .accordion-item:not(:last-child) {
+    margin-block-end: 20px;
+}
+
+.accordion-border-left .accordion-item {
+    border-left: 4px solid transparent !important;
+}
+
+.accordion-border-left .accordion-item:has(.accordion-collapse.show), .accordion-border-left .accordion-item:has(.accordion-button[aria-expanded=true]) {
+    border-left: 4px solid var(--main-600) !important;
+    background: #fff !important;
+}
+
+.accordion-button::after {
+    display: none;
+}
+
+.accordion.style-two .accordion-item {
+    border-bottom: 1px solid var(--neutral-100) !important;
+    border-radius: 0 !important;
+}
+
+.accordion.style-two .accordion-item:has(.accordion-collapse.show), .accordion.style-two .accordion-item:has(.accordion-button[aria-expanded=true]) {
+    border-left: 0 !important;
+    background: #fff !important;
+    box-shadow: 0 20px 20px 0 #03041C14;
+    border-radius: 0 0 20px 20px !important;
+}
+
+.accordion.style-two .accordion-button {
+    padding-inline-end: 32px !important;
+}
+
+.accordion.style-two .accordion-button::before {
+    position: absolute;
+    content: "\e3d4";
+    font-family: "Phosphor";
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid var(--neutral-100);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    inset-inline-end: 0;
+    inset-block-start: 50%;
+    transform: translateY(-50%);
+    color: var(--neutral-500);
+}
+
+.accordion.style-two .accordion-button[aria-expanded=true]::before {
+    background-color: var(--main-600) !important;
+    color: #fff !important;
+    border-color: var(--neutral-900) !important;
+    content: "\e32a";
+}
+
+.accordion.style-two-three .accordion-item {
+    border: 1px solid var(--neutral-200) !important;
+    border-radius: 14px !important;
+    background-color: var(--neutral-100) !important;
+    margin-bottom: 16px !important;
+}
+
+.accordion.style-two-three .accordion-item:has(.accordion-collapse.show), .accordion.style-two-three .accordion-item:has(.accordion-button[aria-expanded=true]) {
+    background: var(--neutral-100) !important;
+    box-shadow: none;
+    border-radius: 14px !important;
+    border-block-start: 5px solid var(--main-600) !important;
+}
+
+.accordion.style-two-three .accordion-button::before {
+    border: 1px solid var(--neutral-600);
+    font-weight: 900;
+}
+
+.accordion.arrow-bg-orange .accordion-button[aria-expanded=true]::before {
+    background-color: hsl(var(--orange)) !important;
+    border-color: hsl(var(--orange)) !important;
+}
+
+@media (min-width: 576px) {
+    .position-sm-in-box {
+        position: absolute !important;
+        top: 50%;
+        transform: translateY(-50%);
+        inset-inline-end: 0;
+        margin-inline-end: 12px;
+    }
+}
+
+@media (max-width: 575px) {
+    .position-sm-in-box {
+        width: 100%;
+        margin-top: 24px;
+    }
+}
+/* ================================= Accordion Css End =========================== */
+/* ========================== Button Css Start =============== */
+.button__label {
+    position: relative;
+    text-align: center;
+    transition: color 0.05s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.button--stroke:hover {
+    color: #0e100f;
+}
+
+.button--stroke::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 0.125rem solid #fffce1;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.button--stroke .button__flair {
+    transform: scale(0);
+    transform-origin: 0 0;
+}
+
+.button--stroke .button__label {
+    transition: color 0.15s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.button__flair {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.button__flair::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    aspect-ratio: 1/1;
+    background-color: #fffce1;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.btn {
+    border: 0;
+    color: hsl(var(--white));
+    line-height: 1;
+    padding-inline: 32px;
+    padding-block: 18px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 6px;
+    z-index: 1;
+    transition: 0.2s linear;
+}
+
+.btn:hover, .btn:focus, .btn:focus-visible {
+    box-shadow: none !important;
+}
+
+.btn-main {
+    background-color: var(--main-600) !important;
+    color: hsl(var(--white)) !important;
+}
+
+.btn-main.button--stroke::after {
+    border-color: transparent;
+}
+
+.btn-main-two {
+    background-color: var(--main-two-600) !important;
+    color: hsl(var(--white)) !important;
+}
+
+.btn-main-two.button--stroke::after {
+    border-color: transparent;
+}
+
+.btn-white {
+    background-color: hsl(var(--white)) !important;
+    color: var(--heading-color) !important;
+}
+
+.btn-white:hover {
+    color: hsl(var(--white)) !important;
+}
+
+.btn-white.button--stroke::after {
+    border-color: transparent;
+}
+
+.hover-style-one:hover, .hover-style-one:active {
+    background-color: var(--main-600);
+}
+
+.hover-style-one:hover.button--stroke::after, .hover-style-one:active.button--stroke::after {
+    border-color: transparent;
+}
+
+.hover-style-one .button__flair::before {
+    background-color: var(--main-two-600);
+}
+
+.hover-style-two:hover.button--stroke::after, .hover-style-two:active.button--stroke::after {
+    border-color: transparent;
+}
+
+.hover-style-two .button__flair::before {
+    background-color: var(--main-600);
+}
+
+.hover-style-three:hover, .hover-style-three:active {
+    color: var(--main-two-600) !important;
+}
+
+.hover-style-three:hover.button--stroke::after, .hover-style-three:active.button--stroke::after {
+    border-color: transparent;
+}
+
+.hover-style-three .button__flair::before {
+    background-color: #fff;
+}
+
+.hover-style-five:hover, .hover-style-five:active {
+    color: var(--main-two-600) !important;
+}
+
+.hover-style-five:hover.button--stroke::after, .hover-style-five:active.button--stroke::after {
+    border-color: transparent;
+}
+
+.hover-style-five .button__flair::before {
+    background-color: hsl(var(--orange));
+}
+
+.btn-orange-outline {
+    border: 1px solid hsl(var(--orange));
+    color: hsl(var(--orange));
+}
+
+/* =========================== Button Css End =================== */
+/* ================================= Form Css Start =========================== */
+/* input File Start */
+.common-file[type=file] {
+    line-height: 50px;
+    padding: 0;
+    position: relative;
+}
+
+.common-file[type=file]::file-selector-button {
+    border: 1px solid hsl(var(--black)/0.08);
+    padding: 4px 6px;
+    border-radius: 0.2em;
+    background-color: hsl(var(--main)) !important;
+    transition: 0.2s linear;
+    line-height: 25px;
+    position: relative;
+    margin-inline-start: 15px;
+    color: hsl(var(--body-color)) !important;
+}
+
+.common-file[type=file]::file-selector-button:hover {
+    background-color: var(--main-600);
+    border: 1px solid var(--main-600);
+    color: hsl(var(--black));
+}
+
+/* input File End */
+/* Placeholder Start */
+.placeholder-neutral-600::placeholder {
+    color: var(--neutral-600) !important;
+}
+
+.placeholder-18-px::placeholder {
+    font-size: 18px !important;
+}
+
+/* Placeholder End */
+/* Autofill Css */
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active,
+textarea:-webkit-autofill, textarea:-webkit-autofill:hover, textarea:-webkit-autofill:focus, textarea:-webkit-autofill:active {
+    -webkit-transition: background-color 5000s ease-in-out 0s;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill, textarea:-webkit-autofill, textarea:-webkit-autofill, textarea:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+    -webkit-text-fill-color: hsl(var(--heading-color)) !important;
+    caret-color: hsl(var(--heading-color));
+}
+
+/* Autofill Css End */
+/* Number Arrow None */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Custom Checkbox & Radio Css Start */
+.common-check {
+    display: flex;
+    align-items: center;
+    margin-block-end: 16px;
+}
+
+.common-check:last-child {
+    margin-block-end: 0;
+}
+
+.common-check a {
+    display: inline;
+}
+
+.common-check.common-radio .form-check-input {
+    border-radius: 50%;
+}
+
+.common-check.common-radio .form-check-input:checked {
+    background-color: transparent !important;
+}
+
+.common-check.common-radio .form-check-input:checked::after {
+    visibility: visible;
+    opacity: 1;
+    -webkit-transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.common-check.common-radio .form-check-input:checked::before {
+    display: none;
+}
+
+.common-check .form-check-input {
+    transition: 0.2s linear;
+    box-shadow: none;
+    background-color: transparent;
+    box-shadow: none !important;
+    border: 0;
+    position: relative;
+    border-radius: 3px;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--neutral-300);
+    cursor: pointer;
+    transition: 0.2s linear;
+    margin-block-start: 0;
+}
+
+.common-check .form-check-input::before {
+    position: absolute;
+    content: "\e182";
+    font-family: "Phosphor";
+    font-weight: 900;
+    color: hsl(var(--white));
+    font-size: 12px;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    transform: translate(-50%, -50%);
+    transition: 0.2s linear;
+    visibility: hidden;
+    opacity: 0;
+}
+
+.common-check .form-check-input::after {
+    position: absolute;
+    content: "";
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    -webkit-transform: translate(-50%, -50%) scale(0.2);
+    transform: translate(-50%, -50%) scale(0.2);
+    width: 10px;
+    height: 10px;
+    background-color: var(--main-600);
+    border-radius: 50%;
+    transition: 0.2s linear;
+    z-index: 1;
+    visibility: hidden;
+    opacity: 0;
+}
+
+.common-check .form-check-input:checked {
+    background-color: hsl(var(--main)) !important;
+    border-color: hsl(var(--main)) !important;
+    box-shadow: none;
+}
+
+.common-check .form-check-input:checked[type=checkbox] {
+    background-image: none;
+}
+
+.common-check .form-check-input:checked::before {
+    visibility: visible;
+    opacity: 1;
+}
+
+.common-check-two .form-check-input {
+    border-color: #20BA8B !important;
+    position: relative;
+}
+
+.common-check-two .form-check-input::before {
+    position: absolute;
+    content: "\e182";
+    font-family: "Phosphor";
+    font-weight: 900;
+    color: hsl(var(--white));
+    font-size: 12px;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    transform: translate(-50%, -50%);
+    transition: 0.2s linear;
+    visibility: hidden;
+    opacity: 0;
+}
+
+.common-check-two .form-check-input:checked {
+    background: linear-gradient(270deg, #06766E 0%, #20BA8B 100%) !important;
+}
+
+.common-check-two .form-check-input:checked::before {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Custom Checkbox & Radio Css End */
+/* Switch Css Start */
+.form-switch {
+    padding-inline-start: 0;
+}
+
+.form-switch .form-check-input {
+    box-shadow: none !important;
+    margin: 0;
+    position: relative;
+    background-color: var(--neutral-200);
+    border: 0;
+    background-image: none !important;
+    width: 70px;
+    height: 32px;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: #23CD89;
+}
+
+.form-switch .form-check-input:checked::before {
+    inset-inline-start: calc(100% - 31px);
+    transition: 0.2s linear;
+}
+
+.form-switch .form-check-input::before {
+    position: absolute;
+    content: "";
+    width: 28px;
+    height: 28px;
+    background: #fff;
+    border-radius: 50%;
+    top: 50%;
+    transform: translateY(-50%);
+    inset-inline-start: 3px;
+    transition: 0.2s linear;
+}
+
+/* Switch Css End */
+.form-select-arrow-end {
+    background-position: right 0rem center;
+}
+
+/* ================================= Form Css End =========================== */
+/* ================================= Tab Css Start =========================== */
+.common-tab .nav-link.active {
+    color: var(--main-two-600) !important;
+    font-weight: 700 !important;
+}
+
+.common-tab .nav-link:hover {
+    color: var(--main-two-600);
+}
+
+.active-text-white .nav-link.active {
+    color: hsl(var(--white)) !important;
+}
+
+.active-bg-blue .nav-link.active {
+    background-color: #256BFE !important;
+}
+
+.gradient-bg .nav-link.active, .show > .nav-link {
+    background: linear-gradient(270deg, #06766E 0%, #20BA8B 100%);
+}
+
+.nav-link.active .active-white {
+    filter: brightness(0) invert(1);
+}
+
+.active-bg-white-border-primary .nav-link:focus, .active-bg-white-border-primary .nav-link:hover {
+    color: var(--black);
+}
+
+.active-bg-white-border-primary .nav-link.active, .active-bg-white-border-primary .show > .nav-link {
+    background-color: #fff;
+    color: var(--black);
+    border-inline-start: 3px solid var(--main-500) !important;
+}
+
+.style-border .nav-link.active, .style-border .show > .nav-link {
+    background-color: transparent !important;
+    color: var(--black);
+    border-color: var(--neutral-300) !important;
+}
+
+.background {
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    border-radius: 3px;
+    background-color: var(--main-600);
+    position: absolute;
+    z-index: -1;
+    inset-block-start: 50%;
+    transform: translateY(-50%);
+    inset-inline-start: 0;
+    transition: all 0.2s linear;
+    border-radius: 50rem;
+    pointer-events: none;
+}
+
+.background.style-two {
+    height: calc(100% - 6px);
+}
+
+.active-triangle-arrow::before {
+    position: absolute;
+    content: "";
+    width: 12px;
+    height: 10px;
+    background-color: inherit;
+    background-color: #256BFE;
+    inset-block-start: 100%;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+    margin-block-start: -10px;
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
+    transition: 0.2s linear;
+}
+
+.active-triangle-arrow.active::before {
+    margin-block-start: -1px;
+    visibility: visible;
+    opacity: 1;
+}
+
+/* ================================= Tab Css End =========================== */
+/* ======================= Common Table Css Start ======================= */
+.table > :not(caption) > * > * {
+    border-bottom: 0;
+}
+
+.table tr th:first-child {
+    padding-inline-start: 0;
+}
+
+.table tr th:last-child {
+    padding-inline-end: 0;
+}
+
+.table tr th, .table tr td {
+    vertical-align: middle;
+}
+
+.table tr th:first-child, .table tr td:first-child {
+    text-align: left;
+}
+
+.table tr th:last-child, .table tr td:last-child {
+    text-align: right;
+    padding-inline-end: 0;
+}
+
+/* ======================= Common Table Css End ======================= */
+/* Swiper Css start */
+.swiper-pagination-bullet {
+    width: 12px;
+    height: 12px;
+}
+
+.pagination-style-two .swiper-pagination-bullet {
+    background: var(--main-600);
+    opacity: 1;
+}
+
+.pagination-style-two .swiper-pagination-bullet-active {
+    background: #fff !important;
+}
+
+.pagination-style-three .swiper-pagination-bullet {
+    opacity: 1;
+}
+
+.pagination-style-three .swiper-pagination-bullet-active {
+    background: #fff !important;
+    box-shadow: 0px 4px 8px 0px #00000047 !important;
+}
+
+.pagination-style-four .swiper-pagination-bullet {
+    margin: 0px !important;
+    opacity: 1;
+    background-color: #D6D1D1;
+    width: 9px;
+    height: 9px;
+    position: relative;
+    transition: 0.3s linear;
+}
+
+.pagination-style-four .swiper-pagination-bullet::before {
+    position: absolute;
+    content: "";
+    width: 26px;
+    height: 26px;
+    border: 2px solid #fff;
+    border-radius: inherit;
+    inset-inline-start: 50%;
+    inset-block-start: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: inherit;
+}
+
+.pagination-style-four .swiper-pagination-bullet-active {
+    background: var(--main-600) !important;
+}
+
+.pagination-style-four .swiper-pagination-bullet-active::before {
+    border: 2px solid var(--main-600);
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.pagination-style-five .swiper-pagination-bullet {
+    width: 32px;
+    height: 32px;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--heading-color);
+}
+
+.pagination-style-five .swiper-pagination-bullet-active {
+    background: transparent !important;
+    color: var(--heading-color);
+}
+
+.shop-small-thumbs .swiper-slide.swiper-slide-thumb-active > div {
+    border-color: var(--main-600) !important;
+}
+
+/* Swiper Css end */
+/* Toast Message Css start  */
+:root {
+    --success-600: #16A34A;
+  /* Green */
+    --danger-600: #DC2626;
+  /* Red */
+    --warning-600: #D97706;
+  /* Amber */
+    --info-600: #0284C7;
+  /* Sky Blue */
+}
+
+#toast-container {
+    position: fixed;
+    inset-block-start: 20px;
+    inset-inline-end: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 9999;
+}
+
+.toast-message {
+    position: relative;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.25, 1.35);
+    width: 300px;
+    transform: translateX(calc(100% + 20px));
+    overflow: hidden;
+    background-color: #fff;
+    border-inline-start: 3px solid var(--success-600);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    display: inline-block;
+    padding-block: 12px;
+    padding-inline: 16px;
+    border-radius: 6px;
+}
+
+.toast-message.active {
+    transform: translateX(0);
+}
+
+.toast-message.active .progress__bar::before {
+    animation: progress-bar 3.5s linear forwards;
+    visibility: visible;
+    opacity: 1;
+}
+
+.toast-message:hover .progress__bar::before {
+    animation-play-state: paused;
+}
+
+.toast-message__content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.toast-message__icon {
+    font-size: 24px;
+    color: var(--success-600);
+    line-height: 1;
+}
+
+.toast-message__title {
+    margin-bottom: 0;
+    font-size: 18px !important;
+}
+
+.toast-message__close {
+    background-color: transparent;
+    border: 0;
+    padding: 0;
+    line-height: 1;
+    font-size: 16px;
+}
+
+.toast-message__text {
+    color: #42494f;
+    font-size: 14px;
+}
+
+.progress__bar {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-start: 0;
+    height: 3px;
+    width: 100%;
+    background: #fff;
+}
+
+.progress__bar::before {
+    content: "";
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-start: 0;
+    height: 100%;
+    width: 100%;
+    background-color: var(--success-600);
+    visibility: hidden;
+    opacity: 0;
+}
+
+@keyframes progress-bar {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}
+
+.success {
+    border-color: var(--success-600);
+}
+
+.success .toast-message__icon {
+    color: var(--success-600) !important;
+}
+
+.success .progress__bar::before {
+    background-color: var(--success-600);
+}
+
+.danger {
+    border-color: var(--danger-600);
+}
+
+.danger .toast-message__icon {
+    color: var(--danger-600) !important;
+}
+
+.danger .progress__bar::before {
+    background-color: var(--danger-600);
+}
+
+.warning {
+    border-color: var(--warning-600);
+}
+
+.warning .toast-message__icon {
+    color: var(--warning-600) !important;
+}
+
+.warning .progress__bar::before {
+    background-color: var(--warning-600);
+}
+
+.info {
+    border-color: var(--info-600);
+}
+
+.info .toast-message__icon {
+    color: var(--info-600) !important;
+}
+
+.info .progress__bar::before {
+    background-color: var(--info-600);
+}
+
+/* Toast Message Css End  */
+/* Range slider start */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+.price-input .separator {
+    width: 130px;
+    display: flex;
+    font-size: 19px;
+    align-items: center;
+    justify-content: center;
+}
+
+.slider {
+    height: 5px;
+    position: relative;
+    background: #ddd;
+    border-radius: 5px;
+}
+
+.slider .progress {
+    height: 100%;
+    inset-inline-start: 25%;
+    inset-inline-end: 25%;
+    position: absolute;
+    border-radius: 5px;
+    background: #17a2b8;
+}
+
+.range-input {
+    position: relative;
+}
+
+.range-input input {
+    position: absolute;
+    width: 100%;
+    height: 5px;
+    top: -5px;
+    background: none;
+    pointer-events: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    height: 17px;
+    width: 17px;
+    border-radius: 50%;
+    background: #17a2b8;
+    pointer-events: auto;
+    -webkit-appearance: none;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
+    transition: 0.2s linear;
+}
+
+input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.6);
+}
+
+input[type=range]::-moz-range-thumb {
+    height: 17px;
+    width: 17px;
+    border: none;
+    border-radius: 50%;
+    background: #17a2b8;
+    pointer-events: auto;
+    -moz-appearance: none;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.05);
+    transition: 0.2s linear;
+}
+
+input[type=range]::-moz-range-thumb:hover {
+    transform: scale(1.6);
+}
+
+/* Range slider End */
+/* ================================= Typography Css Start =========================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--body-font);
+    color: hsl(var(--body-color));
+    word-break: break-word;
+    background-color: hsl(var(--white));
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+p {
+    font-weight: 400;
+    margin: 0;
+    line-height: 2;
+}
+
+span {
+    display: inline-block;
+}
+
+h1, .h1,
+h2, .h2,
+h3, .h3,
+h4, .h4,
+h5, .h5,
+h6, .h6 {
+    margin: 0;
+    font-family: var(--heading-font);
+    color: var(--black);
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+h1, .h1 {
+    font-size: var(--heading-one);
+}
+
+h2, .h2 {
+    font-size: var(--heading-two);
+}
+
+h3, .h3 {
+    font-size: var(--heading-three);
+}
+
+h4, .h4 {
+    font-size: var(--heading-four);
+}
+
+h5, .h5 {
+    font-size: var(--heading-five);
+}
+
+h6, .h6 {
+    font-size: var(--heading-six);
+}
+
+h1 > a,
+h2 > a,
+h3 > a,
+h4 > a,
+h5 > a,
+h6 > a {
+    font-weight: inherit;
+    font-size: inherit;
+    color: inherit;
+    transition: 0.2s linear;
+    line-height: inherit;
+}
+
+h1 > a:hover,
+h2 > a:hover,
+h3 > a:hover,
+h4 > a:hover,
+h5 > a:hover,
+h6 > a:hover {
+    color: var(--main-600);
+}
+
+a {
+    display: inline-block;
+    transition: 0.2s linear;
+    text-decoration: none;
+    color: #0661e9;
+}
+
+a:hover {
+    color: #1d72f2;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+select {
+    cursor: pointer;
+}
+
+ul,
+ol {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+button {
+    border: 0;
+    background-color: transparent;
+}
+
+button:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+input:focus, input:focus-visible {
+    box-shadow: none;
+}
+
+/* ================================= Typography Css End =========================== */
+/* Bg Image Css Start */
+.bg-img {
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
+    width: 100%;
+    height: 100%;
+}
+
+.bg-position-top-center {
+    background-position: top center !important;
+}
+
+/* Bg Image Css End */
+/* hover bg class start */
+.bg-main-50 {
+    background-color: var(--main-50) !important;
+}
+
+.bg-main-100 {
+    background-color: var(--main-100) !important;
+}
+
+.bg-main-200 {
+    background-color: var(--main-200) !important;
+}
+
+.bg-main-300 {
+    background-color: var(--main-300) !important;
+}
+
+.bg-main-400 {
+    background-color: var(--main-400) !important;
+}
+
+.bg-main-500 {
+    background-color: var(--main-500) !important;
+}
+
+.bg-main-600 {
+    background-color: var(--main-600) !important;
+}
+
+.bg-main-700 {
+    background-color: var(--main-700) !important;
+}
+
+.bg-main-800 {
+    background-color: var(--main-800) !important;
+}
+
+.bg-main-900 {
+    background-color: var(--main-900) !important;
+}
+
+.bg-main-two-50 {
+    background-color: var(--main-two-50) !important;
+}
+
+.bg-main-two-100 {
+    background-color: var(--main-two-100) !important;
+}
+
+.bg-main-two-200 {
+    background-color: var(--main-two-200) !important;
+}
+
+.bg-main-two-300 {
+    background-color: var(--main-two-300) !important;
+}
+
+.bg-main-two-400 {
+    background-color: var(--main-two-400) !important;
+}
+
+.bg-main-two-500 {
+    background-color: var(--main-two-500) !important;
+}
+
+.bg-main-two-600 {
+    background-color: var(--main-two-600) !important;
+}
+
+.bg-main-two-700 {
+    background-color: var(--main-two-700) !important;
+}
+
+.bg-main-two-800 {
+    background-color: var(--main-two-800) !important;
+}
+
+.bg-main-two-900 {
+    background-color: var(--main-two-900) !important;
+}
+
+.bg-neutral-50 {
+    background-color: var(--neutral-50) !important;
+}
+
+.bg-neutral-100 {
+    background-color: var(--neutral-100) !important;
+}
+
+.bg-neutral-200 {
+    background-color: var(--neutral-200) !important;
+}
+
+.bg-neutral-300 {
+    background-color: var(--neutral-300) !important;
+}
+
+.bg-neutral-400 {
+    background-color: var(--neutral-400) !important;
+}
+
+.bg-neutral-500 {
+    background-color: var(--neutral-500) !important;
+}
+
+.bg-neutral-600 {
+    background-color: var(--neutral-600) !important;
+}
+
+.bg-neutral-700 {
+    background-color: var(--neutral-700) !important;
+}
+
+.bg-neutral-800 {
+    background-color: var(--neutral-800) !important;
+}
+
+.bg-neutral-900 {
+    background-color: var(--neutral-900) !important;
+}
+
+.bg-neutral-950 {
+    background-color: var(--neutral-950) !important;
+}
+
+.hover-bg-main-50:hover {
+    background-color: var(--main-50) !important;
+}
+
+.hover-bg-main-100:hover {
+    background-color: var(--main-100) !important;
+}
+
+.hover-bg-main-200:hover {
+    background-color: var(--main-200) !important;
+}
+
+.hover-bg-main-300:hover {
+    background-color: var(--main-300) !important;
+}
+
+.hover-bg-main-400:hover {
+    background-color: var(--main-400) !important;
+}
+
+.hover-bg-main-500:hover {
+    background-color: var(--main-500) !important;
+}
+
+.hover-bg-main-600:hover {
+    background-color: var(--main-600) !important;
+}
+
+.hover-bg-main-700:hover {
+    background-color: var(--main-700) !important;
+}
+
+.hover-bg-main-800:hover {
+    background-color: var(--main-800) !important;
+}
+
+.hover-bg-main-900:hover {
+    background-color: var(--main-900) !important;
+}
+
+.hover-bg-main-two-50:hover {
+    background-color: var(--main-two-50) !important;
+}
+
+.hover-bg-main-two-100:hover {
+    background-color: var(--main-two-100) !important;
+}
+
+.hover-bg-main-two-200:hover {
+    background-color: var(--main-two-200) !important;
+}
+
+.hover-bg-main-two-300:hover {
+    background-color: var(--main-two-300) !important;
+}
+
+.hover-bg-main-two-400:hover {
+    background-color: var(--main-two-400) !important;
+}
+
+.hover-bg-main-two-500:hover {
+    background-color: var(--main-two-500) !important;
+}
+
+.hover-bg-main-two-600:hover {
+    background-color: var(--main-two-600) !important;
+}
+
+.hover-bg-main-two-700:hover {
+    background-color: var(--main-two-700) !important;
+}
+
+.hover-bg-main-two-800:hover {
+    background-color: var(--main-two-800) !important;
+}
+
+.hover-bg-main-two-900:hover {
+    background-color: var(--main-two-900) !important;
+}
+
+.hover-bg-neutral-50:hover {
+    background-color: var(--neutral-50) !important;
+}
+
+.hover-bg-neutral-100:hover {
+    background-color: var(--neutral-100) !important;
+}
+
+.hover-bg-neutral-200:hover {
+    background-color: var(--neutral-200) !important;
+}
+
+.hover-bg-neutral-300:hover {
+    background-color: var(--neutral-300) !important;
+}
+
+.hover-bg-neutral-400:hover {
+    background-color: var(--neutral-400) !important;
+}
+
+.hover-bg-neutral-500:hover {
+    background-color: var(--neutral-500) !important;
+}
+
+.hover-bg-neutral-600:hover {
+    background-color: var(--neutral-600) !important;
+}
+
+.hover-bg-neutral-700:hover {
+    background-color: var(--neutral-700) !important;
+}
+
+.hover-bg-neutral-800:hover {
+    background-color: var(--neutral-800) !important;
+}
+
+.hover-bg-neutral-900:hover {
+    background-color: var(--neutral-900) !important;
+}
+
+.hover-bg-neutral-950:hover {
+    background-color: var(--neutral-950) !important;
+}
+
+.hover-bg-white:hover {
+    background-color: hsl(var(--white)) !important;
+}
+
+.bg-black {
+    background-color: #1c1c1c;
+}
+
+.bg-green {
+    background-color: #00b67a;
+}
+
+.bg-pink {
+    background-color: #fd1774;
+}
+
+.bg-pink-dark {
+    background-color: #f5f5f8;
+}
+
+.bg-pink-light {
+    background-color: #f97289;
+}
+
+.bg-pink-lighter {
+    background-color: #f9728924;
+}
+
+.bg-sky {
+    background-color: #41a5fa;
+}
+
+.bg-sky-deep {
+    background-color: #1b89aa;
+}
+
+.bg-dark-deep {
+    background-color: #31336b;
+}
+
+.bg-purple-light {
+    background-color: #f5f5f8;
+}
+
+.bg-paste {
+    background-color: #3af062;
+}
+
+.bg-paste-light {
+    background-color: #3af0622b;
+}
+
+.bg-yellow {
+    background-color: hsl(var(--yellow));
+}
+
+.bg-purple {
+    background-color: hsl(var(--purple));
+}
+
+.bg-spring-green {
+    background-color: hsl(var(--spring-green));
+}
+
+.bg-goldenrod {
+    background-color: #D19D3D17;
+}
+
+.bg-orange {
+    background-color: hsl(var(--orange));
+}
+
+.bg-deep-green {
+    background-color: #0A8A22;
+}
+
+.section-bg-one {
+    background-color: #f5f5f8;
+}
+
+.section-bg-two {
+    background-color: #F3F8F8;
+}
+
+.section-bg-three {
+    background-color: #F0F0FC;
+}
+
+.bg-pink-more-light {
+    background-color: #FBF6EE;
+}
+
+.bg-pink-more-light-half {
+    position: relative;
+}
+
+.bg-pink-more-light-half::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-end: 0;
+    width: 100%;
+    height: 40%;
+    background-color: #FBF6EE;
+    z-index: -1;
+}
+
+.bg-neutral-light {
+    background-color: #EFF1F4;
+}
+
+.bg-neutral-light-half {
+    position: relative;
+}
+
+.bg-neutral-light-half::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-end: 0;
+    width: 100%;
+    height: 40%;
+    background-color: #EFF1F4;
+    z-index: -1;
+}
+
+.bg-neutral-light-half.style-two::before {
+    background-color: #f3f8f8;
+    inset-block-end: auto;
+    inset-block-start: 0;
+    height: 60%;
+}
+
+/* hover bg class end */
+.border-main-50 {
+    border-color: var(--main-50) !important;
+}
+
+.border-main-100 {
+    border-color: var(--main-100) !important;
+}
+
+.border-main-200 {
+    border-color: var(--main-200) !important;
+}
+
+.border-main-300 {
+    border-color: var(--main-300) !important;
+}
+
+.border-main-400 {
+    border-color: var(--main-400) !important;
+}
+
+.border-main-500 {
+    border-color: var(--main-500) !important;
+}
+
+.border-main-600 {
+    border-color: var(--main-600) !important;
+}
+
+.border-main-700 {
+    border-color: var(--main-700) !importan

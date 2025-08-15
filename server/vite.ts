@@ -58,9 +58,23 @@ export async function setupVite(app: Express, server: Server) {
     appType: "custom",
   });
 
-  app.use(vite.middlewares);
+  // Middleware customizado para excluir rotas da API do Vite
+  app.use((req, res, next) => {
+    // Se for rota da API, pular o Vite middleware
+    if (req.url.startsWith('/api/')) {
+      return next();
+    }
+    // Caso contrário, usar o Vite middleware
+    vite.middlewares(req, res, next);
+  });
+  
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
+    
+    // NÃO interceptar rotas da API - deixar passar para o Express
+    if (url.startsWith('/api/')) {
+      return next();
+    }
 
     try {
       const clientTemplate = path.resolve(

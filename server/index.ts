@@ -66,18 +66,52 @@ log(`
   
   log("✅ Middlewares configurados");
 
+  // Middleware para logar requisições problemáticas
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    // Só logar rotas que podem causar timeout
+    if (req.path.includes('/api/') || req.path.includes('/@vite/')) {
+      console.log(`📥 ${req.method} ${req.path}`);
+    }
+    next();
+  });
+
   // 5. Registro de Rotas da API
   setupAuthRoutes(app); // Rotas de autenticação
   registerApiRoutes(app); // Outras rotas da API
   log("✅ Rotas registradas");
 
-  // 6. Middleware de tratamento de erros (opcional, mas boa prática)
+  // 6. Middleware de tratamento de erros com tratamento especial para timeouts
   app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    let message = err.message || "Internal Server Error";
     
-    console.error(`❌ Erro ${status} em ${req.method} ${req.path}:`, err);
-    console.error("Stack:", err.stack);
+    // Tratamento especial para erros de timeout do Neon
+    if (err.message && (
+      err.message.includes('Connection terminated due to connection timeout') ||
+      err.message.includes('WebSocket was closed before the connection was established') ||
+      err.message.includes('timeout')
+    )) {
+      console.warn(`⚠️ Timeout de banco em ${req.method} ${req.path} - usando fallback`);
+      message = "Serviço temporariamente indisponível - tente novamente";
+      
+      // Para requisições do Vite client, retornar resposta mais amigável
+      if (req.path.includes('/@vite/client') || req.path.includes('vite')) {
+        return res.status(200).json({ status: 'ok', message: 'Development server running' });
+      }
+      
+      return res.status(503).json({ 
+        message,
+        path: req.path,
+        method: req.method,
+        retry: true 
+      });
+    }
+    
+    // Log normal para outros erros
+    console.error(`❌ Erro ${status} em ${req.method} ${req.path}:`, message);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("Stack:", err.stack);
+    }
     
     res.status(status).json({ message, path: req.path, method: req.method });
   });

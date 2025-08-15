@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { KPICard } from "@/components/KPICard";
+import { SimpleKPICard } from "@/components/SimpleKPICard";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
+import { useResponsive } from "@/hooks/useMediaQuery";
 import {
   Table,
   TableBody,
@@ -31,6 +33,7 @@ export default function Proposals() {
   const [selectedProposal, setSelectedProposal] = useState<any>(null);
   const [showProposalModal, setShowProposalModal] = useState(false);
   const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();
+  const { isMobile } = useResponsive();
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ["/api/properties"],
@@ -158,83 +161,136 @@ export default function Proposals() {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards - Responsivo */}
       <motion.div 
         variants={getListVariants()}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 md:grid-cols-5 gap-6"
       >
-        <motion.div
-          variants={getListItemVariants()}
-          className={`${classes.cardInteractive} touch-target`}
-          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-        >
-          <KPICard
-            title="Total"
-            value={statsData.total}
-            icon={Eye}
-            iconBgColor="#001f3f"
-            onClick={() => {}}
-          />
-        </motion.div>
-        <motion.div
-          variants={getListItemVariants()}
-          className={`${classes.cardInteractive} touch-target`}
-          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-        >
-          <KPICard
-            title="Pendentes"
-            value={statsData.pending}
-            icon={Clock}
-            iconBgColor="#d47c16"
-            onClick={() => {}}
-          />
-        </motion.div>
-        <motion.div
-          variants={getListItemVariants()}
-          className={`${classes.cardInteractive} touch-target`}
-          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-        >
-          <KPICard
-            title="Aceitas"
-            value={statsData.accepted}
-            icon={Check}
-            iconBgColor="#1ea475"
-            onClick={() => {}}
-          />
-        </motion.div>
-        <motion.div
-          variants={getListItemVariants()}
-          className={`${classes.cardInteractive} touch-target`}
-          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-        >
-          <KPICard
-            title="Negociando"
-            value={statsData.negotiating}
-            icon={DollarSign}
-            iconBgColor="#001f3f"
-            onClick={() => {}}
-          />
-        </motion.div>
-        <motion.div
-          variants={getListItemVariants()}
-          className={`${classes.cardInteractive} touch-target`}
-          whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-          whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-        >
-          <KPICard
-            title="Rejeitadas"
-            value={statsData.rejected}
-            icon={X}
-            iconBgColor="#dc2828"
-            onClick={() => {}}
-          />
-        </motion.div>
+        {isMobile ? (
+          // Layout em grid 2x2 para mobile - otimizado para espaço
+          <div className="grid grid-cols-2 gap-2">
+            <motion.div variants={getListItemVariants()}>
+              <SimpleKPICard
+                title="Total"
+                value={statsData.total}
+                icon={Eye}
+                iconBgColor="#001f3f"
+                subtitle="Propostas recebidas"
+              />
+            </motion.div>
+            <motion.div variants={getListItemVariants()}>
+              <SimpleKPICard
+                title="Pendentes"
+                value={statsData.pending}
+                icon={Clock}
+                iconBgColor="#d47c16"
+                subtitle="Aguardando resposta"
+              />
+            </motion.div>
+            <motion.div variants={getListItemVariants()}>
+              <SimpleKPICard
+                title="Aceitas"
+                value={statsData.accepted}
+                icon={Check}
+                iconBgColor="#1ea475"
+                subtitle="Propostas aprovadas"
+              />
+            </motion.div>
+            <motion.div variants={getListItemVariants()}>
+              <SimpleKPICard
+                title="Negociando"
+                value={statsData.negotiating}
+                icon={DollarSign}
+                iconBgColor="#001f3f"
+                subtitle="Em negociação"
+              />
+            </motion.div>
+            <motion.div variants={getListItemVariants()}>
+              <SimpleKPICard
+                title="Rejeitadas"
+                value={statsData.rejected}
+                icon={X}
+                iconBgColor="#dc2828"
+                subtitle="Não aceitas"
+              />
+            </motion.div>
+          </div>
+        ) : (
+          // Layout desktop - grid original
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <motion.div
+              variants={getListItemVariants()}
+              className={`${classes.cardInteractive} touch-target`}
+              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+            >
+              <KPICard
+                title="Total"
+                value={statsData.total}
+                icon={Eye}
+                iconBgColor="#001f3f"
+                onClick={() => {}}
+              />
+            </motion.div>
+            <motion.div
+              variants={getListItemVariants()}
+              className={`${classes.cardInteractive} touch-target`}
+              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+            >
+              <KPICard
+                title="Pendentes"
+                value={statsData.pending}
+                icon={Clock}
+                iconBgColor="#d47c16"
+                onClick={() => {}}
+              />
+            </motion.div>
+            <motion.div
+              variants={getListItemVariants()}
+              className={`${classes.cardInteractive} touch-target`}
+              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+            >
+              <KPICard
+                title="Aceitas"
+                value={statsData.accepted}
+                icon={Check}
+                iconBgColor="#1ea475"
+                onClick={() => {}}
+              />
+            </motion.div>
+            <motion.div
+              variants={getListItemVariants()}
+              className={`${classes.cardInteractive} touch-target`}
+              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+            >
+              <KPICard
+                title="Negociando"
+                value={statsData.negotiating}
+                icon={DollarSign}
+                iconBgColor="#001f3f"
+                onClick={() => {}}
+              />
+            </motion.div>
+            <motion.div
+              variants={getListItemVariants()}
+              className={`${classes.cardInteractive} touch-target`}
+              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+            >
+              <KPICard
+                title="Rejeitadas"
+                value={statsData.rejected}
+                icon={X}
+                iconBgColor="#dc2828"
+                onClick={() => {}}
+              />
+            </motion.div>
+          </div>
+        )}
       </motion.div>
 
       {/* Search and Filters */}

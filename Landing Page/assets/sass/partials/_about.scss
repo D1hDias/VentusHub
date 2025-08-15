@@ -1,0 +1,13 @@
+/* about Css Start */
+.throwable-element {
+    position: absolute;
+    display: inline-block;
+    margin-bottom: 0;
+    inset-inline-start: 50%;
+    inset-block-start: 50%;
+    transform: translate(-50%, -50%);
+    user-select: none;
+    pointer-events: auto;
+    transition: none;
+}
+/* about Css end */

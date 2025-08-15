@@ -4,7 +4,7 @@
  * 🚨 ATENÇÃO DESENVOLVEDORES: Estes indicadores devem ser atualizados MENSALMENTE
  * para garantir simulações precisas em todos os simuladores.
  * 
- * Última atualização: Julho 2025
+ * Última atualização: Agosto 2025 - IPCA corrigido para 5,23%
  * 
  * 📋 FONTES OFICIAIS PARA ATUALIZAÇÃO:
  * 
@@ -40,13 +40,13 @@ export const TAXAS_JUROS = {
   selic: 15.0,
   
   /** Taxa CDI atual (% ao ano) - Fonte: ANBIMA */
-  cdi: 12.14,
+  cdi: 13.25,
   
   /** CDI mensal bruto (% ao mês) - Calculado: CDI anual / 12 */
-  cdiMensal: 12.14 / 12,
+  cdiMensal: 13.25 / 12,
   
   /** CDI mensal líquido (% ao mês) - Calculado: CDI mensal * 0.775 (desconto IR) */
-  cdiMensalLiquido: (12.14 / 12) * 0.775,
+  cdiMensalLiquido: (13.25 / 12) * 0.775,
 } as const;
 
 // ===== ÍNDICES DE INFLAÇÃO =====
@@ -58,10 +58,10 @@ export const INFLACAO = {
   igpMMensal: 4.39 / 12,
   
   /** IPCA 12 meses (% ao ano) - Fonte: IBGE - Inflação geral */
-  ipca: 4.2,
+  ipca: 5.23,
   
   /** IPCA mensal (% ao mês) - Calculado: IPCA anual / 12 */
-  ipcaMensal: 4.2 / 12,
+  ipcaMensal: 5.23 / 12,
 } as const;
 
 // ===== CUSTOS IMOBILIÁRIOS =====
@@ -88,10 +88,10 @@ export const VALORIZACAO = {
   valorizacaoImovel: 4.2,
   
   /** Custo de oportunidade típico (% ao ano) - CDI líquido */
-  custoOportunidade: 8.7,
+  custoOportunidade: 10.27,
   
   /** Custo de oportunidade mensal (% ao mês) */
-  custoOportunidadeMensal: 8.7 / 12,
+  custoOportunidadeMensal: 10.27 / 12,
 } as const;
 
 // ===== INDICADORES CONSOLIDADOS =====
