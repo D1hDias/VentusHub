@@ -1,5 +1,5 @@
-import { db } from './db.js';
-import { cartorios } from '../shared/schema.js';
+import { db } from './db';
+import { cartorios } from '../shared/schema';
 
 // Dados dos RGIs (Registros Gerais de Imóveis) do Rio de Janeiro
 const cartoriosData = [
