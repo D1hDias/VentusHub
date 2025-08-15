@@ -1,11 +1,11 @@
 import type { Express } from "express";
-import { db } from "./db";
+import { db } from "./db.js";
 import { eq, desc } from "drizzle-orm";
-import { users, userSettings, activityLogs } from "../shared/schema";
+import { users, userSettings, activityLogs } from "../shared/schema.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { createNotification } from "./notifications";
+import { createNotification } from "./notifications.js";
 
 // Configurar multer para upload de avatar
 const storage = multer.diskStorage({

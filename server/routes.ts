@@ -1,20 +1,20 @@
 import type { Express } from "express";
 import { createServer } from "http";
-import { storage } from "./storage";
-import { isAuthenticated } from "./auth";
-import { insertProposalSchema, createRegistroSchema, updateRegistroSchema, registros, cartorios, createClientSchema, updateClientSchema, clients } from "../shared/schema";
+import { storage } from "./storage.js";
+import { isAuthenticated } from "./auth.js";
+import { insertProposalSchema, createRegistroSchema, updateRegistroSchema, registros, cartorios, createClientSchema, updateClientSchema, clients } from "../shared/schema.js";
 import { z } from "zod";
-import { db } from "./db";
-import { documents as propertyDocuments, properties } from "../shared/schema";
+import { db } from "./db.js";
+import { documents as propertyDocuments, properties } from "../shared/schema.js";
 import { eq, and, or, ilike, desc, count } from "drizzle-orm";
-import indicadoresRouter from "./indicadores";
+import indicadoresRouter from "./indicadores.js";
 import { 
   consultarStatusCartorio, 
   enviarDocumentosCartorio, 
   forcarAtualizacaoStatus,
   consultarTaxasCartorio,
   generateProtocolo
-} from "./registro-mock";
+} from "./registro-mock.js";
 
 export function registerApiRoutes(app: Express): void {
   // Market indicators routes (não requer autenticação) 

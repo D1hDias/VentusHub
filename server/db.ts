@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import * as schema from "../shared/schema";
+import * as schema from "../shared/schema.js";
 
 // Verificar conectividade do banco primeiro
 let db: any;

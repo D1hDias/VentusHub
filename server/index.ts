@@ -4,9 +4,9 @@ dotenv.config();
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { createServer } from "http";
-import { setupAuth, setupAuthRoutes } from "./auth";
-import { registerApiRoutes } from "./routes"; // Renomeado para maior clareza
-import { initializeDB } from "./db";
+import { setupAuth, setupAuthRoutes } from "./auth.js";
+import { registerApiRoutes } from "./routes.js"; // Renomeado para maior clareza
+import { initializeDB } from "./db.js";
 // Vite imports condicionais
 
 // Função de log simples
@@ -129,7 +129,7 @@ log(`
   // 7. Configuração do Vite ou Servidor Estático (deve vir por último)
   if (process.env.NODE_ENV === "development") {
     try {
-      const { setupVite } = await import("./vite");
+      const { setupVite } = await import("./vite.js");
       await setupVite(app, httpServer);
       log("✅ Vite configurado com sucesso");
     } catch (error) {
