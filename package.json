@@ -1,7 +1,6 @@
 {
   "name": "rest-express",
   "version": "1.0.0",
-  "type": "module",
   "license": "MIT",
   "scripts": {
     "dev": "node -e \"require('fs').copyFileSync('.env.local', '.env')\" && NODE_ENV=development tsx server/index.ts",
@@ -9,7 +8,7 @@
     "dev:simple": "tsx server/index.ts",
     "dev:db": "docker-compose -f docker-compose.dev.yml up -d",
     "dev:stop": "docker-compose -f docker-compose.dev.yml down",
-    "build": "vite build && esbuild server/index.ts --bundle --platform=node --packages=external --format=esm --outfile=dist/index.js --resolve-extensions='.ts,.js' --loader:.ts=ts",
+    "build": "vite build && esbuild server/index.ts --bundle --platform=node --format=cjs --outfile=dist/index.js --external:@neondatabase/serverless --external:drizzle-orm --external:express --external:cors --external:express-session --external:bcryptjs --external:connect-pg-simple --external:dotenv --external:nanoid --external:multer --external:sharp --loader:.ts=ts --banner:js=\"const { createRequire } = require('module'); const require = createRequire(import.meta.url);\"",
     "start": "NODE_ENV=production node dist/index.js",
     "start:80": "NODE_ENV=production PORT=80 node dist/index.js",
     "start:443": "NODE_ENV=production PORT=443 node dist/index.js",
