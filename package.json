@@ -10,7 +10,7 @@
     "dev:db": "docker-compose -f docker-compose.dev.yml up -d",
     "dev:stop": "docker-compose -f docker-compose.dev.yml down",
     "build": "vite build && cp -r server dist/ && cp -r shared dist/",
-    "start": "NODE_ENV=production tsx dist/server/index.ts",
+    "start": "NODE_ENV=production tsx dist/server/index-minimal.ts",
     "start:80": "NODE_ENV=production PORT=80 tsx dist/server/index.ts",
     "start:443": "NODE_ENV=production PORT=443 tsx dist/server/index.ts",
     "check": "tsc",
