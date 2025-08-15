@@ -39,14 +39,17 @@ git push origin main
 # Upload dos scripts de deploy
 scp deploy-update.sh root@31.97.245.82:/var/www/ventushub/
 scp rollback.sh root@31.97.245.82:/var/www/ventushub/
-scp DEPLOY-WORKFLOW.md root@31.97.245.82:/var/www/ventushub/
+scp DEVELOPMENT-WORKFLOW.md root@31.97.245.82:/var/www/ventushub/
 
 # SSH no servidor
 ssh root@31.97.245.82
 
-# Tornar scripts executáveis
+# Tornar scripts executáveis E corrigir formato de linha
 cd /var/www/ventushub
 chmod +x deploy-update.sh rollback.sh
+
+# ⚠️ IMPORTANTE: Corrigir formato de linha (se erro "cannot execute: required file not found")
+sed -i 's/\r$//' deploy-update.sh rollback.sh
 ```
 
 ### Deploy das Atualizações
@@ -153,7 +156,17 @@ sudo ls -t /var/backups/ventushub/ | tail -n +6 | xargs -I {} sudo rm -rf /var/b
 
 ### Problemas Comuns
 
-**1. Deploy falha na construção**
+**1. Script não executa: "cannot execute: required file not found"**
+```bash
+# Este erro acontece devido a diferenças de formato de linha Windows/Linux
+# Solução:
+cd /var/www/ventushub
+sed -i 's/\r$//' deploy-update.sh rollback.sh
+chmod +x deploy-update.sh rollback.sh
+./deploy-update.sh
+```
+
+**2. Deploy falha na construção**
 ```bash
 # Ver logs detalhados
 docker-compose -f docker-compose.production.yml logs --tail=50 ventushub
