@@ -50,5 +50,5 @@ USER appuser
 # Expor a porta em que a aplicação será executada (definida como 80 no docker-compose)
 EXPOSE 80
 
-# Comando para iniciar a aplicação (usando o script 'start' do package.json)
-CMD ["npm", "start"]
+# Comando para testar tsx básico primeiro
+CMD ["npx", "tsx", "dist/server/test-simple.ts"]
