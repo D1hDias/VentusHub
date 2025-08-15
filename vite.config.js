@@ -6,19 +6,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 export default defineConfig(async () => {
     const plugins = [react()];
-    if (process.env.NODE_ENV !== "production") {
-        try {
-            const { default: runtimeErrorOverlay } = await import("@replit/vite-plugin-runtime-error-modal");
-            plugins.push(runtimeErrorOverlay());
-            if (process.env.REPL_ID !== undefined) {
-                const { cartographer } = await import("@replit/vite-plugin-cartographer");
-                plugins.push(cartographer());
-            }
-        }
-        catch (error) {
-            console.warn("Replit plugins not available:", error.message);
-        }
-    }
     return {
         plugins,
         resolve: {

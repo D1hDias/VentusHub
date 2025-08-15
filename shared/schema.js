@@ -214,17 +214,15 @@ export const insertContractSchema = createInsertSchema(contracts);
 export const insertTimelineEntrySchema = createInsertSchema(timelineEntries);
 export const insertRegistroSchema = createInsertSchema(registros);
 export const insertCartorioSchema = createInsertSchema(cartorios);
-export const createRegistroSchema = insertRegistroSchema.omit({
-    id: true,
-    userId: true,
-    createdAt: true,
-    updatedAt: true,
-    mockStatus: true,
-}).extend({
+export const createRegistroSchema = z.object({
+    propertyId: z.number().min(1, "Propriedade é obrigatória"),
+    protocolo: z.string().optional(),
     cartorioId: z.number().min(1, "Cartório é obrigatório"),
     status: z.enum(["pronto_para_registro", "em_analise", "em_registro", "exigencia", "registrado"]).default("pronto_para_registro"),
     valorTaxas: z.string().optional().transform(val => val ? parseFloat(val) : undefined),
     prazoEstimado: z.number().min(1, "Prazo deve ser pelo menos 1 dia").max(365, "Prazo não pode exceder 365 dias").optional(),
+    dataEnvio: z.date().optional(),
+    observacoes: z.string().optional(),
 });
 export const updateRegistroSchema = createRegistroSchema.partial();
 const validateCPF = (cpf) => {
@@ -325,12 +323,7 @@ export const usersClientsRelations = relations(users, ({ many }) => ({
     clients: many(clients),
 }));
 export const insertClientSchema = createInsertSchema(clients);
-export const createClientSchema = insertClientSchema.omit({
-    id: true,
-    userId: true,
-    createdAt: true,
-    updatedAt: true,
-}).extend({
+export const createClientSchema = z.object({
     fullName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(255, "Nome muito longo"),
     cpf: z.string()
         .min(11, "CPF deve ter 11 dígitos")
