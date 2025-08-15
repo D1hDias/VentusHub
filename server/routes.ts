@@ -1354,6 +1354,5 @@ export function registerApiRoutes(app: Express): void {
     }
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
+  // Removido createServer pois não é necessário aqui
 }

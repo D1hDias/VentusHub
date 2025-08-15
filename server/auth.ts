@@ -59,7 +59,7 @@ export function setupAuth(app: Express) {
         Promise.race([
           new Promise(resolve => originalTouch.call(this, sid, sess, resolve)),
           timeoutPromise
-        ]).then(callback).catch(() => {
+        ]).then(() => callback()).catch(() => {
           // Falha silenciosa em caso de timeout
           callback();
         });

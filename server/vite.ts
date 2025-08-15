@@ -24,7 +24,7 @@ export function log(message: string, source = "express") {
 }
 
 export async function setupVite(app: Express, server: Server) {
-  const viteConfigResolved = typeof viteConfig === 'function' ? await viteConfig() : viteConfig;
+  const viteConfigResolved = typeof viteConfig === 'function' ? await viteConfig({ command: 'serve', mode: 'development' }) : viteConfig;
 
   const vite = await createViteServer({
     ...viteConfigResolved,

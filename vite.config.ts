@@ -9,20 +9,22 @@ const __dirname = path.dirname(__filename);
 export default defineConfig(async () => {
   const plugins = [react()];
   
-  // Only load Replit plugins in development/Replit environment
-  if (process.env.NODE_ENV !== "production") {
-    try {
-      const { default: runtimeErrorOverlay } = await import("@replit/vite-plugin-runtime-error-modal");
-      plugins.push(runtimeErrorOverlay());
-      
-      if (process.env.REPL_ID !== undefined) {
-        const { cartographer } = await import("@replit/vite-plugin-cartographer");
-        plugins.push(cartographer());
-      }
-    } catch (error) {
-      console.warn("Replit plugins not available:", error.message);
-    }
-  }
+  // Replit plugins temporarily disabled for TypeScript compatibility
+  // if (process.env.NODE_ENV !== "production") {
+  //   try {
+  //     const runtimeErrorOverlay = await import("@replit/vite-plugin-runtime-error-modal");
+  //     const plugin1 = runtimeErrorOverlay.default?.();
+  //     if (plugin1) plugins.push(plugin1);
+  //     
+  //     if (process.env.REPL_ID !== undefined) {
+  //       const cartographerModule = await import("@replit/vite-plugin-cartographer");
+  //       const plugin2 = cartographerModule.cartographer?.();
+  //       if (plugin2) plugins.push(plugin2);
+  //     }
+  //   } catch (error) {
+  //     console.warn("Replit plugins not available:", error.message);
+  //   }
+  // }
 
   return {
     plugins,

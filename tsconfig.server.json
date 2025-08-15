@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "node",
+    "outDir": "./dist/server-compiled",
+    "rootDir": ".",
+    "strict": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": false,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "sourceMap": false,
+    "removeComments": true,
+    "noEmitOnError": false,
+    "allowJs": true,
+    "checkJs": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "lib": ["ES2022", "DOM"]
+  },
+  "include": [
+    "server/**/*",
+    "shared/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "client",
+    "server/**/*.test.ts",
+    "server/**/*.spec.ts",
+    "server/index-minimal.ts",
+    "server/test-simple.ts",
+    "vite.config.ts"
+  ]
+}
