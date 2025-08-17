@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, 
   MapPin, 
@@ -11,6 +12,9 @@ import {
   FileText, 
   Camera, 
   Edit3,
+  Download,
+  Eye,
+  Trash2,
   Circle,
   Clock,
   CheckCircle,
@@ -70,6 +74,8 @@ export default function PropertyDetails() {
   const [showPropertyModal, setShowPropertyModal] = useState(false);
   const [showDueDiligenceModal, setShowDueDiligenceModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: property, isLoading, error } = useQuery({
     queryKey: [`/api/properties/${propertyId}`],
@@ -102,6 +108,28 @@ export default function PropertyDetails() {
       if (!response.ok) throw new Error("Failed to fetch properties");
       return response.json();
     },
+  });
+
+  // Buscar documentos da propriedade
+  const { data: documents, isLoading: documentsLoading } = useQuery({
+    queryKey: [`/api/properties/${propertyId}/documents`],
+    queryFn: async () => {
+      console.log(`=== FETCHING PROPERTY DOCUMENTS ===`);
+      console.log(`Property ID: ${propertyId}`);
+      
+      const response = await fetch(`/api/properties/${propertyId}/documents`);
+      console.log(`Documents response status: ${response.status}`);
+      
+      if (!response.ok) {
+        console.error(`Failed to fetch documents: ${response.status}`);
+        throw new Error(`Failed to fetch documents: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Documents received:", data);
+      return data;
+    },
+    enabled: !!propertyId,
   });
 
   // Obter o sequenceNumber da propriedade
@@ -227,6 +255,39 @@ export default function PropertyDetails() {
   const formatDate = (dateString?: string): string => {
     if (!dateString) return 'Não informado';
     return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
+  const deleteDocument = async (documentId: number, documentName: string) => {
+    if (!confirm(`Tem certeza que deseja deletar o documento "${documentName}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/property-documents/${documentId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Revalidar a query de documentos para atualizar a lista
+        queryClient.invalidateQueries({ 
+          queryKey: [`/api/properties/${propertyId}/documents`] 
+        });
+        
+        toast({
+          title: "Documento deletado!",
+          description: `${documentName} foi removido com sucesso.`,
+        });
+      } else {
+        throw new Error(`Erro ao deletar: ${response.statusText}`);
+      }
+    } catch (error: any) {
+      console.error("Error deleting document:", error);
+      toast({
+        title: "Erro ao deletar",
+        description: "Não foi possível deletar o documento.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -535,20 +596,92 @@ export default function PropertyDetails() {
             {/* Documentation */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileText className="h-5 w-5 mr-2" />
-                  Documentação
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-gray-500">
-                  <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>Documentos serão listados aqui</p>
-                  <Button variant="outline" className="mt-4">
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <FileText className="h-5 w-5 mr-2" />
+                    Documentação
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowPropertyModal(true)}
+                  >
                     <FileText className="h-4 w-4 mr-2" />
                     Gerenciar Documentos
                   </Button>
-                </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {documentsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="ml-3 text-gray-600">Carregando documentos...</span>
+                  </div>
+                ) : documents && documents.length > 0 ? (
+                  <div className="space-y-3">
+                    {documents.map((doc: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-green-50">
+                        <div className="flex items-center space-x-3">
+                          <CheckCircle className="h-5 w-5 text-green-500" />
+                          <div>
+                            <span className="text-sm font-medium text-green-700">{doc.name}</span>
+                            <div className="text-xs text-green-600">
+                              Enviado em {new Date(doc.uploadedAt || doc.createdAt).toLocaleDateString('pt-BR')}
+                              {doc.category && ` • ${doc.category}`}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.open(doc.fileUrl, '_blank')}
+                            className="text-blue-600 hover:text-blue-800"
+                            title="Visualizar documento"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = doc.fileUrl;
+                              link.download = doc.name;
+                              link.click();
+                            }}
+                            className="text-green-600 hover:text-green-800"
+                            title="Baixar documento"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteDocument(doc.id, doc.name)}
+                            className="text-red-600 hover:text-red-800"
+                            title="Deletar documento"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>Nenhum documento foi enviado ainda</p>
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={() => setShowPropertyModal(true)}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Adicionar Documentos
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -639,7 +772,15 @@ export default function PropertyDetails() {
       {/* Property Edit Modal */}
       <PropertyModal
         open={showPropertyModal}
-        onOpenChange={setShowPropertyModal}
+        onOpenChange={(open) => {
+          setShowPropertyModal(open);
+          if (!open) {
+            // Revalidar documentos quando o modal fechar
+            queryClient.invalidateQueries({ 
+              queryKey: [`/api/properties/${propertyId}/documents`] 
+            });
+          }
+        }}
         property={property ? {
           ...property,
           sequenceNumber: getSequenceNumber()
