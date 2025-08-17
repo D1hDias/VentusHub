@@ -331,7 +331,13 @@ export const createClientSchema = z.object({
         .refine((cpf) => validateCPF(cpf), "CPF inválido"),
     email: z.string().email("Email inválido").max(255, "Email muito longo"),
     phonePrimary: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos").max(15, "Telefone muito longo"),
-    phoneSecondary: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos").max(15, "Telefone muito longo").optional(),
+    phoneSecondary: z.string().optional().refine(
+        (val) => !val || val.length === 0 || val.length >= 10, 
+        "Telefone deve ter pelo menos 10 dígitos"
+    ).refine(
+        (val) => !val || val.length === 0 || val.length <= 15, 
+        "Telefone muito longo"
+    ),
     addressStreet: z.string().min(5, "Logradouro deve ter pelo menos 5 caracteres").max(255, "Logradouro muito longo"),
     addressNumber: z.string().min(1, "Número é obrigatório").max(10, "Número muito longo"),
     addressComplement: z.string().max(100, "Complemento muito longo").optional(),
@@ -339,10 +345,10 @@ export const createClientSchema = z.object({
     addressCity: z.string().min(2, "Cidade deve ter pelo menos 2 caracteres").max(100, "Cidade muito longa"),
     addressState: z.string().length(2, "Estado deve ter 2 caracteres (UF)"),
     addressZip: z.string().min(8, "CEP deve ter 8 dígitos").max(9, "CEP inválido"),
-    maritalStatus: z.enum(["Solteiro", "Casado", "Divorciado", "Viúvo"]).optional(),
+    maritalStatus: z.enum(["Solteiro", "Casado", "Divorciado", "Viúvo"]),
     profession: z.string().max(100, "Profissão muito longa").optional(),
     monthlyIncome: z.string().optional().transform(val => val ? parseFloat(val) : undefined),
     notes: z.string().max(1000, "Observações muito longas").optional(),
-    birthDate: z.string().optional().transform(val => val ? new Date(val) : undefined),
+    birthDate: z.string().optional().transform(val => val && val.length > 0 ? new Date(val) : undefined),
 });
 export const updateClientSchema = createClientSchema.partial();

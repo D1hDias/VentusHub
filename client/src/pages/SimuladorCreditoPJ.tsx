@@ -347,13 +347,13 @@ const SimuladorCreditoPJ = () => {
               transition={{ duration: 0.6, delay: 0.1 }}
             >
               <div className="space-y-8">
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Dados da Simulação
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300"><Briefcase className="h-4 w-4 inline-block mr-2" />Produto</label>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300"><Briefcase className="h-4 w-4 inline-block mr-2" />Produto</label>
                     <select
                       value={produto}
                       onChange={(e) => setProduto(e.target.value)}
@@ -364,11 +364,11 @@ const SimuladorCreditoPJ = () => {
                       <option value="pronampe">Pronampe - até R$ 150.000</option>
                       <option value="fgi">FGI - R$ 151.000 a R$ 3.000.000</option>
                     </select>
-                    {erros.produto && <p className="text-red-500 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{erros.produto}</p>}
+                    {erros.produto && <p className="text-red-500 text-xs flex items-center gap-1"><AlertCircle className="h-4 w-4" />{erros.produto}</p>}
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300"><Calendar className="h-4 w-4 inline-block mr-2" />Prazo (Até 48 Meses)</label>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300"><Calendar className="h-4 w-4 inline-block mr-2" />Prazo (Até 48 Meses)</label>
                     <input
                       type="number"
                       value={prazoDesejado}
@@ -379,12 +379,12 @@ const SimuladorCreditoPJ = () => {
                       className={`w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${erros.prazoDesejado ? 'border-red-300' : 'border-gray-200 dark:border-gray-600'
                         }`}
                     />
-                    {erros.prazoDesejado && <p className="text-red-500 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{erros.prazoDesejado}</p>}
+                    {erros.prazoDesejado && <p className="text-red-500 text-xs flex items-center gap-1"><AlertCircle className="h-4 w-4" />{erros.prazoDesejado}</p>}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300"><DollarSign className="h-4 w-4 inline-block mr-2" />Valor do Crédito</label>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300"><DollarSign className="h-4 w-4 inline-block mr-2" />Valor do Crédito</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">R$</span>
                     <input
@@ -396,7 +396,7 @@ const SimuladorCreditoPJ = () => {
                         }`}
                     />
                   </div>
-                  {erros.valorCredito && <p className="text-red-500 text-sm flex items-center gap-1"><AlertCircle className="h-4 w-4" />{erros.valorCredito}</p>}
+                  {erros.valorCredito && <p className="text-red-500 text-xs flex items-center gap-1"><AlertCircle className="h-4 w-4" />{erros.valorCredito}</p>}
                 </div>
 
                 <motion.button
@@ -423,8 +423,8 @@ const SimuladorCreditoPJ = () => {
                 >
                   <div className="flex items-center justify-between mb-8">
                     <div>
-                      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Resultado da Simulação</h2>
-                      <p className="text-gray-600 dark:text-gray-300">{resultado.produto.nome} • {resultado.dataSimulacao}</p>
+                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Resultado da Simulação</h2>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{resultado.produto.nome} • {resultado.dataSimulacao}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <motion.button onClick={limparSimulacao} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}><RefreshCcw className="h-5 w-5 text-gray-600" /></motion.button>
@@ -433,10 +433,10 @@ const SimuladorCreditoPJ = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><DollarSign className="h-8 w-8 text-blue-600 dark:text-blue-400" /><span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-200 dark:bg-blue-800 px-2 py-1 rounded-full">SOLICITADO</span></div><p className="text-2xl font-bold text-gray-900 dark:text-white">R$ {resultado.valorSolicitado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p><p className="text-sm text-gray-600 dark:text-gray-400">Valor do crédito</p></div>
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><Calendar className="h-8 w-8 text-green-600 dark:text-green-400" /><span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-200 dark:bg-green-800 px-2 py-1 rounded-full">PRAZO</span></div><p className="text-2xl font-bold text-gray-900 dark:text-white">{resultado.prazo}</p><p className="text-sm text-gray-600 dark:text-gray-400">meses</p></div>
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><CreditCard className="h-8 w-8 text-purple-600 dark:text-purple-400" /><span className="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-200 dark:bg-purple-800 px-2 py-1 rounded-full">PARCELA</span></div><p className="text-2xl font-bold text-gray-900 dark:text-white">R$ {resultado.parcela.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p><p className="text-sm text-gray-600 dark:text-gray-400">mensal</p></div>
-                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><TrendingUp className="h-8 w-8 text-orange-600 dark:text-orange-400" /><span className="text-xs font-medium text-orange-600 dark:text-orange-400 bg-orange-200 dark:bg-orange-800 px-2 py-1 rounded-full">TAXA</span></div><p className="text-xl font-bold text-gray-900 dark:text-white">{resultado.taxaJuros.toFixed(2)}%</p><p className="text-xs text-gray-600 dark:text-gray-400">{resultado.descricaoTaxa}</p></div>
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><DollarSign className="h-6 w-6 text-blue-600 dark:text-blue-400" /><span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-200 dark:bg-blue-800 px-2 py-1 rounded-full">SOLICITADO</span></div><p className="text-lg font-bold text-gray-900 dark:text-white">R$ {resultado.valorSolicitado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p><p className="text-xs text-gray-600 dark:text-gray-400">Valor do crédito</p></div>
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><Calendar className="h-6 w-6 text-green-600 dark:text-green-400" /><span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-200 dark:bg-green-800 px-2 py-1 rounded-full">PRAZO</span></div><p className="text-lg font-bold text-gray-900 dark:text-white">{resultado.prazo}</p><p className="text-xs text-gray-600 dark:text-gray-400">meses</p></div>
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><CreditCard className="h-6 w-6 text-purple-600 dark:text-purple-400" /><span className="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-200 dark:bg-purple-800 px-2 py-1 rounded-full">PARCELA</span></div><p className="text-lg font-bold text-gray-900 dark:text-white">R$ {resultado.parcela.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p><p className="text-xs text-gray-600 dark:text-gray-400">mensal</p></div>
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" /><span className="text-xs font-medium text-orange-600 dark:text-orange-400 bg-orange-200 dark:bg-orange-800 px-2 py-1 rounded-full">TAXA</span></div><p className="text-base font-bold text-gray-900 dark:text-white">{resultado.taxaJuros.toFixed(2)}%</p><p className="text-xs text-gray-600 dark:text-gray-400">{resultado.descricaoTaxa}</p></div>
                   </div>
                 </motion.div>
               </Element>
@@ -453,11 +453,11 @@ const SimuladorCreditoPJ = () => {
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
                 <div className="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border-l-4 border-amber-400 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-400 mb-3 flex items-center">
+                  <h3 className="text-base font-semibold text-amber-900 dark:text-amber-400 mb-3 flex items-center">
                     <BarChart3 className="h-5 w-5 mr-2" />
                     Indicadores de Referência
                   </h3>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-2 gap-3 text-xs">
                     <div className="flex justify-between">
                       <span className="text-amber-800 dark:text-amber-300">SELIC:</span>
                       <span className="font-medium text-amber-900 dark:text-amber-200">{INDICADORES_MERCADO.selic}%</span>
@@ -488,7 +488,7 @@ const SimuladorCreditoPJ = () => {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
               >
-                <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-300 mb-4 flex items-center gap-2">
+                <h3 className="text-base font-semibold text-amber-900 dark:text-amber-300 mb-4 flex items-center gap-2">
                   <Building2 className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                   Produtos Disponíveis
                 </h3>
@@ -498,7 +498,7 @@ const SimuladorCreditoPJ = () => {
                   <div className="bg-amber-100 dark:bg-amber-900/30 rounded-lg p-4 border border-amber-300 dark:border-amber-700">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-3 h-3 bg-amber-600 rounded-full"></div>
-                      <h4 className="font-semibold text-amber-900 dark:text-amber-300">
+                      <h4 className="text-sm font-semibold text-amber-900 dark:text-amber-300">
                         Pronampe
                       </h4>
                     </div>
@@ -526,7 +526,7 @@ const SimuladorCreditoPJ = () => {
                   <div className="bg-yellow-100 dark:bg-yellow-900/30 rounded-lg p-4 border border-yellow-300 dark:border-yellow-700">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-3 h-3 bg-yellow-600 rounded-full"></div>
-                      <h4 className="font-semibold text-yellow-900 dark:text-yellow-300">
+                      <h4 className="text-sm font-semibold text-yellow-900 dark:text-yellow-300">
                         FGI
                       </h4>
                     </div>
@@ -565,13 +565,13 @@ const SimuladorCreditoPJ = () => {
                       <div className="bg-amber-100 dark:bg-amber-900/30 p-3 rounded-full">
                         <Send className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                       </div>
-                      <h3 className="text-lg font-semibold text-amber-900 dark:text-amber-300">
+                      <h3 className="text-base font-semibold text-amber-900 dark:text-amber-300">
                         Próximos Passos
                       </h3>
                     </div>
                     
                     <div className="space-y-4">
-                      <p className="text-amber-700 dark:text-amber-300 text-sm">
+                      <p className="text-amber-700 dark:text-amber-300 text-xs">
                         Gostou da simulação? Envie uma proposta formal para aprovação do crédito.
                       </p>
                       
@@ -597,7 +597,7 @@ const SimuladorCreditoPJ = () => {
                             console.log('Navegando para aprovação de crédito...');
                             // window.location.href = '/aprovacao-credito';
                           }}
-                          className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+                          className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-white text-sm font-semibold py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >

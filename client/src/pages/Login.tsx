@@ -8,19 +8,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { Eye, EyeOff } from "lucide-react";
+import { apiRequestLegacy as apiRequest } from "@/lib/queryClient";
+import { Eye, EyeOff, Mail } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
   password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email("E-mail inválido"),
+});
+
 type LoginFormData = z.infer<typeof loginSchema>;
+type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
 
@@ -29,6 +36,13 @@ export default function Login() {
     defaultValues: {
       email: "",
       password: "",
+    },
+  });
+
+  const forgotPasswordForm = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
     },
   });
 
@@ -77,11 +91,37 @@ export default function Login() {
     },
   });
 
+  const forgotPasswordMutation = useMutation({
+    mutationFn: async (data: ForgotPasswordFormData) => {
+      const response = await apiRequest("POST", "/api/auth/forget-password", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "E-mail enviado!",
+        description: "Verifique sua caixa de entrada para redefinir sua senha.",
+      });
+      setForgotPasswordOpen(false);
+      forgotPasswordForm.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao enviar e-mail",
+        description: error.message || "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: LoginFormData) => {
     console.log("=== LOGIN FORM SUBMIT ===");
     console.log("Form data:", data);
     console.log("========================");
     loginMutation.mutate(data);
+  };
+
+  const onForgotPasswordSubmit = (data: ForgotPasswordFormData) => {
+    forgotPasswordMutation.mutate(data);
   };
 
   return (
@@ -177,6 +217,65 @@ export default function Login() {
                 </Button>
               </form>
             </Form>
+
+            <div className="mt-4 text-center">
+              <Dialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="link" size="sm" className="text-blue-600 hover:text-blue-500">
+                    Esqueci minha senha
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Mail className="h-5 w-5" />
+                      Redefinir Senha
+                    </DialogTitle>
+                    <DialogDescription>
+                      Digite seu e-mail para receber um link de redefinição de senha.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Form {...forgotPasswordForm}>
+                    <form onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)} className="space-y-4">
+                      <FormField
+                        control={forgotPasswordForm.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>E-mail</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="email"
+                                placeholder="seu@email.com"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => setForgotPasswordOpen(false)}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          type="submit"
+                          className="flex-1"
+                          disabled={forgotPasswordMutation.isPending}
+                        >
+                          {forgotPasswordMutation.isPending ? "Enviando..." : "Enviar"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
+                </DialogContent>
+              </Dialog>
+            </div>
 
             <div className="mt-6 text-center text-sm">
               <span className="text-muted-foreground">Não tem uma conta? </span>

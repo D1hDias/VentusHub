@@ -581,6 +581,7 @@ export default function SimuladorComparativo() {
     const hoje = new Date();
     const nascimento = new Date(dataNasc);
 
+    // Calcular idade em anos completos
     let idade = hoje.getFullYear() - nascimento.getFullYear();
     const mesAtual = hoje.getMonth();
     const diaAtual = hoje.getDate();
@@ -592,23 +593,35 @@ export default function SimuladorComparativo() {
     }
 
     const idadeMaximaQuitacao = 80;
+    const prazoMaximoPadrao = 420; // 35 anos
 
     // Verificar se é Banco do Brasil com limite especial
     const limiteBB = bancoCodigo === 'bb' ? 360 : 420;
-    let prazoMaximo = limiteBB;
 
-    if (idade > 45 || (idade === 45 && (mesAtual > mesNasc || (mesAtual === mesNasc && diaAtual >= diaNasc)))) {
-      const dataLimite = new Date(nascimento.getFullYear() + idadeMaximaQuitacao, nascimento.getMonth(), nascimento.getDate());
-      const diffMeses = (dataLimite.getFullYear() - hoje.getFullYear()) * 12 + (dataLimite.getMonth() - hoje.getMonth());
-
-      if (hoje.getDate() > dataLimite.getDate()) {
-        prazoMaximo = Math.max(2, diffMeses - 1);
-      } else {
-        prazoMaximo = Math.max(2, diffMeses);
+    // Para usuários com 45 anos completos ou mais: calcular prazo baseado na idade limite de 80 anos
+    if (idade >= 45) {
+      // Calcular data exata quando completará 80 anos
+      const data80Anos = new Date(nascimento.getFullYear() + idadeMaximaQuitacao, nascimento.getMonth(), nascimento.getDate());
+      
+      // Calcular diferença em meses até completar 80 anos
+      const diffAnos = data80Anos.getFullYear() - hoje.getFullYear();
+      const diffMeses = data80Anos.getMonth() - hoje.getMonth();
+      const diffDias = data80Anos.getDate() - hoje.getDate();
+      
+      let mesesRestantes = diffAnos * 12 + diffMeses;
+      
+      // Se ainda não passou do dia de aniversário no mês atual, conta o mês completo
+      if (diffDias < 0) {
+        mesesRestantes--;
       }
+      
+      // O prazo máximo é o menor entre: meses até 80 anos, limite do banco, e prazo padrão
+      const prazoMaximo = Math.min(mesesRestantes, limiteBB, prazoMaximoPadrao);
+      return { idade, prazoMaximo: Math.max(2, prazoMaximo) };
     }
 
-    return { idade, prazoMaximo: Math.min(limiteBB, Math.max(2, prazoMaximo)) };
+    // Para usuários com menos de 45 anos: prazo máximo padrão
+    return { idade, prazoMaximo: Math.min(limiteBB, prazoMaximoPadrao) };
   };
 
   // Atualizar dados calculados
@@ -644,19 +657,51 @@ export default function SimuladorComparativo() {
     }
   }, [formData.dataNascimento, formData.valorImovel, formData.valorFinanciamento, formData.rendaBrutaFamiliar]);
 
-  // Recalcular automaticamente quando toggle de IPCA mudar
+  // Função para verificar se todos os dados essenciais estão preenchidos
+  const dadosCompletos = () => {
+    const valorImovel = parseFloat(formData.valorImovel.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    const valorFinanciamento = parseFloat(formData.valorFinanciamento.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    const rendaFamiliar = parseFloat(formData.rendaBrutaFamiliar.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+    const prazo = parseInt(formData.prazoDesejado);
+    
+    return valorImovel > 0 && valorFinanciamento > 0 && rendaFamiliar > 0 && prazo > 0 && !isNaN(prazo);
+  };
+
+  // Recalcular automaticamente APENAS quando toggle de IPCA mudar E dados estão completos
   useEffect(() => {
-    if (bancosEscolhidos.length > 0 && formData.valorImovel && formData.valorFinanciamento) {
+    // Só executar se:
+    // 1. Há bancos selecionados
+    // 2. Todos os dados essenciais estão preenchidos 
+    // 3. Os dados já foram calculados pelo menos uma vez (evita cálculo inicial inválido)
+    if (bancosEscolhidos.length > 0 && dadosCompletos() && Object.keys(resultados).length > 0) {
       console.log('🔄 Recalculando devido à mudança no toggle IPCA:', incluirPrevisaoIPCA);
       const novosResultados = {};
       bancosEscolhidos.forEach((codigoBanco) => {
-        const resultado = calcularFinanciamentoBanco(codigoBanco);
-        console.log(`✅ Resultado ${codigoBanco}:`, resultado.primeiraParcela);
-        novosResultados[codigoBanco] = resultado;
+        try {
+          const resultado = calcularFinanciamentoBanco(codigoBanco);
+          if (resultado && !resultado.erro) {
+            console.log(`✅ Resultado ${codigoBanco}:`, resultado.primeiraParcela);
+            novosResultados[codigoBanco] = resultado;
+          } else {
+            console.error(`❌ Erro no cálculo ${codigoBanco}:`, resultado?.erro || 'Erro desconhecido');
+            novosResultados[codigoBanco] = {
+              banco: codigoBanco,
+              aprovado: false,
+              erro: resultado?.erro || 'Erro no cálculo'
+            };
+          }
+        } catch (error) {
+          console.error(`❌ Erro fatal no cálculo ${codigoBanco}:`, error);
+          novosResultados[codigoBanco] = {
+            banco: codigoBanco,
+            aprovado: false,
+            erro: 'Erro fatal no cálculo'
+          };
+        }
       });
       setResultados(novosResultados);
     }
-  }, [incluirPrevisaoIPCA, formData.valorImovel, formData.valorFinanciamento, formData.rendaBrutaFamiliar, formData.sistemaAmortizacao, bancosEscolhidos]);
+  }, [incluirPrevisaoIPCA]); // Remover outras dependências para evitar cálculos desnecessários
 
   const obterAliquotaMIP = (configBanco, idade) => {
     // Verifica se o banco usa o novo formato de alíquotas MIP (array)
@@ -712,11 +757,38 @@ export default function SimuladorComparativo() {
 
   const calcularFinanciamentoBanco = (codigoBanco) => {
     console.log(`🏦 Calculando ${codigoBanco} com IPCA:`, incluirPrevisaoIPCA);
+    
+    // Validações iniciais para evitar erros
+    if (!codigoBanco) {
+      console.error('❌ Código do banco não fornecido');
+      return { aprovado: false, erro: 'Código do banco inválido' };
+    }
+    
     const configBanco = getBancosConfig()[codigoBanco];
+    if (!configBanco) {
+      console.error(`❌ Configuração não encontrada para banco: ${codigoBanco}`);
+      return { aprovado: false, erro: 'Banco não configurado' };
+    }
+    
     const valorImovel = parseFloat(formData.valorImovel.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     let valorFinanciamento = parseFloat(formData.valorFinanciamento.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     const rendaFamiliar = parseFloat(formData.rendaBrutaFamiliar.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     const prazo = parseInt(formData.prazoDesejado);
+    
+    // Validar dados essenciais (sem log de erro desnecessário)
+    if (!valorImovel || !valorFinanciamento || !rendaFamiliar || !prazo || isNaN(prazo)) {
+      // Apenas log de debug se estivermos no modo de desenvolvimento
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ Dados essenciais incompletos:', { valorImovel, valorFinanciamento, rendaFamiliar, prazo });
+      }
+      return {
+        banco: configBanco.nome,
+        cor: configBanco.cor,
+        logo: configBanco.logo,
+        aprovado: false,
+        erro: 'Dados insuficientes para cálculo'
+      };
+    }
 
     // Verificar regras MCMV se aplicável
     let regrasMCMV = null;
@@ -903,10 +975,23 @@ export default function SimuladorComparativo() {
 
     const totalPago = valorTotalFinanciamento + totalJuros + totalSeguros; // + totalTAC removido
 
+    // Verificar se há parcelas calculadas
+    if (parcelas.length === 0) {
+      console.error('❌ Erro: Array de parcelas está vazio');
+      return {
+        banco: configBanco.nome,
+        cor: configBanco.cor,
+        logo: configBanco.logo,
+        aprovado: false,
+        erro: 'Erro no cálculo das parcelas'
+      };
+    }
+
     // Calcular CET conforme padrão bancário (Taxa de Juros + CESH)
     const resultadoCET = calcularCETRegulamentar(valorTotalFinanciamento, parcelas, taxaJurosAnual);
     const cet = resultadoCET.sucesso ? resultadoCET.cetAnual : taxaJurosAnual;
-    const primeiraParcela = parcelas[0].prestacao;
+    const primeiraParcela = parcelas[0]?.prestacao || 0;
+    const ultimaParcela = parcelas[parcelas.length - 1]?.prestacao || 0;
     const aprovadoCapacidade = primeiraParcela <= dadosCalculados.capacidadePagamento;
 
     return {
@@ -921,7 +1006,7 @@ export default function SimuladorComparativo() {
       valorITBI,
       custosCartorio,
       primeiraParcela,
-      ultimaParcela: parcelas[parcelas.length - 1].prestacao,
+      ultimaParcela,
       totalJuros,
       totalSeguros,
       totalTAC,
@@ -933,8 +1018,8 @@ export default function SimuladorComparativo() {
       percentualFinanciamento: (valorFinanciamento / valorImovel) * 100,
       percentualSolicitado,
       financiamentoMaxPermitido: (regrasEspeciais.financiamentoMax || configBanco.financiamentoMax) * 100,
-      parcelas: parcelas,
-      parcelasPrimeiros12: parcelas.slice(0, 12),
+      parcelas: Array.isArray(parcelas) ? parcelas : [],
+      parcelasPrimeiros12: Array.isArray(parcelas) ? parcelas.slice(0, 12) : [],
       sistemaUsado: formData.sistemaAmortizacao,
       observacao: configBanco.observacao,
       observacaoEspecial: configBanco.observacaoEspecial,
@@ -961,6 +1046,11 @@ export default function SimuladorComparativo() {
 
     if (rendaFamiliar <= 0) {
       alert('Informe a renda bruta familiar');
+      return;
+    }
+
+    if (!prazo || isNaN(prazo) || prazo <= 0) {
+      alert('Informe o prazo desejado em meses');
       return;
     }
 
@@ -1213,16 +1303,18 @@ export default function SimuladorComparativo() {
       doc.text('TABELA DE AMORTIZAÇÃO COMPLETA', 16, currentY,);
       currentY += 5;
 
-      // Preparar dados das parcelas (todas as parcelas)
-      const parcelasData = resultado.parcelas.map(parcela => [
-        parcela.parcela.toString(),
-        formatCurrency(parcela.prestacao),
-        formatCurrency(parcela.amortizacao),
-        formatCurrency(parcela.juros),
-        formatCurrency(parcela.seguroMIP),
-        formatCurrency(parcela.seguroDFI),
-        formatCurrency(parcela.saldoDevedor)
-      ]);
+      // Preparar dados das parcelas (todas as parcelas) com validação
+      const parcelasData = resultado.parcelas
+        .filter(parcela => parcela && typeof parcela.prestacao === 'number') // Filtrar parcelas válidas
+        .map(parcela => [
+          parcela.parcela?.toString() || '0',
+          formatCurrency(parcela.prestacao || 0),
+          formatCurrency(parcela.amortizacao || 0),
+          formatCurrency(parcela.juros || 0),
+          formatCurrency(parcela.seguroMIP || 0),
+          formatCurrency(parcela.seguroDFI || 0),
+          formatCurrency(parcela.saldoDevedor || 0)
+        ]);
 
       autoTable(doc, {
         startY: currentY,
@@ -1551,7 +1643,7 @@ export default function SimuladorComparativo() {
       for (let i = 0; i < maxParcelas; i++) {
         const linha = [(i + 1).toString().padStart(2, '0')]; // Parcela começa em 01, não 00
         bancosAprovados.forEach(([_, resultado]) => {
-          if (resultado.parcelas[i]) {
+          if (resultado.parcelas[i] && typeof resultado.parcelas[i].prestacao === 'number') {
             linha.push(formatCurrency(resultado.parcelas[i].prestacao));
           } else {
             linha.push('-');
@@ -1687,7 +1779,7 @@ export default function SimuladorComparativo() {
   };
 
   return (
-    <div className="simulador-container p-6 space-y-6 bg-background min-h-screen">
+    <div className="simulador-container p-6 space-y-6 bg-background min-h-screen card-desktop-compact">
 
 
       {/* Seleção de Bancos */}
@@ -1697,7 +1789,7 @@ export default function SimuladorComparativo() {
             <Building className="h-5 w-5" />
             Escolha os bancos para comparar
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Selecione um ou mais bancos para ver as condições específicas de cada um</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 text-desktop-base">Selecione um ou mais bancos para ver as condições específicas de cada um</p>
         </div>
 
         {/* Indicadores de Mercado */}
@@ -2031,7 +2123,7 @@ export default function SimuladorComparativo() {
 
                 <button
                   onClick={simularTodos}
-                  disabled={bancosEscolhidos.length === 0}
+                  disabled={bancosEscolhidos.length === 0 || !dadosCompletos()}
                   className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   <Calculator className="h-5 w-5" />
@@ -2052,30 +2144,32 @@ export default function SimuladorComparativo() {
                 <h3 className="text-lg font-semibold">📊 Comparativo de Resultados</h3>
               </div>
 
-              {/* Toggle para Previsão de IPCA - Global */}
-              <div className="flex items-center justify-between mb-4 bg-amber-50 border-l-4 border-amber-500 rounded-lg p-4">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-amber-900">⚡ Previsão de IPCA</h4>
-                  <p className="text-sm text-amber-700 mt-1">
-                    Aplicar correção do IPCA ({getIndicadoresFormatados().ipca} ao ano) em todas as simulações
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer ml-4">
-                  <input
-                    type="checkbox"
-                    checked={incluirPrevisaoIPCA}
-                    onChange={(e) => {
-                      console.log('🔄 Toggle IPCA changed:', e.target.checked);
-                      setIncluirPrevisaoIPCA(e.target.checked);
-                      // useEffect will handle the recalculation automatically
-                    }}
-                    className="sr-only"
-                  />
-                  <div className={`w-11 h-6 rounded-full relative transition-colors duration-200 ${incluirPrevisaoIPCA ? 'bg-green-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
-                    <div className={`absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform duration-200 ${incluirPrevisaoIPCA ? 'translate-x-5' : 'translate-x-0'}`}></div>
+              {/* Toggle para Previsão de IPCA - Só aparece para sistemas com IPCA */}
+              {(formData.sistemaAmortizacao === 'SAC_IPCA' || formData.sistemaAmortizacao === 'PRICE_IPCA') && (
+                <div className="flex items-center justify-between mb-4 bg-amber-50 border-l-4 border-amber-500 rounded-lg p-4">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-amber-900">⚡ Previsão de IPCA</h4>
+                    <p className="text-sm text-amber-700 mt-1">
+                      Aplicar correção do IPCA ({getIndicadoresFormatados().ipca} ao ano) em todas as simulações
+                    </p>
                   </div>
-                </label>
-              </div>
+                  <label className="relative inline-flex items-center cursor-pointer ml-4">
+                    <input
+                      type="checkbox"
+                      checked={incluirPrevisaoIPCA}
+                      onChange={(e) => {
+                        console.log('🔄 Toggle IPCA changed:', e.target.checked);
+                        setIncluirPrevisaoIPCA(e.target.checked);
+                        // useEffect will handle the recalculation automatically
+                      }}
+                      className="sr-only"
+                    />
+                    <div className={`w-11 h-6 rounded-full relative transition-colors duration-200 ${incluirPrevisaoIPCA ? 'bg-green-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                      <div className={`absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform duration-200 ${incluirPrevisaoIPCA ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                    </div>
+                  </label>
+                </div>
+              )}
 
               <div className="flex justify-between items-center mb-4">
                 <div className="bg-blue-50 p-3 rounded-lg text-sm text-blue-800 flex-1 mr-4">

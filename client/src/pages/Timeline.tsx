@@ -15,11 +15,11 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KPICard } from "@/components/KPICard";
-import { CompactKPICard } from "@/components/CompactKPICard";
 import { SimpleKPICard } from "@/components/SimpleKPICard";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import { useResponsive } from "@/hooks/useMediaQuery";
+import React from "react";
 import { cn } from "@/lib/utils";
 
 export default function Timeline() {
@@ -289,7 +289,7 @@ export default function Timeline() {
       >
         {isMobile ? (
           // Layout em grid 2x2 para mobile - otimizado para espaço
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-0">
             {[
               {
                 title: "Total",

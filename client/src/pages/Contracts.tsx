@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { KPICard } from "@/components/KPICard";
-import { CompactKPICard } from "@/components/CompactKPICard";
 import { SimpleKPICard } from "@/components/SimpleKPICard";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import { useResponsive } from "@/hooks/useMediaQuery";
+import React from "react";
 import {
   Table,
   TableBody,
@@ -209,7 +209,7 @@ export default function Contracts() {
       >
         {isMobile ? (
           // Layout em grid 2x2 para mobile - otimizado para espaço
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-0">
             <motion.div variants={getListItemVariants()}>
               <SimpleKPICard
                 title="Total"

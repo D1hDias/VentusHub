@@ -15,7 +15,7 @@ const INDICADORES_LABELS: Record<IndicadorKey, string> = {
   selic: 'SELIC',
   cdi: 'CDI',
   igpM: 'IGP-M',
-  ipca: 'IPCA',
+  ipca: 'IPCA 12m',
   itbiRegistro: 'ITBI+Registro',
   irGanhoCapital: 'IR Ganho',
   corretagem: 'Corretagem',

@@ -61,7 +61,7 @@ export const storage = {
   },
 
   // PROPERTY METHODS
-  async getProperties(userId: number) {
+  async getProperties(userId: string) {
     const userProperties = await db.select().from(properties).where(eq(properties.userId, userId));
     
     // Buscar proprietários para cada propriedade
@@ -275,7 +275,7 @@ export const storage = {
   },
 
   // DASHBOARD METHODS
-  async getUserStats(userId: number) {
+  async getUserStats(userId: string) {
     const userProperties = await db.select().from(properties).where(eq(properties.userId, userId));
     
     const stats = {
@@ -309,7 +309,7 @@ export const storage = {
     return stats;
   },
 
-  async getRecentTransactions(userId: number, limit: number = 10) {
+  async getRecentTransactions(userId: string, limit: number = 10) {
     const recentProperties = await db.select().from(properties)
       .where(eq(properties.userId, userId))
       .orderBy(desc(properties.updatedAt))
@@ -357,14 +357,14 @@ export const storage = {
   },
 
   // SEARCH METHODS
-  async searchProperties(userId: number, searchTerm: string) {
+  async searchProperties(userId: string, searchTerm: string) {
     // Implementar busca por endereço, proprietário, etc.
     // Por enquanto, retorna todas as propriedades do usuário
     return await this.getProperties(userId);
   },
 
   // REGISTRO METHODS
-  async getRegistros(userId: number) {
+  async getRegistros(userId: string) {
     return await db.select().from(registros)
       .where(eq(registros.userId, userId))
       .orderBy(desc(registros.createdAt));
@@ -412,7 +412,7 @@ export const storage = {
   },
 
   // CLIENT METHODS
-  async getClients(userId: number, options?: {
+  async getClients(userId: string, options?: {
     page?: number;
     limit?: number;
     search?: string;
@@ -466,11 +466,11 @@ export const storage = {
       // Ordenação
       if (options?.orderBy === 'name') {
         query = query.orderBy(
-          options.orderDirection === 'desc' ? desc(clients.fullName) : clients.fullName
+          options?.orderDirection === 'desc' ? desc(clients.fullName) : clients.fullName
         );
       } else {
         query = query.orderBy(
-          options.orderDirection === 'asc' ? clients.createdAt : desc(clients.createdAt)
+          options?.orderDirection === 'asc' ? clients.createdAt : desc(clients.createdAt)
         );
       }
       
@@ -578,7 +578,7 @@ export const storage = {
   },
 
   // Estatísticas de clientes
-  async getClientStats(userId: number) {
+  async getClientStats(userId: string) {
     return withTimeout(async () => {
       const totalClients = await db.select({ count: count() })
         .from(clients)
@@ -611,7 +611,7 @@ export const storage = {
   },
 
   // Buscar clientes recentes
-  async getRecentClients(userId: number, limit: number = 10) {
+  async getRecentClients(userId: string, limit: number = 10) {
     return withTimeout(async () => {
       return await db.select()
         .from(clients)

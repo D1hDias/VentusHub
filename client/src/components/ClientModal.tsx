@@ -9,11 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { AnimatedModal } from "@/components/ui/animated-modal";
-import { motion, AnimatePresence } from "framer-motion";
-import { useResponsive } from "@/hooks/useMediaQuery";
 import {
   Form,
   FormControl,
@@ -122,6 +118,7 @@ interface ClientModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   client?: Client | null;
+  onClientUpdated?: (updatedClient: any) => void;
 }
 
 async function fetchAddressByCep(cep: string) {
@@ -145,11 +142,10 @@ async function fetchAddressByCep(cep: string) {
   }
 }
 
-export function ClientModal({ open, onOpenChange, client }: ClientModalProps) {
+export function ClientModal({ open, onOpenChange, client, onClientUpdated }: ClientModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isEditing = !!client;
-  const { isMobile } = useResponsive();
 
   const form = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
@@ -223,28 +219,44 @@ export function ClientModal({ open, onOpenChange, client }: ClientModalProps) {
 
   const createClientMutation = useMutation({
     mutationFn: async (data: ClientFormData) => {
-      // Converter renda para número se informada
-      const monthlyIncome = data.monthlyIncome 
-        ? parseFloat(data.monthlyIncome.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0
-        : null;
+      // Converter monthlyIncome de centavos para valor decimal
+      const monthlyIncome = data.monthlyIncome ? (parseFloat(data.monthlyIncome) / 100).toString() : undefined;
 
       const clientData = {
         ...data,
-        monthlyIncome,
+        monthlyIncome: monthlyIncome || undefined,
         cpf: data.cpf.replace(/\D/g, ''),
         phonePrimary: data.phonePrimary.replace(/\D/g, ''),
-        phoneSecondary: data.phoneSecondary ? data.phoneSecondary.replace(/\D/g, '') : null,
+        phoneSecondary: data.phoneSecondary ? data.phoneSecondary.replace(/\D/g, '') : undefined,
         addressZip: data.addressZip.replace(/\D/g, ''),
+        // Converter campos vazios para undefined para campos opcionais
+        birthDate: data.birthDate || undefined,
+        addressComplement: data.addressComplement || undefined,
+        profession: data.profession || undefined,
+        notes: data.notes || undefined,
       };
 
-      return apiRequest(`/api/clients${isEditing ? `/${client.id}` : ''}`, {
-        method: isEditing ? 'PUT' : 'POST',
+      const url = `/api/clients${isEditing ? `/${client.id}` : ''}`;
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const response = await apiRequest(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(clientData),
       });
+
+      const result = await response.json();
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      // Invalidar cache para lista de clientes
       queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+      
+      // Se estiver editando e temos callback, chamar diretamente
+      if (isEditing && onClientUpdated && result) {
+        onClientUpdated(result);
+      }
+      
       toast({
         title: "Sucesso!",
         description: `Cliente ${isEditing ? 'atualizado' : 'cadastrado'} com sucesso.`,
@@ -279,7 +291,7 @@ export function ClientModal({ open, onOpenChange, client }: ClientModalProps) {
         addressZip: client.addressZip || "",
         maritalStatus: client.maritalStatus || "Solteiro",
         profession: client.profession || "",
-        monthlyIncome: client.monthlyIncome ? client.monthlyIncome.toString() : "",
+        monthlyIncome: client.monthlyIncome ? (client.monthlyIncome * 100).toString() : "",
         notes: client.notes || "",
       });
     } else if (open) {
@@ -291,10 +303,8 @@ export function ClientModal({ open, onOpenChange, client }: ClientModalProps) {
     createClientMutation.mutate(data);
   };
 
-  const ModalComponent = isMobile ? AnimatedModal : Dialog;
-
   return (
-    <ModalComponent open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="pb-4 border-b border-gray-200">
           <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
@@ -751,7 +761,7 @@ export function ClientModal({ open, onOpenChange, client }: ClientModalProps) {
           </Form>
         </div>
 
-        <DialogFooter className="pt-4 border-t border-gray-200 flex flex-col sm:flex-row gap-2">
+        <div className="pt-4 border-t border-gray-200 flex flex-col sm:flex-row gap-2">
           <Button
             type="button"
             variant="outline"
@@ -775,8 +785,8 @@ export function ClientModal({ open, onOpenChange, client }: ClientModalProps) {
               <>{isEditing ? "Atualizar Cliente" : "Cadastrar Cliente"}</>
             )}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
-    </ModalComponent>
+    </Dialog>
   );
 }

@@ -23,7 +23,7 @@ const cache: Map<string, CacheEntry> = new Map();
 const FALLBACK_DATA = {
   selic: 15.0,
   cdi: 13.25,
-  ipca: 5.23,
+  ipca: 5.23, // IPCA últimos 12 meses (sempre estático para garantir precisão)
   igpM: 4.39,
   valorizacao: 4.2
 };
@@ -69,6 +69,45 @@ const fetchApiData = async (url: string, source: string) => {
   }
 };
 
+// --- FUNÇÃO PARA BUSCAR IPCA DO SITE OFICIAL DO IBGE ---
+const fetchIPCAFromIBGE = async (): Promise<number | null> => {
+  try {
+    console.log('🔍 Buscando IPCA do site oficial do IBGE...');
+    const response = await axios.get('https://www.ibge.gov.br/explica/inflacao.php', {
+      timeout: REQUEST_TIMEOUT,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+      },
+    });
+
+    if (response.status === 200 && response.data) {
+      // Regex para extrair o IPCA acumulado de 12 meses
+      const ipcaRegex = /<li class="variavel">\s*<h3 class="variavel-titulo">IPCA acumulado de 12 meses<\/h3>\s*<p class="variavel-dado">([0-9,]+)%<\/p>/i;
+      const match = response.data.match(ipcaRegex);
+      
+      if (match && match[1]) {
+        // Converter vírgula para ponto e fazer parse
+        const ipcaValue = parseFloat(match[1].replace(',', '.'));
+        console.log(`✅ IPCA extraído do IBGE: ${ipcaValue}%`);
+        return ipcaValue;
+      } else {
+        console.warn('⚠️ IPCA não encontrado na estrutura HTML esperada');
+        return null;
+      }
+    }
+    
+    throw new Error(`Status ${response.status}`);
+  } catch (error) {
+    console.error(`❌ Erro ao buscar IPCA do IBGE: ${error.message}`);
+    return null;
+  }
+};
+
 // --- ROTA DE INDICADORES ---
 router.get('/indicadores', async (req, res) => {
   console.log('🎯 Rota /indicadores acionada!');
@@ -87,15 +126,14 @@ router.get('/indicadores', async (req, res) => {
     // 2. URLs das APIs oficiais
     const selicUrl = 'https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json';
     const cdiUrl = 'https://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados/ultimos/1?formato=json';
-    const ipcaUrl = 'https://servicodados.ibge.gov.br/api/v3/agregados/1737/periodos/-1/variaveis/69?localidades=N1[all]';
     const igpmUrl = 'https://api.bcb.gov.br/dados/serie/bcdata.sgs.189/dados/ultimos/1?formato=json';
 
-    // 3. Buscar dados em paralelo
-    const [selicData, cdiData, ipcaData, igpmData] = await Promise.all([
+    // 3. Buscar dados em paralelo (incluindo IPCA do site oficial)
+    const [selicData, cdiData, igpmData, ipcaFromIBGE] = await Promise.all([
       fetchApiData(selicUrl, 'SELIC'),
       fetchApiData(cdiUrl, 'CDI'), 
-      fetchApiData(ipcaUrl, 'IPCA'),
       fetchApiData(igpmUrl, 'IGP-M'),
+      fetchIPCAFromIBGE(), // Buscar do site oficial do IBGE
     ]);
 
     // 4. Processar dados com fallback inteligente
@@ -103,12 +141,8 @@ router.get('/indicadores', async (req, res) => {
     const cdi = parseFloat(cdiData?.[0]?.valor) || FALLBACK_DATA.cdi;
     const igpM = parseFloat(igpmData?.[0]?.valor) || FALLBACK_DATA.igpM;
 
-    let ipca = FALLBACK_DATA.ipca;
-    if (ipcaData?.[0]?.resultados?.[0]?.series?.[0]?.serie) {
-      const serie = ipcaData[0].resultados[0].series[0].serie;
-      const lastValue = Object.values(serie)[0];
-      ipca = parseFloat(lastValue as string) || FALLBACK_DATA.ipca;
-    }
+    // IPCA: Usar valor do site oficial do IBGE ou fallback
+    const ipca = ipcaFromIBGE || FALLBACK_DATA.ipca;
     
     // 5. Incluir valorização estática (não disponível via API)
     const resultado = {

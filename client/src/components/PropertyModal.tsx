@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequestLegacy as apiRequest } from "@/lib/queryClient";
 import { supabase } from "@/lib/supabase";
 import { Upload, X, CloudUpload, CheckCircle, Eye, Download, Plus, Trash2, Banknote } from "lucide-react";
 

@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, FileText, AlertCircle, X, CloudUpload, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequestLegacy as apiRequest } from "@/lib/queryClient";
 
 interface Property {
   id?: string;

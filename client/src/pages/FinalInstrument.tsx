@@ -10,6 +10,7 @@ import { SimpleKPICard } from "@/components/SimpleKPICard";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import { useResponsive } from "@/hooks/useMediaQuery";
+import React from "react";
 import {
   Table,
   TableBody,
@@ -216,7 +217,7 @@ export default function FinalInstrument() {
       >
         {isMobile ? (
           // Layout em grid 2x2 para mobile - otimizado para espaço
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-0">
             <motion.div variants={getListItemVariants()}>
               <SimpleKPICard
                 title="Total"

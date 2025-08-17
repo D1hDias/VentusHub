@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { KPICard } from "@/components/KPICard";
-import { CompactKPICard } from "@/components/CompactKPICard";
 import { SimpleKPICard } from "@/components/SimpleKPICard";
 import { TimelineStep } from "@/components/TimelineStep";
 import { PropertyModal } from "@/components/PropertyModal";
@@ -15,7 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequestLegacy as apiRequest } from "@/lib/queryClient";
 import { KPIGrid } from "@/components/responsive/ResponsiveGrid";
 import { useSmoothtTransitions, useEntranceAnimation } from "@/hooks/useSmoothtTransitions";
 import { useResponsive } from "@/hooks/useMediaQuery";
@@ -254,14 +253,14 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 card-desktop-compact">
       {/* Welcome Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className={`font-bold mb-1 ${isMobile ? "text-xl" : "text-fluid-3xl"}`}>
+          <h1 className={`font-bold mb-1 ${isMobile ? "text-xl" : "text-2xl"}`}>
             {getGreeting()}, {(user as any)?.firstName || "Usuário"} {(user as any)?.lastName || ""}
           </h1>
-          <p className={`text-muted-foreground ${isMobile ? "text-sm" : "text-fluid-sm"}`}>
+          <p className={`text-muted-foreground ${isMobile ? "text-sm" : "text-sm"}`}>
             CRECI: {(user as any)?.creci || "Não informado"} | Última atualização: {new Date().toLocaleString('pt-BR')}
           </p>
         </div>
@@ -319,7 +318,7 @@ export default function Dashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Transações Recentes</CardTitle>
+                <h2 className="text-xl font-semibold">Transações Recentes</h2>
                 <CardDescription className="text-xs">
                   Últimas atualizações em suas propriedades
                 </CardDescription>
@@ -333,7 +332,7 @@ export default function Dashboard() {
               {!recentTransactions || recentTransactions.length === 0 ? (
                 <div className="text-center py-8">
                   <Home className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Nenhum imóvel cadastrado</h3>
+                  <h3 className="text-base font-medium mb-2">Nenhum imóvel cadastrado</h3>
                   <p className="text-muted-foreground mb-4">
                     Comece cadastrando seu primeiro imóvel para começar a usar o sistema.
                   </p>
@@ -442,7 +441,7 @@ export default function Dashboard() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Transações Recentes</CardTitle>
+                  <h2 className="text-xl font-semibold">Transações Recentes</h2>
                   <CardDescription className="text-xs">
                     Últimas atualizações em suas propriedades
                   </CardDescription>
@@ -546,7 +545,7 @@ export default function Dashboard() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Alertas e Pendências</CardTitle>
+                <h2 className="text-xl font-semibold">Alertas e Pendências</h2>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Alert className="button-interactive">
@@ -591,7 +590,7 @@ export default function Dashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Ações Rápidas</CardTitle>
+                <h2 className="text-xl font-semibold">Ações Rápidas</h2>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button

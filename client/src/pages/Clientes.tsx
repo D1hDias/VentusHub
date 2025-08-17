@@ -58,25 +58,25 @@ const ClientActions = ({ client, onEdit }: ClientActionsProps) => {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1">
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
         onClick={handleViewDetails}
-        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+        className="hover:bg-blue-50 hover:text-blue-600 h-8 w-8 p-0"
+        title="Ver Detalhes"
       >
-        <Eye className="h-4 w-4 mr-1" />
-        Ver Detalhes
+        <Eye className="h-3.5 w-3.5" />
       </Button>
 
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
         onClick={handleEdit}
-        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+        className="hover:bg-blue-50 hover:text-blue-600 h-8 w-8 p-0"
+        title="Editar Cliente"
       >
-        <Edit className="h-4 w-4 mr-1" />
-        Editar
+        <Edit className="h-3.5 w-3.5" />
       </Button>
     </div>
   );
@@ -84,6 +84,7 @@ const ClientActions = ({ client, onEdit }: ClientActionsProps) => {
 
 export default function Clientes() {
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [showClientModal, setShowClientModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -206,9 +207,9 @@ export default function Clientes() {
         <Button
           onClick={() => setShowClientModal(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+          title="Novo Cliente"
         >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Cliente
+          <Plus className="h-4 w-4" />
         </Button>
       </div>
 
@@ -386,87 +387,69 @@ export default function Clientes() {
               <Table>
                 <TableHeader>
                   <TableRow className="border-gray-200">
-                    <TableHead className="px-4 py-3 text-gray-900 font-medium">Cliente</TableHead>
-                    <TableHead className="px-4 py-3 text-gray-900 font-medium">Contato</TableHead>
-                    <TableHead className="px-4 py-3 text-gray-900 font-medium">Endereço</TableHead>
-                    <TableHead className="px-4 py-3 text-gray-900 font-medium">Estado Civil</TableHead>
-                    <TableHead className="px-4 py-3 text-gray-900 font-medium">Renda</TableHead>
-                    <TableHead className="px-4 py-3 text-gray-900 font-medium">Ações</TableHead>
+                    <TableHead className="px-3 py-2 text-gray-900 font-medium text-sm">Nome</TableHead>
+                    <TableHead className="px-3 py-2 text-gray-900 font-medium text-sm">CPF</TableHead>
+                    <TableHead className="px-3 py-2 text-gray-900 font-medium text-sm">Telefone</TableHead>
+                    <TableHead className="px-3 py-2 text-gray-900 font-medium text-sm">E-mail</TableHead>
+                    <TableHead className="px-3 py-2 text-gray-900 font-medium text-sm">Endereço</TableHead>
+                    <TableHead className="px-3 py-2 text-gray-900 font-medium text-sm w-20">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredClients.map((client: Client, index: number) => (
-                    <TableRow key={client.id || Math.random()} className="border-gray-200 row-hover">
-                      <TableCell className="px-4 py-3">
-                        <div className="space-y-1">
-                          <div className="font-medium text-gray-900">
+                      <TableRow 
+                        key={client.id || Math.random()} 
+                        className="border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                        onClick={() => setLocation(`/client/${client.id}`)}
+                      >
+                        <TableCell className="px-3 py-2">
+                          <div className="font-medium text-gray-900 text-sm truncate max-w-40">
                             {client.fullName}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            CPF: {formatCPF(client.cpf)}
-                          </div>
                           {client.profession && (
-                            <div className="text-sm text-gray-500">
+                            <div className="text-xs text-gray-500 truncate">
                               {client.profession}
                             </div>
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        <div className="space-y-1">
-                          <div className="font-medium text-gray-900">
+                        </TableCell>
+                        <TableCell className="px-3 py-2">
+                          <div className="text-sm text-gray-900 font-mono">
+                            {formatCPF(client.cpf)}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-3 py-2">
+                          <div className="text-sm text-gray-900">
                             {formatPhone(client.phonePrimary)}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {client.email}
-                          </div>
                           {client.phoneSecondary && (
-                            <div className="text-sm text-gray-500">
-                              Alt: {formatPhone(client.phoneSecondary)}
+                            <div className="text-xs text-gray-500">
+                              {formatPhone(client.phoneSecondary)}
                             </div>
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        <div className="space-y-1">
-                          <div className="font-medium text-gray-900">
+                        </TableCell>
+                        <TableCell className="px-3 py-2">
+                          <div className="text-sm text-gray-900 truncate max-w-48">
+                            {client.email}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-3 py-2">
+                          <div className="text-sm text-gray-900 truncate max-w-56">
                             {client.addressStreet}, {client.addressNumber}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {client.addressNeighborhood}
+                          <div className="text-xs text-gray-500 truncate">
+                            {client.addressNeighborhood}, {client.addressCity} - {client.addressState}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {client.addressCity} - {client.addressState}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        {getMaritalStatusBadge(client.maritalStatus)}
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        {client.monthlyIncome ? (
-                          <div className="text-sm font-medium text-green-600">
-                            {new Intl.NumberFormat('pt-BR', {
-                              style: 'currency',
-                              currency: 'BRL'
-                            }).format(client.monthlyIncome)}
-                          </div>
-                        ) : (
-                          <div className="text-sm text-gray-500">
-                            Não informado
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="px-4 py-3">
-                        <ClientActions
-                          client={client}
-                          onEdit={(clientToEdit) => {
-                            setSelectedClient(clientToEdit);
-                            setShowClientModal(true);
-                          }}
-                        />
-                      </TableCell>
-                    </TableRow>
+                        </TableCell>
+                        <TableCell className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                          <ClientActions
+                            client={client}
+                            onEdit={(clientToEdit) => {
+                              setSelectedClient(clientToEdit);
+                              setShowClientModal(true);
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
                   ))}
                 </TableBody>
               </Table>

@@ -8,10 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DueDiligenceModal } from "@/components/DueDiligenceModal";
+import { KPICard } from "@/components/KPICard";
 import { SimpleKPICard } from "@/components/SimpleKPICard";
 import { useResponsive } from "@/hooks/useMediaQuery";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
+import React from "react";
 
 import {
   DropdownMenu,
@@ -69,7 +71,7 @@ export default function DueDiligence() {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isMobile } = useResponsive();
-  const { getListItemVariants } = useSmoothtTransitions();
+  const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();
 
   const propertiesPerPage = 10;
 
@@ -259,122 +261,124 @@ export default function DueDiligence() {
         </div>
 
         {/* KPI Cards - Responsivo */}
-        {isMobile ? (
-          // Layout em grid 2x2 para mobile - otimizado para espaço
-          <div className="grid grid-cols-2 gap-2">
-            <motion.div variants={getListItemVariants()} className="w-full">
-              <SimpleKPICard 
-                title="Em Andamento"
-                value={stats.inProgress}
-                icon={Clock}
-                iconBgColor="#001f3f"
-                subtitle="Processos ativos"
-              />
-            </motion.div>
-            <motion.div variants={getListItemVariants()} className="w-full">
-              <SimpleKPICard 
-                title="Pendentes"
-                value={stats.pending}
-                icon={AlertTriangle}
-                iconBgColor="#d47c16"
-                subtitle="Aguardando início"
-              />
-            </motion.div>
-            <motion.div variants={getListItemVariants()} className="w-full">
-              <SimpleKPICard 
-                title="Concluídas"
-                value={stats.completed}
-                icon={CheckCircle}
-                iconBgColor="#1ea475"
-                subtitle="Documentação completa"
-              />
-            </motion.div>
-            <motion.div variants={getListItemVariants()} className="w-full">
-              <SimpleKPICard 
-                title="Total"
-                value={stats.total}
-                icon={Users}
-                iconBgColor="#001f3f"
-                subtitle="Imóveis cadastrados"
-              />
-            </motion.div>
-          </div>
-        ) : (
-          // Layout desktop mantém o design atual
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
-              '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.15)`
-            }}>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
-                      <Clock className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Em Andamento</p>
-                      <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{stats.inProgress}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+        <motion.div 
+          variants={getListVariants()}
+          initial="hidden"
+          animate="visible"
+        >
+          {isMobile ? (
+            // Layout em grid 2x2 para mobile - otimizado para espaço
+            <div className="grid grid-cols-2 gap-0">
+              <motion.div variants={getListItemVariants()} className="w-full">
+                <SimpleKPICard 
+                  title="Em Andamento"
+                  value={stats.inProgress}
+                  icon={Clock}
+                  iconBgColor="#001f3f"
+                  subtitle="Processos ativos"
+                />
+              </motion.div>
+              <motion.div variants={getListItemVariants()} className="w-full">
+                <SimpleKPICard 
+                  title="Pendentes"
+                  value={stats.pending}
+                  icon={AlertTriangle}
+                  iconBgColor="#d47c16"
+                  subtitle="Aguardando início"
+                />
+              </motion.div>
+              <motion.div variants={getListItemVariants()} className="w-full">
+                <SimpleKPICard 
+                  title="Concluídas"
+                  value={stats.completed}
+                  icon={CheckCircle}
+                  iconBgColor="#1ea475"
+                  subtitle="Documentação completa"
+                />
+              </motion.div>
+              <motion.div variants={getListItemVariants()} className="w-full">
+                <SimpleKPICard 
+                  title="Total"
+                  value={stats.total}
+                  icon={Users}
+                  iconBgColor="#001f3f"
+                  subtitle="Imóveis cadastrados"
+                />
+              </motion.div>
             </div>
+          ) : (
+            // Layout desktop - igual às demais páginas
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <motion.div
+                variants={getListItemVariants()}
+                className={`${classes.cardInteractive} touch-target`}
+                whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+                whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+              >
+                <KPICard
+                  title="Em Andamento"
+                  value={stats.inProgress}
+                  icon={Clock}
+                  iconBgColor="#001f3f"
+                  progress={Math.min(stats.inProgress * 25, 100)}
+                  subtitle="Processos ativos"
+                  onClick={() => {}}
+                />
+              </motion.div>
 
-            <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
-              '--hover-shadow': `0 4px 12px rgba(212, 124, 22, 0.15)`
-            }}>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#d47c16'}}>
-                      <AlertTriangle className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Pendentes</p>
-                      <p className="text-2xl font-bold" style={{color: '#d47c16'}}>{stats.pending}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+              <motion.div
+                variants={getListItemVariants()}
+                className={`${classes.cardInteractive} touch-target`}
+                whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+                whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+              >
+                <KPICard
+                  title="Pendentes"
+                  value={stats.pending}
+                  icon={AlertTriangle}
+                  iconBgColor="#d47c16"
+                  progress={Math.min(stats.pending * 30, 100)}
+                  subtitle="Aguardando início"
+                  onClick={() => {}}
+                />
+              </motion.div>
 
-            <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
-              '--hover-shadow': `0 4px 12px rgba(30, 164, 117, 0.15)`
-            }}>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#1ea475'}}>
-                      <CheckCircle className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Concluídas</p>
-                      <p className="text-2xl font-bold" style={{color: '#1ea475'}}>{stats.completed}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+              <motion.div
+                variants={getListItemVariants()}
+                className={`${classes.cardInteractive} touch-target`}
+                whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+                whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+              >
+                <KPICard
+                  title="Concluídas"
+                  value={stats.completed}
+                  icon={CheckCircle}
+                  iconBgColor="#1ea475"
+                  progress={Math.min(stats.completed * 50, 100)}
+                  subtitle="Documentação completa"
+                  onClick={() => {}}
+                />
+              </motion.div>
 
-            <div className="button-interactive border rounded-md m-1 transition-shadow" style={{
-              '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.15)`
-            }}>
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{backgroundColor: '#001f3f'}}>
-                      <Users className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Total</p>
-                      <p className="text-2xl font-bold" style={{color: '#001f3f'}}>{stats.total}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <motion.div
+                variants={getListItemVariants()}
+                className={`${classes.cardInteractive} touch-target`}
+                whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
+                whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+              >
+                <KPICard
+                  title="Total"
+                  value={stats.total}
+                  icon={Users}
+                  iconBgColor="#001f3f"
+                  progress={Math.min(stats.total * 20, 100)}
+                  subtitle="Imóveis cadastrados"
+                  onClick={() => {}}
+                />
+              </motion.div>
             </div>
-          </div>
-        )}
+          )}
+        </motion.div>
 
         {/* Search and Filters */}
         <Card>

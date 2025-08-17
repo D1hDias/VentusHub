@@ -10,6 +10,7 @@ import { SimpleKPICard } from "@/components/SimpleKPICard";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import { useResponsive } from "@/hooks/useMediaQuery";
+import React from "react";
 import {
   Table,
   TableBody,
@@ -169,7 +170,7 @@ export default function Proposals() {
       >
         {isMobile ? (
           // Layout em grid 2x2 para mobile - otimizado para espaço
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-0">
             <motion.div variants={getListItemVariants()}>
               <SimpleKPICard
                 title="Total"
@@ -230,6 +231,8 @@ export default function Proposals() {
                 value={statsData.total}
                 icon={Eye}
                 iconBgColor="#001f3f"
+                progress={Math.min(statsData.total * 20, 100)}
+                subtitle="Propostas recebidas"
                 onClick={() => {}}
               />
             </motion.div>
@@ -244,6 +247,8 @@ export default function Proposals() {
                 value={statsData.pending}
                 icon={Clock}
                 iconBgColor="#d47c16"
+                progress={Math.min(statsData.pending * 30, 100)}
+                subtitle="Aguardando resposta"
                 onClick={() => {}}
               />
             </motion.div>
@@ -258,6 +263,8 @@ export default function Proposals() {
                 value={statsData.accepted}
                 icon={Check}
                 iconBgColor="#1ea475"
+                progress={Math.min(statsData.accepted * 50, 100)}
+                subtitle="Propostas aprovadas"
                 onClick={() => {}}
               />
             </motion.div>
@@ -271,7 +278,9 @@ export default function Proposals() {
                 title="Negociando"
                 value={statsData.negotiating}
                 icon={DollarSign}
-                iconBgColor="#001f3f"
+                iconBgColor="#3b82f6"
+                progress={Math.min(statsData.negotiating * 40, 100)}
+                subtitle="Em negociação"
                 onClick={() => {}}
               />
             </motion.div>
@@ -286,6 +295,8 @@ export default function Proposals() {
                 value={statsData.rejected}
                 icon={X}
                 iconBgColor="#dc2828"
+                progress={Math.min(statsData.rejected * 25, 100)}
+                subtitle="Não aceitas"
                 onClick={() => {}}
               />
             </motion.div>

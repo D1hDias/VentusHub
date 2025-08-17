@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 // Pages
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import PropertyCapture from "./pages/PropertyCapture";
 import Settings from "./pages/Settings";
@@ -19,6 +20,7 @@ import { Financiamento } from "./pages/Financiamento";
 import DefinitiveInstrument from "./pages/FinalInstrument";
 import Timeline from "./pages/Timeline";
 import PropertyDetails from "./pages/PropertyDetails";
+import ClientDetails from "./pages/ClientDetails";
 import SimuladorValorRegistro from "./pages/SimuladorValorRegistro";
 import SimuladorFinanciamento from "./pages/SimuladorFinanciamento";
 import SimuladorMetroQuadrado from "./pages/SimuladorMetroQuadrado";
@@ -40,6 +42,7 @@ import SimuladorCreditoPJ from "./pages/SimuladorCreditoPJ";
 import Notifications from "./pages/Notifications";
 import Registro from "./pages/Registro";
 import Clientes from "./pages/Clientes";
+import DocumentosUteis from "./pages/DocumentosUteis";
 
 // Components
 import Layout from "./components/Layout";
@@ -93,6 +96,12 @@ function AppRoutes() {
       <Route path="/register">
         <PublicRoute>
           <Register />
+        </PublicRoute>
+      </Route>
+
+      <Route path="/reset-password">
+        <PublicRoute>
+          <ResetPassword />
         </PublicRoute>
       </Route>
 
@@ -199,6 +208,12 @@ function AppRoutes() {
         </ProtectedRoute>
       </Route>
 
+      <Route path="/documentos-uteis">
+        <ProtectedRoute>
+          <DocumentosUteis />
+        </ProtectedRoute>
+      </Route>
+
       <Route path="/timeline">
         <ProtectedRoute>
           <Timeline />
@@ -208,6 +223,12 @@ function AppRoutes() {
       <Route path="/property/:id">
         <ProtectedRoute>
           <PropertyDetails />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/client/:id">
+        <ProtectedRoute>
+          <ClientDetails />
         </ProtectedRoute>
       </Route>
 

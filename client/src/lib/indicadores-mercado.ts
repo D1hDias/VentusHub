@@ -57,7 +57,7 @@ export const INFLACAO = {
   /** IGP-M mensal (% ao mês) - Calculado: IGP-M anual / 12 */
   igpMMensal: 4.39 / 12,
   
-  /** IPCA 12 meses (% ao ano) - Fonte: IBGE - Inflação geral */
+  /** IPCA últimos 12 meses (% ao ano) - Fonte: IBGE - Inflação geral acumulada em 12 meses */
   ipca: 5.23,
   
   /** IPCA mensal (% ao mês) - Calculado: IPCA anual / 12 */

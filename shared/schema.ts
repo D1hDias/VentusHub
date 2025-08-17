@@ -15,6 +15,57 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+// Better Auth tables
+export const user = pgTable("user", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").$defaultFn(() => false).notNull(),
+  image: text("image"),
+  createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
+  updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).notNull(),
+});
+
+export const session = pgTable("session", {
+  id: text("id").primaryKey(),
+  expiresAt: timestamp("expires_at").notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+});
+
+export const account = pgTable("account", {
+  id: text("id").primaryKey(),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+  scope: text("scope"),
+  password: text("password"),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+});
+
+export const verification = pgTable("verification", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").$defaultFn(() => new Date()),
+  updatedAt: timestamp("updated_at").$defaultFn(() => new Date()),
+});
+
 // Session storage table (required for Replit Auth)
 export const sessions = pgTable(
   "sessions",
@@ -47,7 +98,7 @@ export const users = pgTable("users", {
 // Properties table - ATUALIZADA
 export const properties = pgTable("properties", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: text("user_id").notNull(), // Temporarily remove FK constraint for migration
   sequenceNumber: varchar("sequence_number").notNull(), // #00001, #00002, etc
   type: varchar("type").notNull(), // apartamento, casa, cobertura, terreno
   
@@ -203,7 +254,7 @@ export const timelineEntriesRelations = relations(timelineEntries, ({ one }) => 
 export const registros = pgTable("registros", {
   id: serial("id").primaryKey(),
   propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: text("user_id").notNull(), // Temporarily remove FK constraint for migration
   
   // Dados do Registro
   protocolo: varchar("protocolo"), // Protocolo do cartório
@@ -266,9 +317,9 @@ export const registrosRelations = relations(registros, ({ one }) => ({
     fields: [registros.propertyId],
     references: [properties.id],
   }),
-  user: one(users, {
+  user: one(user, {
     fields: [registros.userId],
-    references: [users.id],
+    references: [user.id],
   }),
   cartorio: one(cartorios, {
     fields: [registros.cartorioId],
@@ -358,7 +409,7 @@ export type UpdateRegistro = z.infer<typeof updateRegistroSchema>;
 // Notifications table
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: text("user_id").notNull(), // Temporarily remove FK constraint
   type: varchar("type").notNull(), // 'info', 'warning', 'error', 'success'
   title: varchar("title").notNull(),
   message: text("message").notNull(),
@@ -373,7 +424,7 @@ export const notifications = pgTable("notifications", {
 // User settings table
 export const userSettings = pgTable("user_settings", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: text("user_id").notNull(), // Temporarily remove FK constraint
   theme: varchar("theme").default("light"), // 'light', 'dark', 'system'
   language: varchar("language").default("pt-BR"),
   timezone: varchar("timezone").default("America/Sao_Paulo"),
@@ -390,7 +441,7 @@ export const userSettings = pgTable("user_settings", {
 // Activity logs table
 export const activityLogs = pgTable("activity_logs", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
+  userId: text("user_id").notNull(), // Temporarily remove FK constraint
   action: varchar("action").notNull(), // 'created', 'updated', 'deleted', 'viewed'
   entity: varchar("entity").notNull(), // 'property', 'contract', 'document'
   entityId: integer("entity_id"),
@@ -403,7 +454,7 @@ export const activityLogs = pgTable("activity_logs", {
 // Clients table - Sistema de Clientes
 export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id), // Associado ao corretor
+  userId: text("user_id").notNull(), // Temporarily remove FK constraint
   fullName: varchar("full_name").notNull(),
   cpf: varchar("cpf").unique().notNull(),
   birthDate: date("birth_date"),
@@ -430,17 +481,162 @@ export const clients = pgTable("clients", {
   index("clients_user_id_idx").on(table.userId),
 ]);
 
+// Client Notes table - Sistema de Notas de Clientes
+export const clientNotes = pgTable("client_notes", {
+  id: serial("id").primaryKey(),
+  clientId: integer("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull(), // Temporarily remove FK constraint
+  title: varchar("title").notNull(),
+  content: text("content").notNull(),
+  type: varchar("type").notNull().default("note"), // 'note', 'reminder', 'follow_up', 'meeting', 'call'
+  priority: varchar("priority").notNull().default("normal"), // 'low', 'normal', 'high', 'urgent'
+  
+  // Campos para lembretes e reuniões
+  reminderDate: timestamp("reminder_date"),
+  location: varchar("location"), // Para reuniões: endereço ou link
+  participants: text("participants"), // Lista de participantes (JSON ou texto)
+  
+  // Campos específicos para ligações
+  duration: integer("duration"), // Duração em minutos
+  callResult: varchar("call_result"), // 'success', 'no_answer', 'busy', 'callback_requested'
+  nextSteps: text("next_steps"), // Próximos passos acordados
+  
+  // Campos de controle e metadata
+  metadata: jsonb("metadata"), // Dados estruturados específicos por tipo
+  status: varchar("status").notNull().default("pending"), // 'pending', 'in_progress', 'completed', 'cancelled'
+  
+  // Auditoria e tracking
+  isCompleted: boolean("is_completed").default(false),
+  completedAt: timestamp("completed_at"),
+  completedBy: text("completed_by"), // Usuário que marcou como completo
+  
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("client_notes_client_id_idx").on(table.clientId),
+  index("client_notes_user_id_idx").on(table.userId),
+  index("client_notes_type_idx").on(table.type),
+  index("client_notes_status_idx").on(table.status),
+  index("client_notes_priority_idx").on(table.priority),
+  index("client_notes_created_at_idx").on(table.createdAt),
+  index("client_notes_reminder_date_idx").on(table.reminderDate),
+  index("client_notes_completed_idx").on(table.isCompleted),
+]);
+
 // RELAÇÕES DOS CLIENTES
-export const clientsRelations = relations(clients, ({ one }) => ({
-  user: one(users, {
+export const clientsRelations = relations(clients, ({ one, many }) => ({
+  user: one(user, {
     fields: [clients.userId],
-    references: [users.id],
+    references: [user.id],
+  }),
+  notes: many(clientNotes),
+}));
+
+export const clientNotesRelations = relations(clientNotes, ({ one, many }) => ({
+  client: one(clients, {
+    fields: [clientNotes.clientId],
+    references: [clients.id],
+  }),
+  user: one(user, {
+    fields: [clientNotes.userId],
+    references: [user.id],
+  }),
+  auditLogs: many(clientNoteAuditLogs),
+}));
+
+// Client Note Audit Logs - Rastreamento de mudanças
+export const clientNoteAuditLogs = pgTable("client_note_audit_logs", {
+  id: serial("id").primaryKey(),
+  noteId: integer("note_id").notNull().references(() => clientNotes.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull(),
+  action: varchar("action").notNull(), // 'created', 'updated', 'status_changed', 'completed', 'cancelled'
+  field: varchar("field"), // Campo que foi alterado
+  oldValue: text("old_value"), // Valor anterior
+  newValue: text("new_value"), // Novo valor
+  reason: text("reason"), // Motivo da alteração (opcional)
+  metadata: jsonb("metadata"), // Dados adicionais
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("client_note_audit_note_id_idx").on(table.noteId),
+  index("client_note_audit_action_idx").on(table.action),
+  index("client_note_audit_created_at_idx").on(table.createdAt),
+]);
+
+export const clientNoteAuditLogsRelations = relations(clientNoteAuditLogs, ({ one }) => ({
+  note: one(clientNotes, {
+    fields: [clientNoteAuditLogs.noteId],
+    references: [clientNotes.id],
+  }),
+  user: one(user, {
+    fields: [clientNoteAuditLogs.userId],
+    references: [user.id],
   }),
 }));
 
-// Adicionar relação inversa de users para clients
-export const usersClientsRelations = relations(users, ({ many }) => ({
+// Better Auth table relations
+export const userRelations = relations(user, ({ many }) => ({
+  sessions: many(session),
+  accounts: many(account),
+  properties: many(properties),
+  registros: many(registros),
+  notifications: many(notifications),
+  userSettings: many(userSettings),
+  activityLogs: many(activityLogs),
   clients: many(clients),
+  clientNotes: many(clientNotes),
+  scheduledNotifications: many(scheduledNotifications),
+}));
+
+// Scheduled Notifications - Sistema de lembretes automáticos
+export const scheduledNotifications = pgTable("scheduled_notifications", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  relatedType: varchar("related_type").notNull(), // 'client_note', 'reminder', 'meeting'
+  relatedId: integer("related_id").notNull(), // ID da nota/lembrete/reunião
+  
+  // Configuração da notificação
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  scheduledFor: timestamp("scheduled_for").notNull(),
+  notificationType: varchar("notification_type").notNull(), // 'email', 'push', 'sms', 'in_app'
+  
+  // Status e controle
+  status: varchar("status").notNull().default("pending"), // 'pending', 'sent', 'failed', 'cancelled'
+  sentAt: timestamp("sent_at"),
+  failureReason: text("failure_reason"),
+  retryCount: integer("retry_count").default(0),
+  
+  // Metadata
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("scheduled_notifications_user_id_idx").on(table.userId),
+  index("scheduled_notifications_scheduled_for_idx").on(table.scheduledFor),
+  index("scheduled_notifications_status_idx").on(table.status),
+  index("scheduled_notifications_related_idx").on(table.relatedType, table.relatedId),
+]);
+
+export const scheduledNotificationsRelations = relations(scheduledNotifications, ({ one }) => ({
+  user: one(user, {
+    fields: [scheduledNotifications.userId],
+    references: [user.id],
+  }),
+}));
+
+export const sessionRelations = relations(session, ({ one }) => ({
+  user: one(user, {
+    fields: [session.userId],
+    references: [user.id],
+  }),
+}));
+
+export const accountRelations = relations(account, ({ one }) => ({
+  user: one(user, {
+    fields: [account.userId],
+    references: [user.id],
+  }),
 }));
 
 // SCHEMAS DE VALIDAÇÃO DOS CLIENTES
@@ -455,7 +651,13 @@ export const createClientSchema = z.object({
     .refine((cpf) => validateCPF(cpf), "CPF inválido"),
   email: z.string().email("Email inválido").max(255, "Email muito longo"),
   phonePrimary: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos").max(15, "Telefone muito longo"),
-  phoneSecondary: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos").max(15, "Telefone muito longo").optional(),
+  phoneSecondary: z.string().optional().refine(
+    (val) => !val || val.length === 0 || val.length >= 10, 
+    "Telefone deve ter pelo menos 10 dígitos"
+  ).refine(
+    (val) => !val || val.length === 0 || val.length <= 15, 
+    "Telefone muito longo"
+  ),
   addressStreet: z.string().min(5, "Logradouro deve ter pelo menos 5 caracteres").max(255, "Logradouro muito longo"),
   addressNumber: z.string().min(1, "Número é obrigatório").max(10, "Número muito longo"),
   addressComplement: z.string().max(100, "Complemento muito longo").optional(),
@@ -463,17 +665,85 @@ export const createClientSchema = z.object({
   addressCity: z.string().min(2, "Cidade deve ter pelo menos 2 caracteres").max(100, "Cidade muito longa"),
   addressState: z.string().length(2, "Estado deve ter 2 caracteres (UF)"),
   addressZip: z.string().min(8, "CEP deve ter 8 dígitos").max(9, "CEP inválido"),
-  maritalStatus: z.enum(["Solteiro", "Casado", "Divorciado", "Viúvo"]).optional(),
+  maritalStatus: z.enum(["Solteiro", "Casado", "Divorciado", "Viúvo"]),
   profession: z.string().max(100, "Profissão muito longa").optional(),
   monthlyIncome: z.string().optional().transform(val => val ? parseFloat(val) : undefined),
   notes: z.string().max(1000, "Observações muito longas").optional(),
-  birthDate: z.string().optional().transform(val => val ? new Date(val) : undefined),
+  birthDate: z.string().optional().transform(val => val && val.length > 0 ? new Date(val) : undefined),
 });
 
 // Schema para atualização de cliente
 export const updateClientSchema = createClientSchema.partial();
 
+// SCHEMAS DE VALIDAÇÃO DAS NOTAS DE CLIENTES
+export const insertClientNoteSchema = createInsertSchema(clientNotes);
+
+// Schema para criação de nota de cliente
+export const createClientNoteSchema = z.object({
+  clientId: z.number().min(1, "Cliente é obrigatório"),
+  title: z.string().min(1, "Título é obrigatório").max(255, "Título muito longo"),
+  content: z.string().min(1, "Conteúdo é obrigatório").max(5000, "Conteúdo muito longo"),
+  type: z.enum(["note", "reminder", "follow_up", "meeting", "call"]).default("note"),
+  priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
+  
+  // Campos opcionais para diferentes tipos
+  reminderDate: z.string().optional().transform(val => val && val.length > 0 ? new Date(val) : undefined),
+  location: z.string().max(255, "Local muito longo").optional(),
+  participants: z.string().max(1000, "Lista de participantes muito longa").optional(),
+  
+  // Campos específicos para ligações
+  duration: z.number().min(0, "Duração não pode ser negativa").max(480, "Duração não pode exceder 8 horas").optional(),
+  callResult: z.enum(["success", "no_answer", "busy", "callback_requested", "voicemail", "disconnected"]).optional(),
+  nextSteps: z.string().max(1000, "Próximos passos muito longos").optional(),
+  
+  // Metadata estruturada para extensibilidade
+  metadata: z.record(z.any()).optional(),
+  status: z.enum(["pending", "in_progress", "completed", "cancelled"]).default("pending"),
+});
+
+// Schema para atualização de nota de cliente
+export const updateClientNoteSchema = createClientNoteSchema.partial().extend({
+  isCompleted: z.boolean().optional(),
+  completedAt: z.string().optional().transform(val => val && val.length > 0 ? new Date(val) : undefined),
+  completedBy: z.string().optional(),
+});
+
 // TIPOS DOS CLIENTES
 export type InsertClient = z.infer<typeof insertClientSchema>;
 export type CreateClient = z.infer<typeof createClientSchema>;
 export type UpdateClient = z.infer<typeof updateClientSchema>;
+
+// TIPOS DAS NOTAS DE CLIENTES
+export type InsertClientNote = z.infer<typeof insertClientNoteSchema>;
+export type CreateClientNote = z.infer<typeof createClientNoteSchema>;
+export type UpdateClientNote = z.infer<typeof updateClientNoteSchema>;
+
+// SCHEMAS DE VALIDAÇÃO PARA AUDITORIA E NOTIFICAÇÕES
+export const insertClientNoteAuditLogSchema = createInsertSchema(clientNoteAuditLogs);
+export const insertScheduledNotificationSchema = createInsertSchema(scheduledNotifications);
+
+// Schema para criar log de auditoria
+export const createAuditLogSchema = z.object({
+  noteId: z.number().min(1, "ID da nota é obrigatório"),
+  action: z.enum(["created", "updated", "status_changed", "completed", "cancelled"]),
+  field: z.string().max(100, "Nome do campo muito longo").optional(),
+  oldValue: z.string().max(1000, "Valor anterior muito longo").optional(),
+  newValue: z.string().max(1000, "Novo valor muito longo").optional(),
+  reason: z.string().max(500, "Motivo muito longo").optional(),
+  metadata: z.record(z.any()).optional(),
+});
+
+// Schema para agendar notificação
+export const createScheduledNotificationSchema = z.object({
+  relatedType: z.enum(["client_note", "reminder", "meeting"]),
+  relatedId: z.number().min(1, "ID relacionado é obrigatório"),
+  title: z.string().min(1, "Título é obrigatório").max(255, "Título muito longo"),
+  message: z.string().min(1, "Mensagem é obrigatória").max(1000, "Mensagem muito longa"),
+  scheduledFor: z.date(),
+  notificationType: z.enum(["email", "push", "sms", "in_app"]).default("in_app"),
+  metadata: z.record(z.any()).optional(),
+});
+
+// TIPOS PARA AUDITORIA E NOTIFICAÇÕES
+export type CreateAuditLog = z.infer<typeof createAuditLogSchema>;
+export type CreateScheduledNotification = z.infer<typeof createScheduledNotificationSchema>;

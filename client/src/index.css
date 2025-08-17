@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(20, 14.3%, 4.1%);
@@ -303,6 +304,25 @@
   
   .text-sm { font-size: var(--step--1); }
   .text-xs { font-size: var(--step--2); }
+  
+  /* Custom header title size - override global rules */
+  .header-title-sm {
+    font-size: 1.25rem !important; /* 20px - tamanho personalizado */
+    line-height: 1.5rem !important; /* 24px */
+  }
+  
+  /* KPI Card com dropshadow ultra intenso */
+  .kpi-card-ultra-shadow {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transform: translateY(0) !important;
+  }
+  
+  .kpi-card-ultra-shadow:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 
+                0 8px 15px -3px rgba(0, 0, 0, 0.1),
+                0 4px 10px -2px rgba(0, 0, 0, 0.05) !important;
+    transform: translateY(-3px) !important;
+  }
 }
 
 @layer components {
@@ -1013,6 +1033,10 @@ body, main, div, section, aside {
 .text-fluid-3xl { font-size: var(--step-4); }
 .text-fluid-4xl { font-size: var(--step-5); }
 
+/* =============================================
+   OTIMIZAÇÃO DE FONTES PARA DESKTOP
+   ============================================= */
+
 /* Classe específica para simuladores - reduz fonte no desktop */
 .simulador-container {
   font-size: var(--step-0);
@@ -1021,6 +1045,106 @@ body, main, div, section, aside {
 @media (min-width: 768px) {
   .simulador-container {
     font-size: var(--step--1); /* Usa uma fonte menor no desktop */
+  }
+}
+
+/* Sistema de tipografia otimizada para desktop */
+@media (min-width: 1024px) {
+  /* Títulos principais - reduzir 1 step no desktop */
+  .text-3xl {
+    font-size: var(--step-2) !important; /* Era step-3 */
+  }
+  
+  .text-2xl {
+    font-size: var(--step-1) !important; /* Era step-2 */
+  }
+  
+  .text-xl {
+    font-size: var(--step-0) !important; /* Era step-1 */
+  }
+  
+  .text-lg {
+    font-size: var(--step--1) !important; /* Era step-0 */
+  }
+  
+  /* Headers específicos */
+  h1, .text-4xl {
+    font-size: var(--step-3) !important; /* Era step-4 */
+  }
+  
+  h2 {
+    font-size: var(--step-2) !important; /* Era step-3 */
+  }
+  
+  h3 {
+    font-size: var(--step-1) !important; /* Era step-2 */
+  }
+  
+  h4 {
+    font-size: var(--step-0) !important; /* Era step-1 */
+  }
+}
+
+/* Classes utilitárias para controle granular */
+@media (min-width: 1024px) {
+  /* Textos de formulário compactos */
+  .text-desktop-sm {
+    font-size: var(--step--2) !important;
+  }
+  
+  .text-desktop-base {
+    font-size: var(--step--1) !important;
+  }
+  
+  .text-desktop-lg {
+    font-size: var(--step-0) !important;
+  }
+  
+  /* Labels e descrições menores no desktop */
+  label, .label-text {
+    font-size: var(--step--1) !important;
+  }
+  
+  /* Botões ligeiramente menores no desktop */
+  .btn-desktop-compact {
+    font-size: var(--step--2) !important;
+    padding: 0.5rem 1rem !important;
+  }
+  
+  /* Cards com texto mais compacto */
+  .card-desktop-compact {
+    font-size: var(--step--1) !important;
+  }
+  
+  .card-desktop-compact h3,
+  .card-desktop-compact h4 {
+    font-size: var(--step-0) !important;
+  }
+  
+  /* Tabelas com texto menor no desktop */
+  .table-desktop-compact {
+    font-size: var(--step--1) !important;
+  }
+  
+  .table-desktop-compact th,
+  .table-desktop-compact td {
+    font-size: var(--step--1) !important;
+    padding: 0.5rem !important;
+  }
+  
+  /* Sidebar e navegação compacta */
+  .nav-desktop-compact {
+    font-size: var(--step--1) !important;
+  }
+  
+  /* Modais com texto otimizado */
+  .modal-desktop-compact {
+    font-size: var(--step--1) !important;
+  }
+  
+  .modal-desktop-compact h2,
+  .modal-desktop-compact h3 {
+    font-size: var(--step-0) !important;
   }
 }
 

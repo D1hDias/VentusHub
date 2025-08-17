@@ -71,7 +71,7 @@ export function useIndicadoresMercado(options: UseIndicadoresMercadoOptions = {}
       selic: dadosAPI.selic || INDICADORES_MERCADO.selic,
       cdi: dadosAPI.cdi || INDICADORES_MERCADO.cdi,
       igpM: dadosAPI.igpM || INDICADORES_MERCADO.igpM,
-      ipca: dadosAPI.ipca || INDICADORES_MERCADO.ipca,
+      ipca: dadosAPI.ipca || INDICADORES_MERCADO.ipca, // Agora vem do site oficial do IBGE
       itbiRegistro: INDICADORES_MERCADO.itbiRegistro, // Sempre estático
       irGanhoCapital: INDICADORES_MERCADO.irGanhoCapital, // Sempre estático
       corretagem: INDICADORES_MERCADO.corretagem, // Sempre estático
@@ -152,12 +152,30 @@ export function useIndicadoresMercado(options: UseIndicadoresMercadoOptions = {}
     }
   };
 
+  // Função para limpar todos os caches
+  const clearAllCaches = (): void => {
+    // Limpar cache em memória
+    cacheData = { data: null, timestamp: 0 };
+    
+    // Limpar localStorage
+    try {
+      localStorage.removeItem(CACHE_KEY);
+      console.log('🧹 Cache localStorage limpo');
+    } catch (e) {
+      console.warn('Não foi possível limpar cache localStorage');
+    }
+  };
+
   // Função para refresh manual usando force refresh do backend
   const refresh = async (): Promise<void> => {
     setIsLoading(true);
     
     try {
       console.log('🔄 Force refresh solicitado pelo usuário...');
+      
+      // Limpar caches primeiro
+      clearAllCaches();
+      
       const dadosAPI = await forceUpdateIndicadores();
       
       if (dadosAPI && typeof dadosAPI === 'object') {
@@ -201,7 +219,11 @@ export function useIndicadoresMercado(options: UseIndicadoresMercadoOptions = {}
       const savedCache = localStorage.getItem(CACHE_KEY);
       if (savedCache) {
         const parsed = JSON.parse(savedCache);
-        if (parsed.data && (Date.now() - parsed.timestamp) < updateInterval) {
+        // Verificar se o cache tem IPCA antigo (3.26) e forçar limpeza
+        if (parsed.data && parsed.data.ipca && Math.abs(parsed.data.ipca - 3.26) < 0.01) {
+          console.log('🧹 Detectado cache com IPCA antigo (3.26%), limpando...');
+          clearAllCaches();
+        } else if (parsed.data && (Date.now() - parsed.timestamp) < updateInterval) {
           cacheData = parsed;
         }
       }

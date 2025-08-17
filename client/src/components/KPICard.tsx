@@ -65,8 +65,15 @@ export function KPICard({
     return () => clearInterval(timer);
   }, [value, animateValue, prefersReducedMotion]);
 
-  // Usar variantes otimizadas
-  const cardVariants = getCardVariants();
+  // Usar variantes otimizadas com hover scale
+  const cardVariants = {
+    ...getCardVariants(),
+    hover: {
+      ...getCardVariants().hover,
+      scale: prefersReducedMotion ? 1 : 1.02,
+      transition: { duration: 0.2, ease: "easeOut" }
+    }
+  };
   
   const iconVariants = {
     idle: { rotate: 0, scale: 1 },
@@ -91,7 +98,7 @@ export function KPICard({
 
   const CardComponent = onClick ? motion.div : Card;
   
-  // Converter cor do ícone para formato RGB para usar na sombra
+  // Converter cor do ícone para formato RGB para usar na sombra e borda
   const getShadowColor = (color: string) => {
     // Se é uma cor hex, converter para rgb
     if (color.startsWith('#')) {
@@ -114,7 +121,7 @@ export function KPICard({
     // Fallback para primary color
     return '0, 31, 63';
   };
-  
+
   const shadowColor = getShadowColor(iconBgColor);
   
   const cardProps = onClick ? {
@@ -125,14 +132,14 @@ export function KPICard({
     whileHover: "hover",
     whileTap: "tap",
     onClick,
-    className: `${classes.cardInteractive} touch-target border rounded-md m-1 transition-shadow`,
+    className: `${classes.cardInteractive} touch-target border rounded-md m-1 kpi-card-ultra-shadow`,
     style: { 
       cursor: 'pointer',
       '--tw-shadow-color': `rgb(${shadowColor})`,
       '--hover-shadow': `0 4px 12px rgba(${shadowColor}, 0.15)`
     } as React.CSSProperties
   } : {
-    className: `${classes.transitionSmooth} border rounded-md m-1`
+    className: `${classes.transitionSmooth} border rounded-md m-1 kpi-card-ultra-shadow`
   };
 
   if (useListLayout) {
@@ -165,21 +172,23 @@ export function KPICard({
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-0.5">
                 <p className="text-sm font-medium text-muted-foreground truncate">{title}</p>
-                <motion.p 
-                  className="text-lg font-bold text-primary tabular-nums"
-                  key={displayValue}
-                  initial={prefersReducedMotion ? undefined : { scale: 1.1 }}
-                  animate={prefersReducedMotion ? undefined : { scale: 1 }}
-                  transition={prefersReducedMotion ? undefined : { duration: 0.2, ease: "easeOut" }}
-                >
-                  {isLoading ? (
-                    <motion.span {...loadingAnimation}>
-                      --
-                    </motion.span>
-                  ) : (
-                    displayValue
-                  )}
-                </motion.p>
+                <div className="w-8 flex justify-center">
+                  <motion.p 
+                    className="text-lg font-bold text-primary tabular-nums"
+                    key={displayValue}
+                    initial={prefersReducedMotion ? undefined : { scale: 1.1 }}
+                    animate={prefersReducedMotion ? undefined : { scale: 1 }}
+                    transition={prefersReducedMotion ? undefined : { duration: 0.2, ease: "easeOut" }}
+                  >
+                    {isLoading ? (
+                      <motion.span {...loadingAnimation}>
+                        --
+                      </motion.span>
+                    ) : (
+                      displayValue
+                    )}
+                  </motion.p>
+                </div>
               </div>
               
               {/* Progress bar compacto */}
@@ -229,23 +238,27 @@ export function KPICard({
             )}
           </motion.div>
           
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-muted-foreground truncate">{title}</p>
-            <motion.p 
-              className="text-2xl font-bold text-primary tabular-nums"
-              key={displayValue} // Re-trigger animation when value changes
-              initial={prefersReducedMotion ? undefined : { scale: 1.1 }}
-              animate={prefersReducedMotion ? undefined : { scale: 1 }}
-              transition={prefersReducedMotion ? undefined : { duration: 0.2, ease: "easeOut" }}
-            >
-              {isLoading ? (
-                <motion.span {...loadingAnimation}>
-                  --
-                </motion.span>
-              ) : (
-                displayValue
-              )}
-            </motion.p>
+          <div className="flex-1 min-w-0 flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-muted-foreground truncate">{title}</p>
+            </div>
+            <div className="w-12 flex justify-center ml-4">
+              <motion.p 
+                className="text-2xl font-bold text-primary tabular-nums"
+                key={displayValue} // Re-trigger animation when value changes
+                initial={prefersReducedMotion ? undefined : { scale: 1.1 }}
+                animate={prefersReducedMotion ? undefined : { scale: 1 }}
+                transition={prefersReducedMotion ? undefined : { duration: 0.2, ease: "easeOut" }}
+              >
+                {isLoading ? (
+                  <motion.span {...loadingAnimation}>
+                    --
+                  </motion.span>
+                ) : (
+                  displayValue
+                )}
+              </motion.p>
+            </div>
           </div>
         </div>
         

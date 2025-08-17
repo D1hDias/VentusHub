@@ -5,8 +5,10 @@ import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { createServer } from "http";
 import { setupAuth, setupAuthRoutes } from "./auth.js";
+import { setupBetterAuthRoutes } from "./better-auth-routes.js";
 import { registerApiRoutes } from "./routes.js"; // Renomeado para maior clareza
 import { initializeDB } from "./db.js";
+import { initCRMServices } from "./crm-service.js";
 // Vite imports condicionais
 
 // Função de log simples
@@ -86,8 +88,28 @@ log(`
   });
 
   // 5. Registro de Rotas da API
-  setupAuthRoutes(app); // Rotas de autenticação
+  
+  // Rota de teste para verificar se o servidor está funcionando
+  app.get('/api/health', (req, res) => {
+    res.json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      message: 'Server is running',
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
+  
+  setupBetterAuthRoutes(app); // Better Auth routes (PRIMEIRO!)
+  setupAuthRoutes(app); // Rotas de autenticação legadas
   registerApiRoutes(app); // Outras rotas da API
+  
+  // 6. Inicializar serviços CRM
+  try {
+    initCRMServices();
+    log("✅ Serviços CRM inicializados");
+  } catch (error) {
+    log(`⚠️ Erro ao inicializar serviços CRM: ${error.message}`);
+  }
   log("✅ Rotas registradas");
 
   // 6. Middleware de tratamento de erros com tratamento especial para timeouts

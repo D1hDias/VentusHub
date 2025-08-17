@@ -71,12 +71,25 @@ export default function PropertyDetails() {
   const [showDueDiligenceModal, setShowDueDiligenceModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const { data: property, isLoading } = useQuery({
+  const { data: property, isLoading, error } = useQuery({
     queryKey: [`/api/properties/${propertyId}`],
     queryFn: async () => {
+      console.log(`=== FETCHING PROPERTY DETAILS ===`);
+      console.log(`Property ID from URL: ${propertyId}`);
+      console.log(`API URL: /api/properties/${propertyId}`);
+      
       const response = await fetch(`/api/properties/${propertyId}`);
-      if (!response.ok) throw new Error("Failed to fetch property");
-      return response.json();
+      console.log(`Response status: ${response.status}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`API Error: ${response.status} - ${errorText}`);
+        throw new Error(`Failed to fetch property: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log("Property data received:", data);
+      return data;
     },
     enabled: !!propertyId,
   });
@@ -238,12 +251,29 @@ export default function PropertyDetails() {
     );
   }
 
-  if (!property) {
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-900 mb-2">Erro ao carregar imóvel</h2>
+          <p className="text-gray-600 mb-4">Erro: {error.message}</p>
+          <p className="text-sm text-gray-500 mb-4">Property ID: {propertyId}</p>
+          <Button onClick={() => window.history.back()}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!property && !isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Imóvel não encontrado</h2>
           <p className="text-gray-600 mb-4">O imóvel solicitado não existe ou foi removido.</p>
+          <p className="text-sm text-gray-500 mb-4">Property ID: {propertyId}</p>
           <Button onClick={() => window.history.back()}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar
@@ -257,7 +287,7 @@ export default function PropertyDetails() {
   const progress = calculateProgress(property.currentStage || 1);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 card-desktop-compact">
       <div className="w-full px-6 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -265,7 +295,7 @@ export default function PropertyDetails() {
             <Button
               variant="outline"
               onClick={() => window.history.back()}
-              className="border-gray-300"
+              className="border-gray-300 btn-desktop-compact"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
@@ -275,7 +305,7 @@ export default function PropertyDetails() {
                 <span className="text-lg font-mono text-gray-500 bg-gray-100 px-3 py-1 rounded">
                   {getSequenceNumber()}
                 </span>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-900">
                   {property.type} - {property.street}, {property.number}
                 </h1>
               </div>
@@ -297,7 +327,7 @@ export default function PropertyDetails() {
         <Card className="mb-8">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xl">Progresso do Processo</CardTitle>
+              <CardTitle className="text-lg">Progresso do Processo</CardTitle>
               <div className="flex items-center gap-3">
                 <Button 
                   variant="outline" 
@@ -324,7 +354,7 @@ export default function PropertyDetails() {
                 <Progress value={progress} className="h-3" />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 lg:gap-3">
                 {stages.map((stage, index) => {
                   const IconComponent = stage.icon;
                   const isActive = property.currentStage === stage.id;
@@ -343,7 +373,7 @@ export default function PropertyDetails() {
                   return (
                     <div
                       key={stage.id}
-                      className={`text-center p-3 rounded-lg border-2 transition-all ${
+                      className={`text-center p-2 lg:p-3 rounded-lg border-2 transition-all ${
                         stageStatus === 'completed'
                           ? 'border-green-200 bg-green-50'
                           : stageStatus === 'in_progress'
@@ -353,7 +383,7 @@ export default function PropertyDetails() {
                           : 'border-gray-200 bg-gray-50'
                       }`}
                     >
-                      <div className={`w-10 h-10 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                      <div className={`w-8 h-8 lg:w-10 lg:h-10 mx-auto mb-1 lg:mb-2 rounded-full flex items-center justify-center ${
                         stageStatus === 'completed'
                           ? 'bg-green-500 text-white'
                           : stageStatus === 'in_progress'
@@ -362,14 +392,14 @@ export default function PropertyDetails() {
                           ? 'bg-blue-500 text-white'
                           : 'bg-gray-300 text-gray-600'
                       }`}>
-                        <IconComponent className="h-5 w-5" />
+                        <IconComponent className="h-4 w-4 lg:h-5 lg:w-5" />
                       </div>
                       <h3 className={`text-xs font-medium mb-1 ${
                         stageStatus !== 'pending' ? 'text-gray-900' : 'text-gray-500'
                       }`}>
                         {stage.label}
                       </h3>
-                      <p className="text-xs text-gray-500 leading-tight">
+                      <p className="text-xs text-gray-500 leading-tight hidden lg:block">
                         {stage.id === 2 && stageStatus === 'in_progress' 
                           ? 'Documentos em validação'
                           : stage.id === 2 && stageStatus === 'completed'
@@ -409,7 +439,7 @@ export default function PropertyDetails() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Valor
                     </label>
-                    <p className="text-2xl font-bold text-green-600">
+                    <p className="text-xl font-bold text-green-600">
                       {formatCurrency(property.value)}
                     </p>
                   </div>

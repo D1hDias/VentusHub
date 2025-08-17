@@ -7,7 +7,22 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Nova função com interface moderna (url, options)
 export async function apiRequest(
+  url: string,
+  options?: RequestInit,
+): Promise<Response> {
+  const res = await fetch(url, {
+    credentials: "include",
+    ...options,
+  });
+
+  await throwIfResNotOk(res);
+  return res;
+}
+
+// Função de compatibilidade (será removida gradualmente)
+export async function apiRequestLegacy(
   method: string,
   url: string,
   data?: unknown | undefined,
