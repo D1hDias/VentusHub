@@ -709,7 +709,7 @@ export function registerApiRoutes(app: Express): void {
     try {
       console.log("=== FIXING SEQUENCE NUMBERS ===");
       
-      const userId = parseInt(req.session.user.id);
+      const userId = req.session.user.id; // userId já é string conforme schema
       
       // Buscar todas as propriedades do usuário ordenadas por ID (ordem de criação)
       const userProperties = await db.select().from(properties).where(eq(properties.userId, userId)).orderBy(properties.id);

@@ -38,11 +38,20 @@ export function setupBetterAuthRoutes(app: Express) {
       
       try {
         // Create a new request with the corrected path
+        const filteredHeaders: Record<string, string> = {};
+        Object.entries(req.headers).forEach(([key, value]) => {
+          if (typeof value === 'string') {
+            filteredHeaders[key] = value;
+          } else if (Array.isArray(value)) {
+            filteredHeaders[key] = value.join(', ');
+          }
+        });
+        
         const request = new Request(`${req.protocol}://${req.get('host')}${path}`, {
           method: req.method,
           headers: {
             'Content-Type': 'application/json',
-            ...req.headers,
+            ...filteredHeaders,
           },
           body: req.method !== 'GET' && req.method !== 'HEAD' ? JSON.stringify(req.body) : undefined,
         });
