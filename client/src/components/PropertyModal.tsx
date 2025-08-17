@@ -383,38 +383,72 @@ export function PropertyModal({ open, onOpenChange, property }: PropertyModalPro
 
     try {
       for (const file of files) {
-        const fileName = `${Date.now()}-${file.name}`;
-        const filePath = `${propertyId}/${fileName}`;
+        let uploadSuccess = false;
+        let fileUrl = '';
 
-        const { data, error } = await supabase.storage
-          .from('property-documents')
-          .upload(filePath, file);
+        // Tentar primeiro Supabase
+        try {
+          const fileName = `${Date.now()}-${file.name}`;
+          const filePath = `${propertyId}/${fileName}`;
 
-        if (error) {
-          console.error("Supabase error:", error);
-          throw error;
+          const { data, error } = await supabase.storage
+            .from('property-documents')
+            .upload(filePath, file);
+
+          if (!error) {
+            // Obter URL pública
+            const { data: { publicUrl } } = supabase.storage
+              .from('property-documents')
+              .getPublicUrl(filePath);
+
+            fileUrl = publicUrl;
+            uploadSuccess = true;
+            console.log("✅ Supabase upload bem-sucedido:", fileUrl);
+
+            // Salvar metadata no banco via API (método antigo)
+            const documentData = {
+              propertyId: parseInt(propertyId),
+              fileName: file.name,
+              fileUrl: fileUrl,
+              fileType: file.type,
+            };
+
+            await apiRequest('POST', '/api/property-documents', documentData);
+          } else {
+            throw error;
+          }
+        } catch (supabaseError) {
+          console.warn("❌ Supabase falhou, tentando upload local:", supabaseError);
+          
+          // Fallback: usar upload local
+          try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('propertyId', propertyId);
+            formData.append('category', (file as FileWithCategory).category || 'OUTROS');
+
+            const response = await fetch('/api/property-documents/upload', {
+              method: 'POST',
+              body: formData,
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              fileUrl = result.document.fileUrl;
+              uploadSuccess = true;
+              console.log("✅ Upload local bem-sucedido:", fileUrl);
+            } else {
+              throw new Error(`Upload local falhou: ${response.statusText}`);
+            }
+          } catch (localError) {
+            console.error("❌ Upload local também falhou:", localError);
+            throw new Error(`Falha no upload: ${localError.message}`);
+          }
         }
 
-        // Obter URL pública
-        const { data: { publicUrl } } = supabase.storage
-          .from('property-documents')
-          .getPublicUrl(filePath);
-
-        uploadedUrls.push(publicUrl);
-
-        // Preparar dados para API
-        const documentData = {
-          propertyId: parseInt(propertyId),
-          fileName: file.name,
-          fileUrl: publicUrl,
-          fileType: file.type,
-        };
-
-        console.log("Enviando para API:", documentData);
-
-        // Salvar metadata no banco via API
-        const response = await apiRequest('POST', '/api/property-documents', documentData);
-        console.log("Resposta da API:", response);
+        if (uploadSuccess) {
+          uploadedUrls.push(fileUrl);
+        }
       }
 
       setUploadedFiles(uploadedUrls);

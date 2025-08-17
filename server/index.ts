@@ -103,6 +103,9 @@ log(`
   setupAuthRoutes(app); // Rotas de autenticação legadas
   registerApiRoutes(app); // Outras rotas da API
   
+  // Servir arquivos de upload estaticamente
+  app.use('/uploads', express.static('./uploads'));
+  
   // 6. Inicializar serviços CRM
   try {
     initCRMServices();

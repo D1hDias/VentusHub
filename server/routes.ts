@@ -2,6 +2,9 @@ import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage.js";
 import { isAuthenticated } from "./auth.js";
+import multer from "multer";
+import fs from "fs";
+import path from "path";
 import { 
   insertProposalSchema, 
   createRegistroSchema, 
@@ -32,6 +35,35 @@ import {
   consultarTaxasCartorio,
   generateProtocolo
 } from "./registro-mock.js";
+
+// Configurar multer para upload de documentos de propriedades
+const documentStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = './uploads/property-documents';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + file.originalname;
+    cb(null, uniqueSuffix);
+  }
+});
+
+const documentUpload = multer({
+  storage: documentStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    // Aceitar PDF, JPG, PNG
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Tipo de arquivo não permitido. Use PDF, JPG ou PNG.'));
+    }
+  }
+});
 
 export function registerApiRoutes(app: Express): void {
   // Market indicators routes (não requer autenticação) 
@@ -615,6 +647,62 @@ export function registerApiRoutes(app: Express): void {
     } catch (error) {
       console.error("Error fetching recent transactions:", error);
       res.status(500).json({ message: "Failed to fetch recent transactions" });
+    }
+  });
+
+  // Endpoint para upload de documentos de propriedades (fallback do Supabase)
+  app.post("/api/property-documents/upload", isAuthenticated, documentUpload.single('file'), async (req: any, res) => {
+    try {
+      console.log("=== PROPERTY DOCUMENT UPLOAD ===");
+      console.log("File:", req.file);
+      console.log("Body:", req.body);
+      console.log("User:", req.session.user);
+      console.log("===============================");
+
+      if (!req.file) {
+        return res.status(400).json({ message: "Nenhum arquivo foi enviado" });
+      }
+
+      const { propertyId, category } = req.body;
+      
+      if (!propertyId) {
+        return res.status(400).json({ message: "propertyId é obrigatório" });
+      }
+
+      // Criar URL local para o arquivo
+      const fileUrl = `/uploads/property-documents/${req.file.filename}`;
+      
+      // Salvar metadata no banco de dados
+      const [document] = await db.insert(propertyDocuments).values({
+        propertyId: parseInt(propertyId),
+        name: req.file.originalname,
+        fileUrl: fileUrl,
+        fileType: req.file.mimetype,
+        fileSize: req.file.size,
+        category: category || 'OUTROS',
+        status: 'uploaded',
+        uploadedAt: new Date()
+      }).returning();
+
+      console.log("Document saved:", document);
+
+      res.json({
+        success: true,
+        document: {
+          id: document.id,
+          name: document.name,
+          fileUrl: document.fileUrl,
+          category: document.category,
+          uploadedAt: document.uploadedAt
+        }
+      });
+
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ 
+        message: "Erro ao fazer upload do documento",
+        error: error instanceof Error ? error.message : "Erro desconhecido"
+      });
     }
   });
 
