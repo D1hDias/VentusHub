@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from "./db";
+import { db } from "./db.js";
 
 // Simple email sender for development - replace with your preferred email service
 async function sendEmail(to: string, subject: string, html: string) {

@@ -1,5 +1,5 @@
 import type { Express } from "express";
-import { auth } from "./better-auth";
+import { auth } from "./better-auth.js";
 
 export function setupBetterAuthRoutes(app: Express) {
   console.log('🔧 Configurando rotas Better Auth...');
