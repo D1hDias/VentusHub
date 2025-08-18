@@ -395,7 +395,7 @@ export class PendencyNotificationService {
     limit: number = 50
   ): Promise<any[]> {
     try {
-      const notifications = await db.select({
+      const userNotifications = await db.select({
         notification: pendencyNotifications,
         property: properties
       })
@@ -410,7 +410,7 @@ export class PendencyNotificationService {
       .orderBy(sql`${pendencyNotifications.severity} DESC, ${pendencyNotifications.createdAt} DESC`)
       .limit(limit);
 
-      return notifications.map(n => ({
+      return userNotifications.map(n => ({
         ...n.notification,
         property: {
           sequenceNumber: n.property?.sequenceNumber,
@@ -432,7 +432,7 @@ export class PendencyNotificationService {
     userId: string
   ): Promise<any[]> {
     try {
-      const notifications = await db.select({
+      const propertyNotifications = await db.select({
         notification: pendencyNotifications,
         requirement: stageRequirements
       })
@@ -447,7 +447,7 @@ export class PendencyNotificationService {
       )
       .orderBy(sql`${pendencyNotifications.severity} DESC, ${pendencyNotifications.createdAt} DESC`);
 
-      return notifications.map(n => ({
+      return propertyNotifications.map(n => ({
         ...n.notification,
         requirement: n.requirement ? {
           requirementName: n.requirement.requirementName,
@@ -650,14 +650,14 @@ export async function initializePendencyNotifications(): Promise<void> {
     console.log('Initializing pendency notifications for existing properties...');
 
     // Get all properties with their owners
-    const properties = await db.select().from(properties);
+    const allProperties = await db.select().from(properties);
 
-    for (const property of properties) {
+    for (const property of allProperties) {
       // Trigger initial pendency review
       await PendencyNotificationService.triggerPendencyReview(property.id, property.userId);
     }
 
-    console.log(`Initialized pendency notifications for ${properties.length} properties`);
+    console.log(`Initialized pendency notifications for ${allProperties.length} properties`);
 
   } catch (error) {
     console.error('Error initializing pendency notifications:', error);
