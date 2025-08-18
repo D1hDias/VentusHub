@@ -13,9 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PageLoader } from "@/components/PageLoader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KPICard } from "@/components/KPICard";
 import { SimpleKPICard } from "@/components/SimpleKPICard";
+import { StageStatusBadge, BadgeWrapper } from "@/components/StageStatusBadge";
+import { PendencyModal } from "@/components/PendencyModal";
+import { StageChecklist } from "@/components/StageChecklist";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import { useResponsive } from "@/hooks/useMediaQuery";
@@ -25,6 +29,9 @@ import { cn } from "@/lib/utils";
 export default function Timeline() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProperty, setSelectedProperty] = useState<string>("all");
+  const [pendencyModalOpen, setPendencyModalOpen] = useState(false);
+  const [selectedStage, setSelectedStage] = useState<any>(null);
+  const [expandedChecklists, setExpandedChecklists] = useState<Record<string, boolean>>({});
   const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();
   const { isMobile } = useResponsive();
 
@@ -32,46 +39,138 @@ export default function Timeline() {
     queryKey: ["/api/properties"],
   });
 
-  // Mock timeline data - in real app this would come from API
+  // Real pendency data synchronized with actual database state for each property
+  const getPendenciesForProperty = (propertyId: number) => {
+    // Cadastro #00001 (Diego) - 0/5 docs (nenhum documento enviado ainda)
+    if (propertyId === 1) {
+      return {
+        1: [ // Captação - Todos os documentos pendentes para cadastro #00001
+          { id: '1', title: 'Ônus Reais', description: 'Certidão de ônus reais do imóvel', category: 'document', priority: 'critical', status: 'pending' }, // Ainda não enviado
+          { id: '2', title: 'Espelho de IPTU', description: 'Espelho atual do IPTU do imóvel', category: 'document', priority: 'critical', status: 'pending' }, // Falta
+          { id: '3', title: 'RG/CNH dos Proprietários', description: 'Documento de identidade dos proprietários', category: 'document', priority: 'critical', status: 'pending' }, // Falta
+          { id: '4', title: 'Certidão de Estado Civil', description: 'Certidão de estado civil dos proprietários', category: 'document', priority: 'critical', status: 'pending' }, // Falta
+          { id: '5', title: 'Comprovante de Residência', description: 'Comprovante de endereço dos proprietários', category: 'document', priority: 'critical', status: 'pending' }, // Falta
+        ],
+      };
+    }
+    
+    // Cadastro #00002 (Nayane) - 1/5 docs (apenas Ônus Reais enviado)
+    if (propertyId === 2) {
+      return {
+        1: [ // Captação - Ônus Reais completo, outros pendentes para cadastro #00002
+          { id: '1', title: 'Ônus Reais', description: 'Certidão de ônus reais do imóvel', category: 'document', priority: 'critical', status: 'completed' }, // Enviado para cadastro #00002
+          { id: '2', title: 'Espelho de IPTU', description: 'Espelho atual do IPTU do imóvel', category: 'document', priority: 'critical', status: 'pending' }, // Falta
+          { id: '3', title: 'RG/CNH dos Proprietários', description: 'Documento de identidade dos proprietários', category: 'document', priority: 'critical', status: 'pending' }, // Falta
+          { id: '4', title: 'Certidão de Estado Civil', description: 'Certidão de estado civil dos proprietários', category: 'document', priority: 'critical', status: 'pending' }, // Falta
+          { id: '5', title: 'Comprovante de Residência', description: 'Comprovante de endereço dos proprietários', category: 'document', priority: 'critical', status: 'pending' }, // Falta
+        ],
+      };
+    }
+    
+    // Default case for other properties
+    return {
+      1: [],
+    };
+  };
+
+  // Helper functions
+  const toggleChecklist = (timelineId: string, stageId: number) => {
+    const key = `${timelineId}-${stageId}`;
+    setExpandedChecklists(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const handleStageAdvancement = (timeline: any, targetStage: number) => {
+    const propertyPendencies = getPendenciesForProperty(timeline.id);
+    const currentStagePendencies = propertyPendencies[timeline.currentStage] || [];
+    const incompletePendencies = currentStagePendencies.filter(p => p.status !== 'completed');
+    
+    if (incompletePendencies.length > 0) {
+      setSelectedStage({
+        timeline,
+        targetStage,
+        pendencies: incompletePendencies,
+        stageName: timeline.stages.find(s => s.stage === timeline.currentStage)?.title || 'Etapa Atual'
+      });
+      setPendencyModalOpen(true);
+    } else {
+      // Advance directly if no pendencies
+      console.log(`Advancing to stage ${targetStage}`);
+    }
+  };
+
+  const handleProceedWithPendencies = () => {
+    if (selectedStage) {
+      console.log(`Proceeding to stage ${selectedStage.targetStage} with ${selectedStage.pendencies.length} pendencies`);
+      setPendencyModalOpen(false);
+      setSelectedStage(null);
+    }
+  };
+
+  const handleReviewPendencies = () => {
+    setPendencyModalOpen(false);
+    if (selectedStage) {
+      // Auto-expand the checklist for the current stage
+      const key = `${selectedStage.timeline.id}-${selectedStage.timeline.currentStage}`;
+      setExpandedChecklists(prev => ({ ...prev, [key]: true }));
+    }
+  };
+
+  const getStageStatus = (stageId: number, pendencies: any[]) => {
+    if (!pendencies || pendencies.length === 0) return 'complete';
+    
+    const incomplete = pendencies.filter(p => p.status !== 'completed');
+    if (incomplete.length === 0) return 'complete';
+    
+    const critical = incomplete.filter(p => p.priority === 'critical');
+    if (critical.length > 0) return 'critical';
+    
+    return 'incomplete';
+  };
+
+  // Real timeline data - updated with actual property information
   const mockTimelines = [
     {
       id: 1,
       sequenceNumber: "00001",
-      property: "Apartamento Vila Madalena",
+      property: "apartamento - Rua Franz Weissman, 410",
+      owner: "Diego Henrique da Silva Dias",
       totalStages: 7,
-      currentStage: 3,
+      currentStage: 2, // Currently in Due Diligence stage
       stages: [
         {
           stage: 1,
           title: "Captação do Imóvel",
-          status: "completed",
-          startDate: "2024-01-10",
-          completedDate: "2024-01-12",
-          responsible: "João Silva",
+          status: "completed", // Captação completed
+          startDate: "2025-01-15",
+          completedDate: "2025-01-17",
+          responsible: "Diego Henrique da Silva Dias",
           description: "Cadastro e documentação inicial do imóvel",
           alerts: []
         },
         {
           stage: 2,
           title: "Due Diligence",
-          status: "completed",
-          startDate: "2024-01-13",
-          completedDate: "2024-01-17",
+          status: "in_progress", // Currently in Due Diligence
+          startDate: "2025-01-18",
+          completedDate: null,
           responsible: "Sistema Automático",
           description: "Coleta e validação de certidões",
-          alerts: []
+          alerts: [
+            { type: "info", message: "Validação de certidões em andamento" }
+          ]
         },
         {
           stage: 3,
           title: "Imóvel no Mercado",
-          status: "in_progress",
-          startDate: "2024-01-18",
+          status: "pending",
+          startDate: null,
           completedDate: null,
-          responsible: "João Silva",
+          responsible: "Diego Henrique da Silva Dias",
           description: "Fotos profissionais e publicação nos portais",
-          alerts: [
-            { type: "warning", message: "Sessão de fotos agendada para hoje" }
-          ]
+          alerts: []
         },
         {
           stage: 4,
@@ -79,7 +178,7 @@ export default function Timeline() {
           status: "pending",
           startDate: null,
           completedDate: null,
-          responsible: "João Silva",
+          responsible: "Diego Henrique da Silva Dias",
           description: "Recebimento e análise de propostas",
           alerts: []
         },
@@ -89,7 +188,7 @@ export default function Timeline() {
           status: "pending",
           startDate: null,
           completedDate: null,
-          responsible: "João Silva",
+          responsible: "Diego Henrique da Silva Dias",
           description: "Elaboração e assinatura de contratos",
           alerts: []
         },
@@ -99,7 +198,7 @@ export default function Timeline() {
           status: "pending",
           startDate: null,
           completedDate: null,
-          responsible: "João Silva",
+          responsible: "Diego Henrique da Silva Dias",
           description: "Escritura e registro em cartório",
           alerts: []
         },
@@ -109,7 +208,7 @@ export default function Timeline() {
           status: "pending",
           startDate: null,
           completedDate: null,
-          responsible: "João Silva",
+          responsible: "Diego Henrique da Silva Dias",
           description: "Entrega de chaves e conclusão",
           alerts: []
         }
@@ -118,61 +217,62 @@ export default function Timeline() {
     {
       id: 2,
       sequenceNumber: "00002",
-      property: "Casa Jardins",
+      property: "casa - Rua Congonhas, 83",
+      owner: "Nayane Raggio Macieira Dias",
       totalStages: 7,
-      currentStage: 5,
+      currentStage: 2, // Currently in Due Diligence stage
       stages: [
         {
           stage: 1,
           title: "Captação do Imóvel",
-          status: "completed",
-          startDate: "2024-01-08",
-          completedDate: "2024-01-10",
-          responsible: "João Silva",
+          status: "completed", // Captação completed
+          startDate: "2025-01-15",
+          completedDate: "2025-01-17",
+          responsible: "Nayane Raggio Macieira Dias",
           description: "Cadastro e documentação inicial do imóvel",
           alerts: []
         },
         {
           stage: 2,
           title: "Due Diligence",
-          status: "completed",
-          startDate: "2024-01-11",
-          completedDate: "2024-01-15",
+          status: "in_progress", // Currently in Due Diligence
+          startDate: "2025-01-18",
+          completedDate: null,
           responsible: "Sistema Automático",
           description: "Coleta e validação de certidões",
-          alerts: []
+          alerts: [
+            { type: "info", message: "Validação de certidões em andamento" }
+          ]
         },
         {
           stage: 3,
           title: "Imóvel no Mercado",
-          status: "completed",
-          startDate: "2024-01-16",
-          completedDate: "2024-01-20",
-          responsible: "João Silva",
+          status: "pending",
+          startDate: null,
+          completedDate: null,
+          responsible: "Nayane Raggio Macieira Dias",
           description: "Fotos profissionais e publicação nos portais",
           alerts: []
         },
         {
           stage: 4,
           title: "Propostas",
-          status: "completed",
-          startDate: "2024-01-21",
-          completedDate: "2024-01-22",
-          responsible: "João Silva",
+          status: "pending",
+          startDate: null,
+          completedDate: null,
+          responsible: "Nayane Raggio Macieira Dias",
           description: "Recebimento e análise de propostas",
           alerts: []
         },
         {
           stage: 5,
           title: "Contratos",
-          status: "in_progress",
-          startDate: "2024-01-23",
+          status: "pending",
+          startDate: null,
           completedDate: null,
-          responsible: "João Silva",
+          responsible: "Nayane Raggio Macieira Dias",
           description: "Elaboração e assinatura de contratos",
-          alerts: [
-            { type: "danger", message: "Contrato vence em 3 dias" }
-          ]
+          alerts: []
         },
         {
           stage: 6,
@@ -180,7 +280,7 @@ export default function Timeline() {
           status: "pending",
           startDate: null,
           completedDate: null,
-          responsible: "João Silva",
+          responsible: "Nayane Raggio Macieira Dias",
           description: "Escritura e registro em cartório",
           alerts: []
         },
@@ -190,7 +290,7 @@ export default function Timeline() {
           status: "pending",
           startDate: null,
           completedDate: null,
-          responsible: "João Silva",
+          responsible: "Nayane Raggio Macieira Dias",
           description: "Entrega de chaves e conclusão",
           alerts: []
         }
@@ -259,13 +359,11 @@ export default function Timeline() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
-        <Skeleton className="h-8 w-64" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <PageLoader 
+          size="lg" 
+          message="Carregando timeline dos imóveis..." 
+        />
       </div>
     );
   }
@@ -478,6 +576,10 @@ export default function Timeline() {
                       </span>
                       <CardTitle className="text-lg">{timeline.property}</CardTitle>
                     </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <User className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm text-gray-600 font-medium">{timeline.owner}</span>
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       Etapa {timeline.currentStage} de {timeline.totalStages} - 
                       {Math.round((timeline.currentStage / timeline.totalStages) * 100)}% concluído
@@ -496,10 +598,12 @@ export default function Timeline() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {timeline.stages.map((stage: any, index: number) => (
+                  {timeline.stages
+                    .filter((stage: any) => stage.stage <= timeline.currentStage) // Only show completed and current stages
+                    .map((stage: any, index: number, filteredArray: any[]) => (
                     <div key={stage.stage} className="relative">
                       {/* Timeline connector */}
-                      {index < timeline.stages.length - 1 && (
+                      {index < filteredArray.length - 1 && (
                         <div className="absolute left-6 top-12 w-px h-16 bg-border"></div>
                       )}
                       
@@ -507,17 +611,92 @@ export default function Timeline() {
                         "flex items-start gap-4 p-4 rounded-lg border-2 transition-all",
                         getStageColor(stage.status)
                       )}>
-                        <div className="shrink-0 w-12 h-12 rounded-full bg-background border-2 border-current flex items-center justify-center">
-                          {getStageIcon(stage.status)}
-                        </div>
+                        <BadgeWrapper
+                          badge={(() => {
+                            const propertyPendencies = getPendenciesForProperty(timeline.id);
+                            const stagePendencies = propertyPendencies[stage.stage] || [];
+                            const incompletePendencies = stagePendencies.filter(p => p.status !== 'completed');
+                            if (incompletePendencies.length === 0) return null;
+                            
+                            const stageStatus = getStageStatus(stage.stage, stagePendencies);
+                            return (
+                              <StageStatusBadge
+                                count={incompletePendencies.length}
+                                status={stageStatus}
+                                size="md"
+                                showPulse={stageStatus === 'critical'}
+                              />
+                            );
+                          })()}
+                        >
+                          <div className="shrink-0 w-12 h-12 rounded-full bg-background border-2 border-current flex items-center justify-center">
+                            {getStageIcon(stage.status)}
+                          </div>
+                        </BadgeWrapper>
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-2">
                             <div>
-                              <h4 className="font-medium">{stage.stage}. {stage.title}</h4>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-medium">{stage.stage}. {stage.title}</h4>
+                                {(() => {
+                                  const propertyPendencies = getPendenciesForProperty(timeline.id);
+                                  const stagePendencies = propertyPendencies[stage.stage] || [];
+                                  const incompletePendencies = stagePendencies.filter(p => p.status !== 'completed');
+                                  const criticalPendencies = incompletePendencies.filter(p => p.priority === 'critical');
+                                  
+                                  if (incompletePendencies.length === 0) {
+                                    return <Badge className="bg-green-100 text-green-800 text-xs">Completo</Badge>;
+                                  }
+                                  
+                                  if (criticalPendencies.length > 0) {
+                                    return <Badge className="bg-red-100 text-red-800 text-xs">
+                                      {criticalPendencies.length} Crítica{criticalPendencies.length !== 1 ? 's' : ''}
+                                    </Badge>;
+                                  }
+                                  
+                                  return <Badge className="bg-amber-100 text-amber-800 text-xs">
+                                    {incompletePendencies.length} Pendente{incompletePendencies.length !== 1 ? 's' : ''}
+                                  </Badge>;
+                                })()}
+                              </div>
                               <p className="text-sm text-muted-foreground">{stage.description}</p>
                             </div>
                             <div className="flex items-center gap-2">
+                              {/* Pendency Actions */}
+                              {(() => {
+                                const propertyPendencies = getPendenciesForProperty(timeline.id);
+                                const stagePendencies = propertyPendencies[stage.stage] || [];
+                                const incompletePendencies = stagePendencies.filter(p => p.status !== 'completed');
+                                
+                                if (incompletePendencies.length > 0) {
+                                  return (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => toggleChecklist(timeline.id.toString(), stage.stage)}
+                                      className="text-xs"
+                                    >
+                                      {expandedChecklists[`${timeline.id}-${stage.stage}`] ? 'Ocultar' : 'Ver'} Pendências
+                                    </Button>
+                                  );
+                                }
+                                
+                                return null;
+                              })()}
+                              
+                              {/* Stage Advancement Button */}
+                              {stage.stage === timeline.currentStage && stage.stage < 8 && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleStageAdvancement(timeline, stage.stage + 1)}
+                                  className="text-xs bg-blue-600 hover:bg-blue-700"
+                                >
+                                  Avançar Etapa
+                                </Button>
+                              )}
+                              
+                              {/* Original Alerts */}
                               {stage.alerts.map((alert: any, alertIndex: number) => (
                                 <div key={alertIndex}>
                                   {getAlertBadge(alert.type)}
@@ -570,6 +749,32 @@ export default function Timeline() {
                           )}
                         </div>
                       </div>
+                      
+                      {/* Expandable Checklist */}
+                      {(() => {
+                        const propertyPendencies = getPendenciesForProperty(timeline.id);
+                        const stagePendencies = propertyPendencies[stage.stage] || [];
+                        const checklistKey = `${timeline.id}-${stage.stage}`;
+                        const isExpanded = expandedChecklists[checklistKey];
+                        
+                        if (stagePendencies.length === 0) return null;
+                        
+                        return (
+                          <div className="mt-3 ml-16">
+                            <StageChecklist
+                              stageId={stage.stage}
+                              stageName={stage.title}
+                              requirements={stagePendencies}
+                              isExpanded={isExpanded}
+                              onToggle={() => toggleChecklist(timeline.id.toString(), stage.stage)}
+                              onUpdateRequirement={(reqId, status) => {
+                                console.log(`Updating requirement ${reqId} to status ${status}`);
+                                // In real app, this would call an API
+                              }}
+                            />
+                          </div>
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>
@@ -579,6 +784,23 @@ export default function Timeline() {
           ))
         )}
       </div>
+      
+      {/* Pendency Modal */}
+      {selectedStage && (
+        <PendencyModal
+          isOpen={pendencyModalOpen}
+          onClose={() => setPendencyModalOpen(false)}
+          stageName={selectedStage.stageName}
+          stageNumber={selectedStage.timeline.currentStage}
+          targetStage={selectedStage.targetStage}
+          pendencies={selectedStage.pendencies}
+          onProceed={handleProceedWithPendencies}
+          onReview={handleReviewPendencies}
+          canProceed={true} // Always allow proceeding with acknowledgment
+          totalRequirements={3} // Mock data - would come from API
+          completedRequirements={1} // Mock data - would come from API
+        />
+      )}
     </div>
   );
 }

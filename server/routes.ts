@@ -21,13 +21,33 @@ import {
   clientNoteAuditLogs,
   scheduledNotifications,
   createAuditLogSchema,
-  createScheduledNotificationSchema
+  createScheduledNotificationSchema,
+  stageRequirements,
+  propertyRequirements,
+  stageCompletionMetrics,
+  stageAdvancementLog,
+  pendencyNotifications,
+  createStageRequirementSchema,
+  updatePropertyRequirementSchema,
+  stageAdvancementSchema,
+  type PendencyValidationResult
 } from "../shared/schema.js";
 import { z } from "zod";
 import { db } from "./db.js";
 import { documents as propertyDocuments, properties } from "../shared/schema.js";
-import { eq, and, or, ilike, desc, count } from "drizzle-orm";
+import { eq, and, or, ilike, desc, count, sql } from "drizzle-orm";
 import indicadoresRouter from "./indicadores.js";
+import { 
+  PendencyValidationEngine,
+  seedStageRequirements,
+  initializeExistingProperties
+} from "./pendency-engine.js";
+import { 
+  PendencyNotificationService,
+  RealTimePendencyTracker,
+  runDailyPendencyCleanup,
+  initializePendencyNotifications
+} from "./pendency-notifications.js";
 import { 
   consultarStatusCartorio, 
   enviarDocumentosCartorio, 
@@ -67,13 +87,10 @@ const documentUpload = multer({
 
 export function registerApiRoutes(app: Express): void {
   // Market indicators routes (não requer autenticação) 
-  console.log('🔧 Registrando rota de indicadores...');
   app.use('/api', indicadoresRouter);
   
   // Rota de teste para debug com fallback de dados estáticos
   app.get('/api/indicadores-test', (req, res) => {
-    console.log('🧪 Rota de teste acionada!');
-    
     // Retornar dados de fallback para teste
     const fallbackData = {
       selic: 15.0,
@@ -94,7 +111,6 @@ export function registerApiRoutes(app: Express): void {
   app.get("/api/properties", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
-      console.log(`=== GET PROPERTIES - User ID: ${userId} ===`);
       const properties = await storage.getProperties(userId);
       res.json(properties);
     } catch (error) {
@@ -105,50 +121,27 @@ export function registerApiRoutes(app: Express): void {
 
   app.get("/api/properties/:id", isAuthenticated, async (req: any, res) => {
     try {
-      console.log(`=== GET SPECIFIC PROPERTY DEBUG ===`);
-      console.log(`Raw ID param: "${req.params.id}"`);
-      console.log(`Request URL: ${req.url}`);
-      
       const propertyId = parseInt(req.params.id);
       const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
       
-      console.log(`Parsed Property ID: ${propertyId} (isNaN: ${isNaN(propertyId)})`);
-      console.log(`User ID: "${userId}"`);
-      
       if (isNaN(propertyId)) {
-        console.log("Invalid property ID - not a number");
         return res.status(400).json({ message: "Invalid property ID" });
       }
       
       const property = await storage.getProperty(propertyId);
-      console.log(`Property found:`, property ? {
-        id: property.id,
-        userId: property.userId,
-        type: typeof property.userId,
-        street: property.street,
-        number: property.number
-      } : null);
       
       if (!property) {
-        console.log("Property not found in database");
         return res.status(404).json({ message: "Property not found" });
       }
 
       // Ensure user owns this property - corrigir type mismatch
-      console.log(`Ownership check: property.userId = "${property.userId}" (${typeof property.userId}), user.id = "${userId}" (${typeof userId})`);
-      
       // Garantir que ambos sejam strings para comparação
       const propertyUserId = String(property.userId);
       const sessionUserId = String(userId);
       
-      console.log(`Normalized comparison: "${propertyUserId}" === "${sessionUserId}" = ${propertyUserId === sessionUserId}`);
-      
       if (propertyUserId !== sessionUserId) {
-        console.log(`Access denied. Property owner: "${propertyUserId}", Current user: "${sessionUserId}"`);
         return res.status(403).json({ message: "Access denied" });
       }
-
-      console.log("Property found and access granted");
       res.json(property);
     } catch (error) {
       console.error("Error fetching property:", error);
@@ -160,7 +153,6 @@ export function registerApiRoutes(app: Express): void {
 
     try {
       const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
-      console.log(`=== CREATE PROPERTY - User ID: ${userId} ===`);
       
       // Gerar próximo número sequencial
       const sequenceNumber = await storage.generateNextSequenceNumber();
@@ -222,7 +214,7 @@ export function registerApiRoutes(app: Express): void {
       const propertyId = parseInt(req.params.id);
       const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
       
-      console.log(`=== UPDATE PROPERTY ${propertyId} - User ID: ${userId} ===`);
+
       
       // Check ownership
       const existingProperty = await storage.getProperty(propertyId);
@@ -274,12 +266,7 @@ export function registerApiRoutes(app: Express): void {
 
       res.json(updatedProperty);
     } catch (error) {
-      console.error("=== PUT UPDATE ERROR ===");
       console.error("Error updating property:", error);
-      if (error instanceof Error) {
-        console.error("Stack:", error.stack);
-      }
-      console.error("========================");
       res.status(500).json({ message: "Failed to update property", error: error instanceof Error ? error.message : String(error) });
     }
   });
@@ -288,8 +275,6 @@ export function registerApiRoutes(app: Express): void {
     try {
       const propertyId = parseInt(req.params.id);
       const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
-      
-      console.log(`=== PATCH PROPERTY ${propertyId} - User ID: ${userId} ===`);
       
       // Check ownership
       const existingProperty = await storage.getProperty(propertyId);
@@ -312,14 +297,9 @@ export function registerApiRoutes(app: Express): void {
       const propertyId = parseInt(req.params.id);
       const userId = req.session.user.id; // Manter como string
       
-      console.log("=== GET DOCUMENTS API ===");
-      console.log("Property ID:", propertyId);
-      console.log("User ID:", userId);
-      
       // Check ownership with type normalization
       const property = await storage.getProperty(propertyId);
       if (!property) {
-        console.log("Property not found in database");
         return res.status(404).json({ message: "Property not found" });
       }
       
@@ -327,15 +307,11 @@ export function registerApiRoutes(app: Express): void {
       const propertyUserId = String(property.userId);
       const sessionUserId = String(userId);
       
-      console.log(`Document ownership check: "${propertyUserId}" === "${sessionUserId}" = ${propertyUserId === sessionUserId}`);
-      
       if (propertyUserId !== sessionUserId) {
-        console.log(`Document access denied. Property owner: "${propertyUserId}", Current user: "${sessionUserId}"`);
         return res.status(404).json({ message: "Property not found" });
       }
 
       const documents = await storage.getPropertyDocuments(propertyId);
-      console.log("Documents from DB:", documents);
       res.json(documents);
     } catch (error) {
       console.error("Error fetching documents:", error);
@@ -346,14 +322,11 @@ export function registerApiRoutes(app: Express): void {
   // Rota para deletar propriedade
   app.delete("/api/properties/:id", isAuthenticated, async (req: any, res) => {
     try {
-      console.log("=== DELETE PROPERTY API ===");
-      console.log("Property ID:", req.params.id);
-      console.log("User ID:", req.session.user.id);
       
       const propertyId = parseInt(req.params.id);
       const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
       
-      console.log(`=== DELETE PROPERTY ${propertyId} - User ID: ${userId} ===`);
+
       
       // Verificar se a propriedade existe e pertence ao usuário
       const property = await storage.getProperty(propertyId);
@@ -363,8 +336,6 @@ export function registerApiRoutes(app: Express): void {
       
       // Deletar a propriedade (cascade deletará os relacionamentos)
       await storage.deleteProperty(propertyId);
-      
-      console.log("Property deleted successfully");
       res.json({ message: "Property deleted successfully" });
     } catch (error) {
       console.error("Error deleting property:", error);
@@ -375,16 +346,11 @@ export function registerApiRoutes(app: Express): void {
   // Rota para deletar documento
   app.delete("/api/property-documents/:id", isAuthenticated, async (req: any, res) => {
     try {
-      console.log("=== DELETE DOCUMENT API ===");
-      console.log("Document ID:", req.params.id);
-      console.log("User ID:", req.session.user.id);
-      
       const documentId = parseInt(req.params.id);
       const userId = req.session.user.id; // Manter como string
       
       // Buscar o documento
       const document = await storage.getDocument(documentId);
-      console.log("Document found:", document);
       
       if (!document) {
         return res.status(404).json({ message: "Documento não encontrado" });
@@ -400,22 +366,12 @@ export function registerApiRoutes(app: Express): void {
       const propertyUserId = String(property.userId);
       const sessionUserId = String(userId);
       
-      console.log(`Delete document ownership check: "${propertyUserId}" === "${sessionUserId}" = ${propertyUserId === sessionUserId}`);
-      
       if (propertyUserId !== sessionUserId) {
-        console.log(`Delete document access denied. Property owner: "${propertyUserId}", Current user: "${sessionUserId}"`);
         return res.status(403).json({ message: "Acesso negado" });
       }
 
-      // CONFIRMAR ANTES DE DELETAR
-      console.log("ANTES DE DELETAR - Documentos da propriedade:", await storage.getPropertyDocuments(document.propertyId));
-
       // Deletar do banco de dados
       await storage.deleteDocument(documentId);
-      console.log("Document deleted successfully");
-      
-      // CONFIRMAR DEPOIS DE DELETAR
-      console.log("DEPOIS DE DELETAR - Documentos da propriedade:", await storage.getPropertyDocuments(document.propertyId));
       
       res.json({ message: "Documento deletado com sucesso" });
       
@@ -428,15 +384,11 @@ export function registerApiRoutes(app: Express): void {
   // Rota para servir documentos via proxy (URL mascarada)
   app.get("/api/documents/:id/view", isAuthenticated, async (req: any, res) => {
     try {
-      console.log("=== SERVE DOCUMENT DEBUG ===");
-      console.log("Document ID:", req.params.id);
-      
       const documentId = parseInt(req.params.id);
       const userId = req.session.user.id; // Manter como string
       
       // Buscar o documento
       const document = await storage.getDocument(documentId);
-      console.log("Document found:", document?.name);
       
       if (!document) {
         return res.status(404).json({ message: "Documento não encontrado" });
@@ -452,20 +404,15 @@ export function registerApiRoutes(app: Express): void {
       const propertyUserId = String(property.userId);
       const sessionUserId = String(userId);
       
-      console.log(`View document ownership check: "${propertyUserId}" === "${sessionUserId}" = ${propertyUserId === sessionUserId}`);
-      
       if (propertyUserId !== sessionUserId) {
-        console.log(`View document access denied. Property owner: "${propertyUserId}", Current user: "${sessionUserId}"`);
         return res.status(403).json({ message: "Acesso negado" });
       }
 
-      console.log("Proxying document from Supabase...");
 
       // Fazer fetch do Supabase
       const supabaseResponse = await fetch(document.url);
       
       if (!supabaseResponse.ok) {
-        console.log("Supabase error:", supabaseResponse.status);
         return res.status(404).json({ message: "Arquivo não encontrado no storage" });
       }
 
@@ -473,7 +420,6 @@ export function registerApiRoutes(app: Express): void {
       const arrayBuffer = await supabaseResponse.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
-      console.log("File size:", buffer.length, "bytes");
 
       // Definir headers corretos
       const contentType = document.type || 'application/pdf';
@@ -519,10 +465,7 @@ export function registerApiRoutes(app: Express): void {
       const propertyUserId = String(property.userId);
       const sessionUserId = String(userId);
       
-      console.log(`Download document ownership check: "${propertyUserId}" === "${sessionUserId}" = ${propertyUserId === sessionUserId}`);
-      
       if (propertyUserId !== sessionUserId) {
-        console.log(`Download document access denied. Property owner: "${propertyUserId}", Current user: "${sessionUserId}"`);
         return res.status(403).json({ message: "Acesso negado" });
       }
 
@@ -629,7 +572,7 @@ export function registerApiRoutes(app: Express): void {
   app.get("/api/dashboard/stats", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
-      console.log(`=== GET DASHBOARD STATS - User ID: ${userId} ===`);
+
       const stats = await storage.getUserStats(userId);
       res.json(stats);
     } catch (error) {
@@ -641,7 +584,7 @@ export function registerApiRoutes(app: Express): void {
   app.get("/api/dashboard/recent", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
-      console.log(`=== GET DASHBOARD RECENT - User ID: ${userId} ===`);
+
       const recent = await storage.getRecentTransactions(userId);
       res.json(recent);
     } catch (error) {
@@ -684,7 +627,6 @@ export function registerApiRoutes(app: Express): void {
         uploadedAt: new Date()
       }).returning();
 
-      console.log("Document saved:", document);
 
       res.json({
         success: true,
@@ -709,10 +651,6 @@ export function registerApiRoutes(app: Express): void {
   // Adicione esta route no server/routes.ts
   app.post("/api/property-documents", isAuthenticated, async (req: any, res) => {
     try {
-      console.log("=== PROPERTY-DOCUMENTS REQUEST ===");
-      console.log("Body:", JSON.stringify(req.body, null, 2));
-      console.log("User:", req.session.user);
-      console.log("===================================");
 
       const { propertyId, fileName, fileUrl, fileType, fileSize } = req.body;
       
@@ -757,7 +695,14 @@ export function registerApiRoutes(app: Express): void {
         status: 'uploaded'           // ← Campo obrigatório
       }).returning();
 
-      console.log("Documento salvo:", document[0]);
+      // Track document upload for pendency notifications
+      // TODO: Implementar RealTimePendencyTracker.trackDocumentUpload
+      // await RealTimePendencyTracker.trackDocumentUpload(
+      //   propertyIdNumber,
+      //   fileType || 'OUTROS',
+      //   parseInt(sessionUserId)
+      // );
+
       res.json(document[0]);
       
       } catch (error) {
@@ -795,27 +740,23 @@ export function registerApiRoutes(app: Express): void {
   // Rota temporária para corrigir sequence numbers
   app.get("/api/fix-sequence-numbers", isAuthenticated, async (req: any, res) => {
     try {
-      console.log("=== FIXING SEQUENCE NUMBERS ===");
       
       const userId = req.session.user.id; // userId já é string conforme schema
       
       // Buscar todas as propriedades do usuário ordenadas por ID (ordem de criação)
       const userProperties = await db.select().from(properties).where(eq(properties.userId, userId)).orderBy(properties.id);
-      console.log(`Encontradas ${userProperties.length} propriedades do usuário ${userId}`);
       
       // Atualizar cada propriedade com o número sequencial correto
       for (let i = 0; i < userProperties.length; i++) {
         const property = userProperties[i];
         const newSequenceNumber = "#" + String(i + 1).padStart(5, '0');
         
-        console.log(`Atualizando propriedade ID ${property.id}: ${property.sequenceNumber} -> ${newSequenceNumber}`);
         
         await db.update(properties)
           .set({ sequenceNumber: newSequenceNumber })
           .where(eq(properties.id, property.id));
       }
       
-      console.log("Correção concluída!");
       
       res.json({ 
         message: "Sequence numbers corrigidos com sucesso",
@@ -844,7 +785,7 @@ export function registerApiRoutes(app: Express): void {
   app.get("/api/registros", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
-      console.log(`=== GET REGISTROS - User ID: ${userId} ===`);
+
       
       const registros = await storage.getRegistros(userId);
       
@@ -863,7 +804,6 @@ export function registerApiRoutes(app: Express): void {
         });
       }
       
-      console.log(`Encontrados ${registros.length} registros`);
       res.json(registrosWithProperty);
     } catch (error) {
       console.error("Error fetching registros:", error);
@@ -880,7 +820,7 @@ export function registerApiRoutes(app: Express): void {
       const registroId = parseInt(req.params.id);
       const userId = parseInt(req.session.user.id);
       
-      console.log(`=== GET REGISTRO ${registroId} - User ID: ${userId} ===`);
+
       
       const registro = await storage.getRegistro(registroId);
       
@@ -920,9 +860,6 @@ export function registerApiRoutes(app: Express): void {
   app.post("/api/registros", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
-      console.log("=== CREATE REGISTRO ===");
-      console.log("Body:", JSON.stringify(req.body, null, 2));
-      console.log("User ID:", userId);
       
       // Validar dados com Zod
       const validatedData = createRegistroSchema.parse(req.body);
@@ -950,7 +887,6 @@ export function registerApiRoutes(app: Express): void {
       // Simular envio de documentos se estiver criando um registro ativo
       let mockData = null;
       if (validatedData.status === "em_analise") {
-        console.log("Simulando envio de documentos para cartório...");
         mockData = await enviarDocumentosCartorio({
           cartorioNome: cartorioInfo.nome,
           valorImovel: parseFloat(property.value),
@@ -966,7 +902,6 @@ export function registerApiRoutes(app: Express): void {
         mockStatus: mockData
       });
       
-      console.log("Registro criado:", registro);
       
       // Criar entrada no timeline
       await storage.createTimelineEntry({
@@ -1002,7 +937,7 @@ export function registerApiRoutes(app: Express): void {
       const registroId = parseInt(req.params.id);
       const userId = parseInt(req.session.user.id);
       
-      console.log(`=== UPDATE REGISTRO ${registroId} ===`);
+
       
       // Verificar se registro existe e pertence ao usuário
       const existingRegistro = await storage.getRegistro(registroId);
@@ -1016,7 +951,6 @@ export function registerApiRoutes(app: Express): void {
       // Atualizar registro
       const updatedRegistro = await storage.updateRegistro(registroId, validatedData);
       
-      console.log("Registro atualizado:", updatedRegistro);
       res.json(updatedRegistro);
     } catch (error) {
       console.error("Error updating registro:", error);
@@ -1039,7 +973,7 @@ export function registerApiRoutes(app: Express): void {
       const registroId = parseInt(req.params.id);
       const userId = parseInt(req.session.user.id);
       
-      console.log(`=== DELETE REGISTRO ${registroId} ===`);
+
       
       // Verificar ownership
       const registro = await storage.getRegistro(registroId);
@@ -1050,7 +984,6 @@ export function registerApiRoutes(app: Express): void {
       // Deletar registro
       await storage.deleteRegistro(registroId);
       
-      console.log("Registro deletado com sucesso");
       res.json({ message: "Registro deletado com sucesso" });
     } catch (error) {
       console.error("Error deleting registro:", error);
@@ -1067,7 +1000,7 @@ export function registerApiRoutes(app: Express): void {
       const registroId = parseInt(req.params.id);
       const userId = parseInt(req.session.user.id);
       
-      console.log(`=== CONSULTAR STATUS REGISTRO ${registroId} ===`);
+
       
       // Verificar ownership
       const registro = await storage.getRegistro(registroId);
@@ -1080,7 +1013,6 @@ export function registerApiRoutes(app: Express): void {
       }
       
       // Simular consulta externa
-      console.log(`Consultando status do protocolo: ${registro.protocolo}`);
       const statusMock = await consultarStatusCartorio(registro.protocolo);
       
       // Atualizar mock status no banco
@@ -1115,7 +1047,7 @@ export function registerApiRoutes(app: Express): void {
       const userId = parseInt(req.session.user.id);
       const { novoStatus } = req.body;
       
-      console.log(`=== UPDATE STATUS REGISTRO ${registroId} para ${novoStatus} ===`);
+
       
       // Verificar ownership
       const registro = await storage.getRegistro(registroId);
@@ -1138,7 +1070,6 @@ export function registerApiRoutes(app: Express): void {
         mockStatus: mockData
       });
       
-      console.log("Status atualizado:", updatedRegistro);
       res.json({
         message: "Status atualizado com sucesso",
         registro: updatedRegistro,
@@ -1159,7 +1090,7 @@ export function registerApiRoutes(app: Express): void {
       const propertyId = parseInt(req.params.id);
       const userId = parseInt(req.session.user.id);
       
-      console.log(`=== GET REGISTROS PROPERTY ${propertyId} ===`);
+
       
       // Verificar ownership da propriedade
       const property = await storage.getProperty(propertyId);
@@ -1182,7 +1113,6 @@ export function registerApiRoutes(app: Express): void {
    */
   app.get("/api/cartorios", isAuthenticated, async (req: any, res) => {
     try {
-      console.log("=== GET CARTORIOS ===");
       const cartoriosList = await db.select().from(cartorios).where(eq(cartorios.ativo, true));
       res.json(cartoriosList);
     } catch (error) {
@@ -1199,7 +1129,7 @@ export function registerApiRoutes(app: Express): void {
     try {
       const { cartorioNome, valorImovel } = req.body;
       
-      console.log(`=== CONSULTAR TAXAS - Cartório: ${cartorioNome}, Valor: ${valorImovel} ===`);
+
       
       if (!cartorioNome || !valorImovel) {
         return res.status(400).json({ message: "cartorioNome e valorImovel são obrigatórios" });
@@ -1249,11 +1179,9 @@ export function registerApiRoutes(app: Express): void {
         orderDirection: orderDirection as 'asc' | 'desc'
       };
       
-      console.log("Query options:", options);
       
       const result = await storage.getClients(userId, options);
       
-      console.log(`Encontrados ${result.clients.length} clientes (total: ${result.pagination.total})`);
       res.json(result);
     } catch (error) {
       console.error("Error fetching clients:", error);
@@ -1289,7 +1217,6 @@ export function registerApiRoutes(app: Express): void {
         return res.status(403).json({ message: "Acesso negado" });
       }
       
-      console.log(`Cliente encontrado: ${client.fullName}`);
       res.json(client);
     } catch (error) {
       console.error("Error fetching client:", error);
@@ -1335,7 +1262,6 @@ export function registerApiRoutes(app: Express): void {
         userId
       });
       
-      console.log("Cliente criado:", client);
       res.status(201).json(client);
     } catch (error) {
       console.error("Error creating client:", error);
@@ -1433,8 +1359,6 @@ export function registerApiRoutes(app: Express): void {
       
       // Verificar ownership
       const client = await storage.getClient(clientId);
-      console.log('Client found:', client);
-      console.log(`Ownership check: client.userId = ${client?.userId}, expected userId = ${userId}`);
       if (!client || client.userId !== userId) {
         return res.status(404).json({ message: "Cliente não encontrado" });
       }
@@ -1442,7 +1366,6 @@ export function registerApiRoutes(app: Express): void {
       // Deletar cliente
       await storage.deleteClient(clientId);
       
-      console.log("Cliente deletado com sucesso");
       res.json({ message: "Cliente deletado com sucesso" });
     } catch (error) {
       console.error("Error deleting client:", error);
@@ -1463,7 +1386,6 @@ export function registerApiRoutes(app: Express): void {
       
       const stats = await storage.getClientStats(userId);
       
-      console.log("Estatísticas calculadas:", stats);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching client stats:", error);
@@ -1486,7 +1408,6 @@ export function registerApiRoutes(app: Express): void {
       
       const recentClients = await storage.getRecentClients(userId, Math.min(limit, 50));
       
-      console.log(`Encontrados ${recentClients.length} clientes recentes`);
       res.json(recentClients);
     } catch (error) {
       console.error("Error fetching recent clients:", error);
@@ -1649,7 +1570,6 @@ export function registerApiRoutes(app: Express): void {
       
       const notes = await query.orderBy(desc(clientNotes.createdAt));
       
-      console.log(`Encontradas ${notes.length} notas para o cliente ${clientId}`);
       res.json(notes);
     } catch (error) {
       console.error("Error fetching client notes:", error);
@@ -1707,7 +1627,6 @@ export function registerApiRoutes(app: Express): void {
         });
       }
       
-      console.log("Nota criada:", note[0]);
       res.status(201).json(note[0]);
     } catch (error) {
       console.error("Error creating client note:", error);
@@ -1765,7 +1684,6 @@ export function registerApiRoutes(app: Express): void {
         .where(and(eq(clientNotes.id, noteId), eq(clientNotes.userId, userId)))
         .returning();
       
-      console.log("Nota atualizada:", updatedNote[0]);
       res.json(updatedNote[0]);
     } catch (error) {
       console.error("Error updating client note:", error);
@@ -1810,7 +1728,6 @@ export function registerApiRoutes(app: Express): void {
       await db.delete(clientNotes)
         .where(and(eq(clientNotes.id, noteId), eq(clientNotes.userId, userId)));
       
-      console.log("Nota deletada com sucesso");
       res.json({ message: "Nota deletada com sucesso" });
     } catch (error) {
       console.error("Error deleting client note:", error);
@@ -2278,6 +2195,694 @@ export function registerApiRoutes(app: Express): void {
       res.status(500).json({
         message: "Erro ao agendar reunião",
         error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // ================================
+  // PENDENCY CONTROL SYSTEM ROUTES
+  // ================================
+
+  /**
+   * GET /api/properties/:id/pendencies
+   * Get all pendencies for a property with real-time validation
+   */
+  app.get("/api/properties/:id/pendencies", isAuthenticated, async (req: any, res) => {
+    try {
+      const propertyId = parseInt(req.params.id);
+      const userId = req.session.user.id.toString();
+      
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ message: "ID da propriedade inválido" });
+      }
+      
+      // Verify property ownership
+      const property = await db.select().from(properties).where(eq(properties.id, propertyId)).limit(1);
+      if (!property.length || property[0].userId !== userId) {
+        return res.status(404).json({ message: "Propriedade não encontrada" });
+      }
+      
+      // Get comprehensive pendency summary
+      const summary = await PendencyValidationEngine.getPropertyPendencySummary(propertyId);
+      
+      res.json(summary);
+    } catch (error) {
+      console.error("Error fetching property pendencies:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar pendências",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  /**
+   * GET /api/properties/:id/stage/:stageId/requirements
+   * Get stage-specific requirements with validation status
+   */
+  app.get("/api/properties/:id/stage/:stageId/requirements", isAuthenticated, async (req: any, res) => {
+    try {
+      const propertyId = parseInt(req.params.id);
+      const stageId = parseInt(req.params.stageId);
+      const userId = req.session.user.id.toString();
+      
+      if (isNaN(propertyId) || isNaN(stageId)) {
+        return res.status(400).json({ message: "IDs inválidos" });
+      }
+      
+      if (stageId < 1 || stageId > 8) {
+        return res.status(400).json({ message: "Stage ID deve estar entre 1 e 8" });
+      }
+      
+      // Verify property ownership
+      const property = await db.select().from(properties).where(eq(properties.id, propertyId)).limit(1);
+      if (!property.length || property[0].userId !== userId) {
+        return res.status(404).json({ message: "Propriedade não encontrada" });
+      }
+      
+      // Validate stage requirements
+      const validationResult = await PendencyValidationEngine.validateStageRequirements(propertyId, stageId);
+      
+      // Get detailed requirements
+      const requirements = await db.select({
+        requirement: stageRequirements,
+        propertyRequirement: propertyRequirements
+      })
+      .from(stageRequirements)
+      .leftJoin(
+        propertyRequirements,
+        and(
+          eq(propertyRequirements.requirementId, stageRequirements.id),
+          eq(propertyRequirements.propertyId, propertyId)
+        )
+      )
+      .where(
+        and(
+          eq(stageRequirements.stageId, stageId),
+          sql`${stageRequirements.propertyTypes} = '*' OR ${stageRequirements.propertyTypes} LIKE ${`%${property[0].type}%`}`
+        )
+      );
+      
+      res.json({
+        stageId,
+        propertyId,
+        validation: validationResult,
+        requirements: requirements.map(r => ({
+          ...r.requirement,
+          status: r.propertyRequirement?.status || 'PENDING',
+          completionPercentage: r.propertyRequirement?.completionPercentage || 0,
+          notes: r.propertyRequirement?.notes,
+          validationData: r.propertyRequirement?.validationData,
+          lastCheckedAt: r.propertyRequirement?.lastCheckedAt,
+          completedAt: r.propertyRequirement?.completedAt,
+          completedBy: r.propertyRequirement?.completedBy
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching stage requirements:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar requisitos do estágio",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  /**
+   * POST /api/properties/:id/advance-stage
+   * Advance property to next stage with pendency validation
+   */
+  app.post("/api/properties/:id/advance-stage", isAuthenticated, async (req: any, res) => {
+    try {
+      const propertyId = parseInt(req.params.id);
+      const userId = req.session.user.id.toString();
+      
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ message: "ID da propriedade inválido" });
+      }
+      
+      // Verify property ownership
+      const property = await db.select().from(properties).where(eq(properties.id, propertyId)).limit(1);
+      if (!property.length || property[0].userId !== userId) {
+        return res.status(404).json({ message: "Propriedade não encontrada" });
+      }
+      
+      // Validate advancement data
+      const validatedData = stageAdvancementSchema.parse(req.body);
+      
+      // Validate target stage
+      if (validatedData.toStage < 1 || validatedData.toStage > 8) {
+        return res.status(400).json({ message: "Estágio de destino deve estar entre 1 e 8" });
+      }
+      
+      if (validatedData.toStage <= property[0].currentStage) {
+        return res.status(400).json({ message: "Estágio de destino deve ser superior ao atual" });
+      }
+      
+      // Advance stage
+      const result = await PendencyValidationEngine.advancePropertyStage(
+        propertyId,
+        validatedData,
+        userId
+      );
+      
+      if (result.success) {
+        // Track stage advancement for real-time notifications
+        // TODO: Implementar RealTimePendencyTracker.trackStageAdvancement
+        // await RealTimePendencyTracker.trackStageAdvancement(
+        //   propertyId,
+        //   property[0].currentStage,
+        //   result.newStage,
+        //   validatedData.advancementType,
+        //   userId
+        // );
+        
+        res.json({
+          success: true,
+          message: result.message,
+          previousStage: property[0].currentStage,
+          newStage: result.newStage,
+          validation: result.validationResult
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.message,
+          currentStage: result.newStage,
+          validation: result.validationResult
+        });
+      }
+    } catch (error) {
+      console.error("Error advancing property stage:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ 
+        message: "Erro ao avançar estágio",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  /**
+   * PUT /api/properties/:id/requirements/:reqId
+   * Update requirement status manually
+   */
+  app.put("/api/properties/:id/requirements/:reqId", isAuthenticated, async (req: any, res) => {
+    try {
+      const propertyId = parseInt(req.params.id);
+      const requirementId = parseInt(req.params.reqId);
+      const userId = req.session.user.id.toString();
+      
+      if (isNaN(propertyId) || isNaN(requirementId)) {
+        return res.status(400).json({ message: "IDs inválidos" });
+      }
+      
+      // Verify property ownership
+      const property = await db.select().from(properties).where(eq(properties.id, propertyId)).limit(1);
+      if (!property.length || property[0].userId !== userId) {
+        return res.status(404).json({ message: "Propriedade não encontrada" });
+      }
+      
+      // Validate update data
+      const validatedData = updatePropertyRequirementSchema.parse(req.body);
+      
+      // Check if property requirement exists
+      const existing = await db.select()
+        .from(propertyRequirements)
+        .where(
+          and(
+            eq(propertyRequirements.propertyId, propertyId),
+            eq(propertyRequirements.requirementId, requirementId)
+          )
+        )
+        .limit(1);
+      
+      if (!existing.length) {
+        return res.status(404).json({ message: "Requisito não encontrado para esta propriedade" });
+      }
+      
+      // Add completion data if marking as completed
+      const updateData: any = {
+        ...validatedData,
+        updatedAt: new Date()
+      };
+      
+      if (validatedData.status === 'COMPLETED' && !existing[0].completedAt) {
+        updateData.completedAt = new Date();
+        updateData.completedBy = userId;
+      }
+      
+      // Update requirement
+      const updated = await db.update(propertyRequirements)
+        .set(updateData)
+        .where(eq(propertyRequirements.id, existing[0].id))
+        .returning();
+      
+      // Update cached metrics
+      await PendencyValidationEngine.updateStageCompletionMetrics(propertyId);
+      
+      // Track requirement update for real-time notifications
+      // TODO: Implementar RealTimePendencyTracker.trackRequirementUpdate
+      // await RealTimePendencyTracker.trackRequirementUpdate(
+      //   propertyId,
+      //   requirementId,
+      //   existing[0].status,
+      //   validatedData.status || existing[0].status,
+      //   userId
+      // );
+      
+      res.json({
+        message: "Requisito atualizado com sucesso",
+        requirement: updated[0]
+      });
+    } catch (error) {
+      console.error("Error updating requirement:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ 
+        message: "Erro ao atualizar requisito",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  /**
+   * GET /api/stage-templates/:stageId
+   * Get requirement templates for a specific stage
+   */
+  app.get("/api/stage-templates/:stageId", isAuthenticated, async (req: any, res) => {
+    try {
+      const stageId = parseInt(req.params.stageId);
+      
+      if (isNaN(stageId) || stageId < 1 || stageId > 8) {
+        return res.status(400).json({ message: "Stage ID deve estar entre 1 e 8" });
+      }
+      
+      // Get stage requirements templates
+      const requirements = await db.select()
+        .from(stageRequirements)
+        .where(eq(stageRequirements.stageId, stageId));
+      
+      const stageNames = [
+        '', 'Captação', 'Due Diligence', 'Mercado', 'Propostas', 
+        'Contratos', 'Financiamento', 'Instrumento', 'Concluído'
+      ];
+      
+      res.json({
+        stageId,
+        stageName: stageNames[stageId] || `Stage ${stageId}`,
+        requirements: requirements.map(req => ({
+          id: req.id,
+          requirementKey: req.requirementKey,
+          requirementName: req.requirementName,
+          description: req.description,
+          category: req.category,
+          isCritical: req.isCritical,
+          validationRules: req.validationRules,
+          propertyTypes: req.propertyTypes
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching stage templates:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar templates do estágio",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  /**
+   * POST /api/properties/:id/validate-requirements
+   * Trigger manual validation of all requirements for a property
+   */
+  app.post("/api/properties/:id/validate-requirements", isAuthenticated, async (req: any, res) => {
+    try {
+      const propertyId = parseInt(req.params.id);
+      const userId = req.session.user.id.toString();
+      
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ message: "ID da propriedade inválido" });
+      }
+      
+      // Verify property ownership
+      const property = await db.select().from(properties).where(eq(properties.id, propertyId)).limit(1);
+      if (!property.length || property[0].userId !== userId) {
+        return res.status(404).json({ message: "Propriedade não encontrada" });
+      }
+      
+      // Update all stage metrics
+      await PendencyValidationEngine.updateStageCompletionMetrics(propertyId);
+      
+      // Get updated summary
+      const summary = await PendencyValidationEngine.getPropertyPendencySummary(propertyId);
+      
+      res.json({
+        message: "Validação de requisitos executada com sucesso",
+        summary
+      });
+    } catch (error) {
+      console.error("Error validating requirements:", error);
+      res.status(500).json({ 
+        message: "Erro ao validar requisitos",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  /**
+   * GET /api/properties/:id/stage-advancement-log
+   * Get audit trail of stage advancements for a property
+   */
+  app.get("/api/properties/:id/stage-advancement-log", isAuthenticated, async (req: any, res) => {
+    try {
+      const propertyId = parseInt(req.params.id);
+      const userId = req.session.user.id.toString();
+      
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ message: "ID da propriedade inválido" });
+      }
+      
+      // Verify property ownership
+      const property = await db.select().from(properties).where(eq(properties.id, propertyId)).limit(1);
+      if (!property.length || property[0].userId !== userId) {
+        return res.status(404).json({ message: "Propriedade não encontrada" });
+      }
+      
+      // Get advancement log
+      const log = await db.select()
+        .from(stageAdvancementLog)
+        .where(eq(stageAdvancementLog.propertyId, propertyId))
+        .orderBy(desc(stageAdvancementLog.createdAt));
+      
+      const stageNames = [
+        '', 'Captação', 'Due Diligence', 'Mercado', 'Propostas', 
+        'Contratos', 'Financiamento', 'Instrumento', 'Concluído'
+      ];
+      
+      res.json({
+        propertyId,
+        log: log.map(entry => ({
+          ...entry,
+          fromStageName: entry.fromStage ? stageNames[entry.fromStage] : null,
+          toStageName: stageNames[entry.toStage] || `Stage ${entry.toStage}`
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching stage advancement log:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar histórico de avanços",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // ================================
+  // ADMIN/SETUP ROUTES FOR PENDENCY SYSTEM
+  // ================================
+
+  /**
+   * POST /api/admin/seed-stage-requirements
+   * Seed default stage requirements (admin only)
+   */
+  app.post("/api/admin/seed-stage-requirements", isAuthenticated, async (req: any, res) => {
+    try {
+      // Note: In production, add admin role check here
+      await seedStageRequirements();
+      res.json({ message: "Stage requirements seeded successfully" });
+    } catch (error) {
+      console.error("Error seeding stage requirements:", error);
+      res.status(500).json({ 
+        message: "Erro ao popular requisitos de estágio",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  /**
+   * POST /api/admin/initialize-existing-properties
+   * Initialize pendency tracking for existing properties (admin only)
+   */
+  app.post("/api/admin/initialize-existing-properties", isAuthenticated, async (req: any, res) => {
+    try {
+      // Note: In production, add admin role check here
+      await initializeExistingProperties();
+      await initializePendencyNotifications();
+      res.json({ message: "Existing properties initialized successfully" });
+    } catch (error) {
+      console.error("Error initializing existing properties:", error);
+      res.status(500).json({ 
+        message: "Erro ao inicializar propriedades existentes",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  /**
+   * POST /api/admin/stage-requirements
+   * Create custom stage requirement (admin only)
+   */
+  app.post("/api/admin/stage-requirements", isAuthenticated, async (req: any, res) => {
+    try {
+      // Note: In production, add admin role check here
+      const validatedData = createStageRequirementSchema.parse(req.body);
+      
+      const requirement = await db.insert(stageRequirements)
+        .values(validatedData)
+        .returning();
+      
+      res.status(201).json({
+        message: "Requisito de estágio criado com sucesso",
+        requirement: requirement[0]
+      });
+    } catch (error) {
+      console.error("Error creating stage requirement:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Dados inválidos", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ 
+        message: "Erro ao criar requisito de estágio",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // ================================
+  // PENDENCY NOTIFICATION ROUTES
+  // ================================
+
+  /**
+   * GET /api/pendency-notifications
+   * Get active pendency notifications for current user
+   */
+  app.get("/api/pendency-notifications", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id.toString();
+      const limit = parseInt(req.query.limit as string) || 50;
+      
+      const notifications = await PendencyNotificationService.getUserPendencyNotifications(userId, limit);
+      
+      res.json({
+        notifications,
+        count: notifications.length
+      });
+    } catch (error) {
+      console.error("Error fetching pendency notifications:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar notificações de pendências",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  /**
+   * GET /api/properties/:id/pendency-notifications
+   * Get pendency notifications for a specific property
+   */
+  app.get("/api/properties/:id/pendency-notifications", isAuthenticated, async (req: any, res) => {
+    try {
+      const propertyId = parseInt(req.params.id);
+      const userId = req.session.user.id.toString();
+      
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ message: "ID da propriedade inválido" });
+      }
+      
+      // Verify property ownership
+      const property = await db.select().from(properties).where(eq(properties.id, propertyId)).limit(1);
+      if (!property.length || property[0].userId !== userId) {
+        return res.status(404).json({ message: "Propriedade não encontrada" });
+      }
+      
+      const notifications = await PendencyNotificationService.getPropertyPendencyNotifications(propertyId, userId);
+      
+      res.json({
+        propertyId,
+        notifications,
+        count: notifications.length
+      });
+    } catch (error) {
+      console.error("Error fetching property pendency notifications:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar notificações da propriedade",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  /**
+   * POST /api/pendency-notifications/:id/resolve
+   * Mark a pendency notification as resolved
+   */
+  app.post("/api/pendency-notifications/:id/resolve", isAuthenticated, async (req: any, res) => {
+    try {
+      const notificationId = parseInt(req.params.id);
+      const userId = req.session.user.id.toString();
+      
+      if (isNaN(notificationId)) {
+        return res.status(400).json({ message: "ID da notificação inválido" });
+      }
+      
+      await PendencyNotificationService.resolveNotification(notificationId, userId);
+      
+      res.json({
+        message: "Notificação marcada como resolvida"
+      });
+    } catch (error) {
+      console.error("Error resolving pendency notification:", error);
+      res.status(500).json({ 
+        message: "Erro ao resolver notificação",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  /**
+   * POST /api/properties/:id/trigger-pendency-review
+   * Trigger manual pendency review for a property
+   */
+  app.post("/api/properties/:id/trigger-pendency-review", isAuthenticated, async (req: any, res) => {
+    try {
+      const propertyId = parseInt(req.params.id);
+      const userId = req.session.user.id.toString();
+      
+      if (isNaN(propertyId)) {
+        return res.status(400).json({ message: "ID da propriedade inválido" });
+      }
+      
+      // Verify property ownership
+      const property = await db.select().from(properties).where(eq(properties.id, propertyId)).limit(1);
+      if (!property.length || property[0].userId !== userId) {
+        return res.status(404).json({ message: "Propriedade não encontrada" });
+      }
+      
+      await PendencyNotificationService.triggerPendencyReview(propertyId, userId);
+      
+      res.json({
+        message: "Revisão de pendências iniciada com sucesso"
+      });
+    } catch (error) {
+      console.error("Error triggering pendency review:", error);
+      res.status(500).json({ 
+        message: "Erro ao iniciar revisão de pendências",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  /**
+   * POST /api/admin/run-pendency-cleanup
+   * Run daily pendency cleanup (admin only)
+   */
+  app.post("/api/admin/run-pendency-cleanup", isAuthenticated, async (req: any, res) => {
+    try {
+      // Note: In production, add admin role check here
+      await runDailyPendencyCleanup();
+      res.json({ message: "Pendency cleanup completed successfully" });
+    } catch (error) {
+      console.error("Error running pendency cleanup:", error);
+      res.status(500).json({ 
+        message: "Erro ao executar limpeza de pendências",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // ================================
+  // ENHANCED PROPERTY CREATION WITH PENDENCY TRACKING
+  // ================================
+
+  // Override the existing property creation to include pendency initialization
+  app.post("/api/properties-with-pendency", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id.toString();
+      
+      // Generate next sequence number
+      const sequenceNumber = await storage.generateNextSequenceNumber();
+      
+      // Validate property data
+      const propertyData = {
+        userId,
+        sequenceNumber,
+        type: req.body.type,
+        street: req.body.street,
+        number: req.body.number,
+        complement: req.body.complement || null,
+        neighborhood: req.body.neighborhood,
+        city: req.body.city,
+        state: req.body.state,
+        cep: req.body.cep,
+        value: req.body.value,
+        registrationNumber: req.body.registrationNumber,
+        municipalRegistration: req.body.municipalRegistration,
+        status: req.body.status || "captacao",
+        currentStage: req.body.currentStage || 1,
+      };
+
+      // Create property
+      const property = await storage.createProperty(propertyData);
+      
+      // Initialize pendency tracking
+      await PendencyValidationEngine.initializePropertyRequirements(property.id, property.type);
+      
+      // Create owners if provided
+      if (req.body.owners && req.body.owners.length > 0) {
+        for (const owner of req.body.owners) {
+          await storage.createPropertyOwner({
+            propertyId: property.id,
+            fullName: owner.fullName,
+            cpf: owner.cpf,
+            rg: owner.rg || null,
+            birthDate: owner.birthDate || null,
+            maritalStatus: owner.maritalStatus || null,
+            fatherName: owner.fatherName || null,
+            motherName: owner.motherName || null,
+            phone: owner.phone,
+            email: owner.email || null,
+          });
+        }
+      }
+
+      // Get initial pendency summary
+      const pendencySummary = await PendencyValidationEngine.getPropertyPendencySummary(property.id);
+
+      res.json({
+        property,
+        pendencySummary
+      });
+    } catch (error) {
+      console.error("Error creating property with pendency tracking:", error);
+      res.status(500).json({ 
+        message: "Erro ao criar propriedade com controle de pendências", 
+        error: error instanceof Error ? error.message : String(error) 
       });
     }
   });

@@ -718,6 +718,230 @@ export type InsertClientNote = z.infer<typeof insertClientNoteSchema>;
 export type CreateClientNote = z.infer<typeof createClientNoteSchema>;
 export type UpdateClientNote = z.infer<typeof updateClientNoteSchema>;
 
+// ======================================
+// PENDENCY CONTROL SYSTEM TABLES
+// ======================================
+
+// Stage Requirements - Define what's needed for each stage
+export const stageRequirements = pgTable("stage_requirements", {
+  id: serial("id").primaryKey(),
+  stageId: integer("stage_id").notNull(),
+  requirementKey: varchar("requirement_key", { length: 100 }).notNull(),
+  requirementName: varchar("requirement_name", { length: 255 }).notNull(),
+  description: text("description"),
+  category: varchar("category", { length: 50 }).notNull(), // DOCUMENT, DATA, VALIDATION, APPROVAL
+  isCritical: boolean("is_critical").notNull().default(true),
+  validationRules: jsonb("validation_rules"), // JSON validation rules
+  propertyTypes: varchar("property_types", { length: 255 }), // 'apartamento,casa' or '*'
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_stage_requirements_stage").on(table.stageId),
+  index("idx_stage_requirements_critical").on(table.isCritical),
+]);
+
+// Property Requirements Status - Track completion per property
+export const propertyRequirements = pgTable("property_requirements", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  requirementId: integer("requirement_id").notNull().references(() => stageRequirements.id, { onDelete: "cascade" }),
+  stageId: integer("stage_id").notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("PENDING"), // PENDING, COMPLETED, NOT_APPLICABLE, FAILED
+  completionPercentage: integer("completion_percentage").default(0),
+  validationData: jsonb("validation_data"), // Store validation results
+  notes: text("notes"),
+  completedBy: text("completed_by"), // User ID
+  completedAt: timestamp("completed_at"),
+  lastCheckedAt: timestamp("last_checked_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_property_requirements_property").on(table.propertyId),
+  index("idx_property_requirements_stage").on(table.stageId),
+  index("idx_property_requirements_status").on(table.status),
+  index("idx_property_requirements_critical").on(table.propertyId, table.stageId),
+]);
+
+// Stage Advancement Log - Audit trail for stage changes
+export const stageAdvancementLog = pgTable("stage_advancement_log", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  fromStage: integer("from_stage"),
+  toStage: integer("to_stage").notNull(),
+  userId: text("user_id").notNull(),
+  advancementType: varchar("advancement_type", { length: 20 }).notNull(), // AUTOMATIC, MANUAL, OVERRIDE
+  validationStatus: varchar("validation_status", { length: 20 }).notNull(), // PASSED, FAILED, OVERRIDDEN
+  pendingCriticalCount: integer("pending_critical_count").default(0),
+  pendingNonCriticalCount: integer("pending_non_critical_count").default(0),
+  completionPercentage: decimal("completion_percentage", { precision: 5, scale: 2 }).default("0.00"),
+  validationResults: jsonb("validation_results"), // Detailed validation results
+  overrideReason: text("override_reason"), // Required for OVERRIDE type
+  metadata: jsonb("metadata"), // Additional context
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_stage_advancement_property").on(table.propertyId),
+  index("idx_stage_advancement_date").on(table.createdAt),
+  index("idx_stage_advancement_user").on(table.userId),
+]);
+
+// Pendency Notifications - Track notifications for pending requirements
+export const pendencyNotifications = pgTable("pendency_notifications", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  requirementId: integer("requirement_id").notNull().references(() => stageRequirements.id, { onDelete: "cascade" }),
+  userId: text("user_id").notNull(),
+  notificationType: varchar("notification_type", { length: 50 }).notNull(), // MISSING_DOCUMENT, VALIDATION_FAILED, STAGE_BLOCKED
+  severity: varchar("severity", { length: 20 }).notNull(), // LOW, MEDIUM, HIGH, CRITICAL
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  actionUrl: varchar("action_url", { length: 500 }), // Deep link to resolve
+  isRead: boolean("is_read").default(false),
+  isResolved: boolean("is_resolved").default(false),
+  resolvedAt: timestamp("resolved_at"),
+  autoResolveAt: timestamp("auto_resolve_at"), // For automatic resolution
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_pendency_notifications_property").on(table.propertyId),
+  index("idx_pendency_notifications_user").on(table.userId),
+  index("idx_pendency_notifications_unread").on(table.userId, table.isRead),
+  index("idx_pendency_notifications_severity").on(table.severity),
+]);
+
+// Stage Completion Metrics - Cached metrics for performance
+export const stageCompletionMetrics = pgTable("stage_completion_metrics", {
+  id: serial("id").primaryKey(),
+  propertyId: integer("property_id").notNull().references(() => properties.id, { onDelete: "cascade" }),
+  stageId: integer("stage_id").notNull(),
+  totalRequirements: integer("total_requirements").notNull().default(0),
+  completedRequirements: integer("completed_requirements").notNull().default(0),
+  criticalRequirements: integer("critical_requirements").notNull().default(0),
+  completedCritical: integer("completed_critical").notNull().default(0),
+  completionPercentage: decimal("completion_percentage", { precision: 5, scale: 2 }).default("0.00"),
+  criticalCompletionPercentage: decimal("critical_completion_percentage", { precision: 5, scale: 2 }).default("0.00"),
+  canAdvance: boolean("can_advance").default(false),
+  blockingRequirements: integer("blocking_requirements").default(0),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+}, (table) => [
+  index("idx_stage_completion_property").on(table.propertyId),
+  index("idx_stage_completion_stage").on(table.stageId),
+  index("idx_stage_completion_can_advance").on(table.canAdvance),
+]);
+
+// ======================================
+// PENDENCY SYSTEM RELATIONS
+// ======================================
+
+export const stageRequirementsRelations = relations(stageRequirements, ({ many }) => ({
+  propertyRequirements: many(propertyRequirements),
+  pendencyNotifications: many(pendencyNotifications),
+}));
+
+export const propertyRequirementsRelations = relations(propertyRequirements, ({ one }) => ({
+  property: one(properties, {
+    fields: [propertyRequirements.propertyId],
+    references: [properties.id],
+  }),
+  requirement: one(stageRequirements, {
+    fields: [propertyRequirements.requirementId],
+    references: [stageRequirements.id],
+  }),
+}));
+
+export const stageAdvancementLogRelations = relations(stageAdvancementLog, ({ one }) => ({
+  property: one(properties, {
+    fields: [stageAdvancementLog.propertyId],
+    references: [properties.id],
+  }),
+}));
+
+export const pendencyNotificationsRelations = relations(pendencyNotifications, ({ one }) => ({
+  property: one(properties, {
+    fields: [pendencyNotifications.propertyId],
+    references: [properties.id],
+  }),
+  requirement: one(stageRequirements, {
+    fields: [pendencyNotifications.requirementId],
+    references: [stageRequirements.id],
+  }),
+}));
+
+export const stageCompletionMetricsRelations = relations(stageCompletionMetrics, ({ one }) => ({
+  property: one(properties, {
+    fields: [stageCompletionMetrics.propertyId],
+    references: [properties.id],
+  }),
+}));
+
+// ======================================
+// PENDENCY SYSTEM SCHEMAS
+// ======================================
+
+export const insertStageRequirementSchema = createInsertSchema(stageRequirements);
+export const insertPropertyRequirementSchema = createInsertSchema(propertyRequirements);
+export const insertStageAdvancementLogSchema = createInsertSchema(stageAdvancementLog);
+export const insertPendencyNotificationSchema = createInsertSchema(pendencyNotifications);
+
+// Create Stage Requirement Schema
+export const createStageRequirementSchema = z.object({
+  stageId: z.number().min(1).max(8),
+  requirementKey: z.string().min(1).max(100),
+  requirementName: z.string().min(1).max(255),
+  description: z.string().optional(),
+  category: z.enum(["DOCUMENT", "DATA", "VALIDATION", "APPROVAL"]),
+  isCritical: z.boolean().default(true),
+  validationRules: z.record(z.any()).optional(),
+  propertyTypes: z.string().default("*"), // "*" for all, or "apartamento,casa"
+});
+
+// Update Property Requirement Schema
+export const updatePropertyRequirementSchema = z.object({
+  status: z.enum(["PENDING", "COMPLETED", "NOT_APPLICABLE", "FAILED"]).optional(),
+  completionPercentage: z.number().min(0).max(100).optional(),
+  validationData: z.record(z.any()).optional(),
+  notes: z.string().optional(),
+  completedBy: z.string().optional(),
+});
+
+// Stage Advancement Schema
+export const stageAdvancementSchema = z.object({
+  toStage: z.number().min(1).max(8),
+  advancementType: z.enum(["AUTOMATIC", "MANUAL", "OVERRIDE"]).default("MANUAL"),
+  overrideReason: z.string().optional(),
+  metadata: z.record(z.any()).optional(),
+});
+
+// Pendency Validation Result Schema
+export const pendencyValidationResultSchema = z.object({
+  canAdvance: z.boolean(),
+  totalRequirements: z.number(),
+  completedRequirements: z.number(),
+  criticalRequirements: z.number(),
+  completedCritical: z.number(),
+  completionPercentage: z.number(),
+  criticalCompletionPercentage: z.number(),
+  blockingRequirements: z.array(z.object({
+    id: z.number(),
+    requirementKey: z.string(),
+    requirementName: z.string(),
+    category: z.string(),
+    status: z.string(),
+    notes: z.string().optional(),
+  })),
+  warnings: z.array(z.string()).optional(),
+});
+
+// ======================================
+// PENDENCY SYSTEM TYPES
+// ======================================
+
+export type InsertStageRequirement = z.infer<typeof insertStageRequirementSchema>;
+export type CreateStageRequirement = z.infer<typeof createStageRequirementSchema>;
+export type UpdatePropertyRequirement = z.infer<typeof updatePropertyRequirementSchema>;
+export type StageAdvancement = z.infer<typeof stageAdvancementSchema>;
+export type PendencyValidationResult = z.infer<typeof pendencyValidationResultSchema>;
+
 // SCHEMAS DE VALIDAÇÃO PARA AUDITORIA E NOTIFICAÇÕES
 export const insertClientNoteAuditLogSchema = createInsertSchema(clientNoteAuditLogs);
 export const insertScheduledNotificationSchema = createInsertSchema(scheduledNotifications);

@@ -1,6 +1,5 @@
 // Configuração de fallback para desenvolvimento quando o Neon está instável
 export const createFallbackDB = () => {
-  console.log("🔧 Criando banco fallback para desenvolvimento...");
   
   return {
     select: () => ({

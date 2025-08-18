@@ -2,7 +2,6 @@ import type { Express } from "express";
 import { auth } from "./better-auth.js";
 
 export function setupBetterAuthRoutes(app: Express) {
-  console.log('🔧 Configurando rotas Better Auth...');
   
   // Endpoint de teste para listar rotas disponíveis do Better Auth
   app.get("/api/auth-debug", (req, res) => {

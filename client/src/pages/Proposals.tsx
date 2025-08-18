@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import { useResponsive } from "@/hooks/useMediaQuery";
 import React from "react";
+import { PageLoader } from "@/components/PageLoader";
 import {
   Table,
   TableBody,
@@ -140,13 +141,11 @@ export default function Proposals() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
-        <Skeleton className="h-8 w-64" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <PageLoader 
+          size="lg" 
+          message="Carregando propostas..." 
+        />
       </div>
     );
   }

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLoader } from "@/components/PageLoader";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ClientModal } from "@/components/ClientModal";
 import {
@@ -194,6 +195,17 @@ export default function Clientes() {
     return phone;
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <PageLoader
+          size="lg"
+          message="Carregando clientes..."
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
 
@@ -345,19 +357,7 @@ export default function Clientes() {
           <CardTitle>Clientes Cadastrados ({filteredClients.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="space-y-4 p-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center space-x-4">
-                  <Skeleton className="h-12 w-12 rounded" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-[200px]" />
-                    <Skeleton className="h-4 w-[150px]" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : error ? (
+          {error ? (
             <div className="text-center py-8">
               <div className="text-red-600 mb-2">Erro ao carregar clientes</div>
               <div className="text-gray-500 text-sm">{error.message}</div>
@@ -397,59 +397,51 @@ export default function Clientes() {
                 </TableHeader>
                 <TableBody>
                   {filteredClients.map((client: Client, index: number) => (
-                      <TableRow 
-                        key={client.id || Math.random()} 
-                        className="border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
-                        onClick={() => setLocation(`/client/${client.id}`)}
-                      >
-                        <TableCell className="px-3 py-2">
-                          <div className="font-medium text-gray-900 text-sm truncate max-w-40">
-                            {client.fullName}
+                    <TableRow
+                      key={client.id || Math.random()}
+                      className="border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                      onClick={() => setLocation(`/client/${client.id}`)}
+                    >
+                      <TableCell className="px-3 py-2">
+                        <div className="font-medium text-gray-900 text-sm truncate max-w-60">
+                          {client.fullName}
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-3 py-2">
+                        <div className="text-sm text-gray-900 font-mono">
+                          {formatCPF(client.cpf)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-3 py-2">
+                        <div className="text-sm text-gray-900">
+                          {formatPhone(client.phonePrimary)}
+                        </div>
+                        {client.phoneSecondary && (
+                          <div className="text-xs text-gray-500">
+                            {formatPhone(client.phoneSecondary)}
                           </div>
-                          {client.profession && (
-                            <div className="text-xs text-gray-500 truncate">
-                              {client.profession}
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="px-3 py-2">
-                          <div className="text-sm text-gray-900 font-mono">
-                            {formatCPF(client.cpf)}
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-3 py-2">
-                          <div className="text-sm text-gray-900">
-                            {formatPhone(client.phonePrimary)}
-                          </div>
-                          {client.phoneSecondary && (
-                            <div className="text-xs text-gray-500">
-                              {formatPhone(client.phoneSecondary)}
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="px-3 py-2">
-                          <div className="text-sm text-gray-900 truncate max-w-48">
-                            {client.email}
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-3 py-2">
-                          <div className="text-sm text-gray-900 truncate max-w-56">
-                            {client.addressStreet}, {client.addressNumber}
-                          </div>
-                          <div className="text-xs text-gray-500 truncate">
-                            {client.addressNeighborhood}, {client.addressCity} - {client.addressState}
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
-                          <ClientActions
-                            client={client}
-                            onEdit={(clientToEdit) => {
-                              setSelectedClient(clientToEdit);
-                              setShowClientModal(true);
-                            }}
-                          />
-                        </TableCell>
-                      </TableRow>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-3 py-2">
+                        <div className="text-sm text-gray-900 truncate max-w-50">
+                          {client.email}
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-3 py-2">
+                        <div className="text-sm text-gray-900 truncate max-w-56">
+                          {client.addressStreet}, {client.addressNumber}
+                        </div>
+                      </TableCell>
+                      <TableCell className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
+                        <ClientActions
+                          client={client}
+                          onEdit={(clientToEdit) => {
+                            setSelectedClient(clientToEdit);
+                            setShowClientModal(true);
+                          }}
+                        />
+                      </TableCell>
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>

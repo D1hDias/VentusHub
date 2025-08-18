@@ -18,6 +18,7 @@ import { apiRequestLegacy as apiRequest } from "@/lib/queryClient";
 import { KPIGrid } from "@/components/responsive/ResponsiveGrid";
 import { useSmoothtTransitions, useEntranceAnimation } from "@/hooks/useSmoothtTransitions";
 import { useResponsive } from "@/hooks/useMediaQuery";
+import { PageLoader } from "@/components/PageLoader";
 
 // Garantir que crypto está disponível
 if (typeof crypto === 'undefined') {
@@ -197,18 +198,11 @@ export default function Dashboard() {
 
   if (propertiesLoading) {
     return (
-      <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <Skeleton className="h-8 w-64 mb-2" />
-            <Skeleton className="h-4 w-96" />
-          </div>
-        </div>
-        <KPIGrid animateItems>
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32 rounded-lg" />
-          ))}
-        </KPIGrid>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <PageLoader 
+          size="lg" 
+          message="Carregando dashboard..." 
+        />
       </div>
     );
   }

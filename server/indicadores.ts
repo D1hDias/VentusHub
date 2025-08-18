@@ -4,8 +4,6 @@ import axios from 'axios';
 
 const router = Router();
 
-// Log para debug
-console.log('🔧 Rota de indicadores sendo registrada...');
 
 // --- CONFIGURAÇÕES ---
 const REQUEST_TIMEOUT = 8000; // 8 segundos

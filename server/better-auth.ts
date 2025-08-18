@@ -4,11 +4,6 @@ import { db } from "./db.js";
 
 // Simple email sender for development - replace with your preferred email service
 async function sendEmail(to: string, subject: string, html: string) {
-  console.log('=== EMAIL SENDING ===');
-  console.log('To:', to);
-  console.log('Subject:', subject);
-  console.log('Content:', html);
-  console.log('====================');
   
   // TODO: Replace with actual email service (SendGrid, Resend, etc.)
   // For now, we just log to console for development

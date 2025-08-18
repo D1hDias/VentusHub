@@ -343,6 +343,7 @@ export default function Layout({ children }: LayoutProps) {
   const { prefersReducedMotion } = useResponsive();
   const calculatorButtonRef = useRef<HTMLButtonElement>(null);
   const mouseLeaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [dynamicPageTitle, setDynamicPageTitle] = useState<string | null>(null);
 
   // Função para obter a chave de uso no localStorage baseada no usuário
   const getUsageKey = () => user?.id ? `simulator_usage_${user.id}` : 'simulator_usage_guest';
@@ -425,6 +426,26 @@ export default function Layout({ children }: LayoutProps) {
       }
     };
   }, [hoverTimeout]);
+
+  // Escutar evento customizado para atualização dinâmica do título
+  React.useEffect(() => {
+    const handleUpdatePageTitle = (event: CustomEvent) => {
+      setDynamicPageTitle(event.detail.title);
+    };
+
+    window.addEventListener('updatePageTitle', handleUpdatePageTitle as EventListener);
+    
+    return () => {
+      window.removeEventListener('updatePageTitle', handleUpdatePageTitle as EventListener);
+    };
+  }, []);
+
+  // Limpar título dinâmico quando sair de páginas específicas
+  React.useEffect(() => {
+    if (!location.startsWith('/property/')) {
+      setDynamicPageTitle(null);
+    }
+  }, [location]);
 
   // Função para lidar com hover da sidebar principal
   const handleSidebarMouseEnter = () => {
@@ -671,6 +692,17 @@ export default function Layout({ children }: LayoutProps) {
 
   // Função para obter título e classe responsiva
   const getTitleInfo = () => {
+    // Se há um título dinâmico (para páginas como PropertyDetails), usar ele
+    if (dynamicPageTitle) {
+      return { title: dynamicPageTitle, class: getTitleClass(dynamicPageTitle) };
+    }
+
+    // Verificar se é uma rota de detalhes de propriedade
+    if (location.startsWith('/property/')) {
+      // Para rotas de propriedade, usar título genérico até o dinâmico carregar
+      return { title: "Detalhes do Imóvel", class: getTitleClass("Detalhes do Imóvel") };
+    }
+
     // Primeiro, verificar se é uma rota do navigationItems
     const navItem = navigationItems.find(item => item.href === location);
     if (navItem) return { title: navItem.label, class: getTitleClass(navItem.label) };

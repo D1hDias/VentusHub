@@ -13,7 +13,6 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 const conectarComRetry = async (tentativas = 3): Promise<boolean> => {
   for (let i = 1; i <= tentativas; i++) {
     try {
-      console.log(`🔧 Tentando conectar com Neon PostgreSQL... (tentativa ${i}/${tentativas})`);
       
       if (!process.env.DATABASE_URL) {
         throw new Error("DATABASE_URL não configurada");
@@ -59,14 +58,11 @@ const conectarComRetry = async (tentativas = 3): Promise<boolean> => {
         }
       });
       
-      console.log("✅ Banco Neon conectado com sucesso");
       return true;
 
     } catch (error) {
-      console.log(`❌ Tentativa ${i} falhou: ${error.message}`);
       
       if (i < tentativas) {
-        console.log(`⏳ Aguardando ${i * 2}s antes da próxima tentativa...`);
         await new Promise(resolve => setTimeout(resolve, i * 2000));
       }
     }
@@ -76,9 +72,6 @@ const conectarComRetry = async (tentativas = 3): Promise<boolean> => {
 
 // Função para inicializar a conexão (será chamada pelo index.ts)
 export const initializeDB = async () => {
-  console.log("🔧 Iniciando inicialização do banco...");
-  console.log(`🔧 Ambiente: ${isDevelopment ? 'development' : 'production'}`);
-  console.log(`🔧 DATABASE_URL definida: ${!!process.env.DATABASE_URL}`);
   
   try {
     // Adicionar timeout geral para inicialização
@@ -93,22 +86,17 @@ export const initializeDB = async () => {
       throw new Error("Não foi possível conectar após várias tentativas");
     }
     
-    console.log("✅ Inicialização do banco concluída com sucesso");
     return { db, pool };
 
   } catch (error) {
-    console.log(`❌ Falha definitiva na conexão Neon: ${error.message}`);
     
     if (isDevelopment) {
-      console.log("🔧 Modo desenvolvimento: Usando banco fallback...");
       
       const { createFallbackDB } = await import('./db-fallback.js');
       db = createFallbackDB();
       
-      console.log("✅ Banco fallback criado para desenvolvimento");
       return { db, pool: null };
     } else {
-      console.log("💥 Em produção - falhando se não conseguir conectar ao banco");
       throw error; // Em produção, falhar se não conseguir conectar
     }
   }

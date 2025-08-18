@@ -66,12 +66,9 @@ export function setupAuth(app: Express) {
       };
       
       sessionConfig.store = store;
-      console.log("✅ Sessão usando PostgreSQL store com fallback");
     } catch (error) {
-      console.log("⚠️ Fallback para sessão em memória:", error.message);
     }
   } else {
-    console.log("⚠️ Usando sessão em memória (desenvolvimento ou sem banco)");
   }
 
   app.use(session(sessionConfig));
@@ -87,7 +84,6 @@ export function isAuthenticated(req: any, res: any, next: any) {
 
 // Rotas de autenticação
 export function setupAuthRoutes(app: Express) {
-  console.log("🔧 Registrando rotas de autenticação legadas...");
   // Health check para autenticação
   app.get("/api/auth/status", (req: any, res: any) => {
     const isLoggedIn = !!(req.session && req.session.user);
@@ -161,7 +157,6 @@ export function setupAuthRoutes(app: Express) {
 
   // Login
   app.post("/api/auth/login", async (req: any, res: any) => {
-    console.log("🔑 Login attempt received:", { email: req.body?.email, hasPassword: !!req.body?.password });
     try {
       const { email, password } = req.body;
 
@@ -237,5 +232,4 @@ export function setupAuthRoutes(app: Express) {
     }
   });
   
-  console.log("✅ Rotas de autenticação legadas registradas: /api/auth/status, /api/auth/register, /api/auth/login, /api/auth/logout, /api/auth/user");
 }

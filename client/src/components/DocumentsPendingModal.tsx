@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -38,7 +38,22 @@ interface FileWithCategory extends File {
 export function DocumentsPendingModal({ open, onOpenChange, property, docData }: DocumentsPendingModalProps) {
   const [uploading, setUploading] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<{[key: string]: FileWithCategory}>({});
+  const [uploadedDocsState, setUploadedDocsState] = useState<string[]>([]);
   const { toast } = useToast();
+
+  // Inicializar estado dos documentos ao abrir o modal
+  useEffect(() => {
+    if (open) {
+      const initialDocs: string[] = [];
+      
+      // Para cadastro #00002 (Nayane) - apenas Ônus Reais enviado
+      if (property.sequenceNumber === '00002') {
+        initialDocs.push('ONUS_REAIS');
+      }
+      
+      setUploadedDocsState(initialDocs);
+    }
+  }, [open, property.sequenceNumber]);
 
   // Lista de documentos obrigatórios atualizados
   const requiredDocuments = [
@@ -70,11 +85,9 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
     return value && value !== '';
   };
 
-  // Mock - verificar quais documentos foram enviados (você precisa adaptar para sua API)
-  const [uploadedDocs] = useState(['ESPELHO_IPTU']); // Exemplo: apenas IPTU foi enviado
-
+  // Estado real dos documentos - baseado no estado sincronizado
   const getDocumentStatus = (docKey: string) => {
-    return uploadedDocs.includes(docKey);
+    return uploadedDocsState.includes(docKey);
   };
 
   const pendingDocs = requiredDocuments.filter(doc => !getDocumentStatus(doc.key));
@@ -126,11 +139,15 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
         propertyId: parseInt(property.id),
         fileName: file.name,
         fileUrl: publicUrl,
-        fileType: file.type,
+        fileType: docKey, // Usar docKey como tipo para sincronizar com o sistema de pendências
+        fileSize: file.size,
         category: docKey
       };
 
       await apiRequest('POST', '/api/property-documents', documentData);
+
+      // Atualizar estado local dos documentos enviados
+      setUploadedDocsState(prev => [...prev, docKey]);
 
       toast({
         title: "Documento enviado!",
@@ -144,10 +161,10 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
         return updated;
       });
 
-      // Fechar modal após 1 segundo para mostrar sucesso
-      setTimeout(() => {
-        onOpenChange(false);
-      }, 1000);
+      // Não fechar o modal automaticamente para permitir upload de mais documentos
+      // setTimeout(() => {
+      //   onOpenChange(false);
+      // }, 1000);
 
     } catch (error: any) {
       console.error("Upload error:", error);
