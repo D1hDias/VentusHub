@@ -1,5 +1,6 @@
 import { useLocation } from "wouter";
-import { Plus, Search, Filter, X, Eye, Edit, MoreHorizontal, User } from "lucide-react";
+import { Plus, Search, Filter, X, Eye, Edit, MoreHorizontal, User, Users, UserCheck, UserX, UserPlus } from "lucide-react";
+import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,8 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
+import { useResponsive } from "@/hooks/useMediaQuery";
 
 interface Client {
   id?: string;
@@ -95,6 +98,8 @@ export default function Clientes() {
     state: [] as string[],
     hasIncome: "all"
   });
+  const { getListVariants, getListItemVariants } = useSmoothtTransitions();
+  const { isMobile } = useResponsive();
 
   const { data: clientsResponse, isLoading, error } = useQuery({
     queryKey: ["/api/clients"],
@@ -181,6 +186,19 @@ export default function Clientes() {
   const hasActiveFilters = filters.maritalStatus.length > 0 || filters.city.length > 0 ||
     filters.state.length > 0 || filters.hasIncome !== "all";
 
+  // Calculate client statistics
+  const clientStats = {
+    total: clients.length,
+    withIncome: clients.filter((c: Client) => c.monthlyIncome && c.monthlyIncome > 0).length,
+    withoutIncome: clients.filter((c: Client) => !c.monthlyIncome || c.monthlyIncome === 0).length,
+    thisMonth: clients.filter((c: Client) => {
+      if (!c.createdAt) return false;
+      const clientDate = new Date(c.createdAt);
+      const now = new Date();
+      return clientDate.getMonth() === now.getMonth() && clientDate.getFullYear() === now.getFullYear();
+    }).length
+  };
+
   const formatCPF = (cpf: string) => {
     return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   };
@@ -224,6 +242,164 @@ export default function Clientes() {
           <Plus className="h-4 w-4" />
         </Button>
       </div>
+
+      {/* KPI Cards - Client Statistics */}
+      <motion.div 
+        variants={getListVariants()}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Data for KPI cards */}
+        {(() => {
+          const kpiData = [
+            {
+              title: "Total Clientes",
+              value: clientStats.total,
+              icon: Users,
+              color: "hsl(211, 100%, 50%)", // blue
+              subtitle: "Clientes cadastrados"
+            },
+            {
+              title: "Com Renda",
+              value: clientStats.withIncome,
+              icon: UserCheck,
+              color: "hsl(159, 69%, 38%)", // green
+              subtitle: "Renda informada"
+            },
+            {
+              title: "Sem Renda",
+              value: clientStats.withoutIncome,
+              icon: UserX,
+              color: "hsl(32, 81%, 46%)", // orange
+              subtitle: "Renda não informada"
+            },
+            {
+              title: "Novos este Mês",
+              value: clientStats.thisMonth,
+              icon: UserPlus,
+              color: "hsl(271, 81%, 56%)", // purple
+              subtitle: "Cadastros recentes"
+            }
+          ];
+          
+          return isMobile ? (
+            // Mobile Layout (2x2 grid)
+            <div className="grid grid-cols-2 gap-3">
+              {kpiData.map((kpi, index) => (
+                <motion.div
+                  key={index}
+                  variants={getListItemVariants()}
+                  className="w-full"
+                >
+                  <motion.div
+                    className="cursor-pointer group"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                  >
+                    <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative">
+                      <div 
+                        className="absolute top-0 left-0 right-0 h-1 opacity-80 group-hover:opacity-100 transition-opacity"
+                        style={{ backgroundColor: kpi.color }}
+                      />
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div 
+                            className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200"
+                            style={{ backgroundColor: kpi.color }}
+                          >
+                            <kpi.icon className="h-5 w-5 text-white" />
+                          </div>
+                          <motion.div
+                            className="text-right"
+                            key={kpi.value}
+                            initial={{ scale: 1.1, opacity: 0.8 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.3, ease: "easeOut" }}
+                          >
+                            <div 
+                              className="text-2xl font-bold tabular-nums leading-none"
+                              style={{ color: kpi.color }}
+                            >
+                              {kpi.value}
+                            </div>
+                          </motion.div>
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="font-semibold text-gray-900 text-sm leading-none">{kpi.title}</h3>
+                          <p className="text-xs text-gray-500 leading-tight">{kpi.subtitle}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            // Desktop Layout (1x4 grid)
+            <div className="grid grid-cols-4 gap-4">
+              {kpiData.map((kpi, index) => (
+                <motion.div
+                  key={index}
+                  variants={getListItemVariants()}
+                  className="h-full"
+                >
+                  <motion.div
+                    className="cursor-pointer group h-full"
+                    whileHover={{ scale: 1.02, y: -4 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                  >
+                    <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-lg transition-all duration-300 h-full flex flex-col overflow-hidden relative hover:border-gray-300">
+                      {/* Subtle gradient background */}
+                      <div 
+                        className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.04] transition-opacity"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${kpi.color} 0%, transparent 100%)` 
+                        }}
+                      />
+                      
+                      <CardContent className="p-6 flex flex-col h-full">
+                        <div className="flex items-center justify-between mb-4">
+                          <div 
+                            className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200"
+                            style={{ backgroundColor: kpi.color }}
+                          >
+                            <kpi.icon className="h-6 w-6 text-white" />
+                          </div>
+                          <motion.div
+                            className="text-right"
+                            key={kpi.value}
+                            initial={{ scale: 1.1, opacity: 0.8 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.4, ease: "easeOut", delay: index * 0.1 }}
+                          >
+                            <div 
+                              className="text-3xl font-bold tabular-nums leading-none"
+                              style={{ color: kpi.color }}
+                            >
+                              {kpi.value}
+                            </div>
+                          </motion.div>
+                        </div>
+                        
+                        <div className="flex-1 flex flex-col justify-end">
+                          <h3 className="font-semibold text-gray-900 text-sm mb-1">{kpi.title}</h3>
+                          <p className="text-xs text-gray-500 leading-relaxed">{kpi.subtitle}</p>
+                        </div>
+                        
+                        {/* Bottom accent line */}
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300" 
+                             style={{ color: kpi.color }} />
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </div>
+          );
+        })()}
+      </motion.div>
 
       {/* Search and Filters */}
       <Card className="shadow-sm border-gray-200">

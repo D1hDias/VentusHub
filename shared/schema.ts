@@ -406,34 +406,288 @@ export type InsertRegistro = z.infer<typeof insertRegistroSchema>;
 export type CreateRegistro = z.infer<typeof createRegistroSchema>;
 export type UpdateRegistro = z.infer<typeof updateRegistroSchema>;
 
-// Notifications table
+// ======================================
+// COMPREHENSIVE NOTIFICATION SYSTEM
+// ======================================
+
+// Enhanced Notifications table - Core notification system
 export const notifications = pgTable("notifications", {
   id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(), // Temporarily remove FK constraint
-  type: varchar("type").notNull(), // 'info', 'warning', 'error', 'success'
-  title: varchar("title").notNull(),
+  userId: text("user_id").notNull(), // User receiving the notification
+  
+  // Classification
+  type: varchar("type").notNull(), // 'info', 'warning', 'error', 'success', 'urgent'
+  category: varchar("category").notNull(), // 'property', 'client', 'document', 'system', 'reminder', 'pendency'
+  subcategory: varchar("subcategory"), // More specific categorization
+  
+  // Content
+  title: varchar("title", { length: 255 }).notNull(),
   message: text("message").notNull(),
-  category: varchar("category").notNull(), // 'property', 'contract', 'document', 'system'
-  relatedId: integer("related_id"), // ID relacionado (property, contract, etc)
-  actionUrl: varchar("action_url"), // URL para ação (se aplicável)
+  shortMessage: varchar("short_message", { length: 100 }), // For mobile/compact views
+  
+  // Associations
+  relatedEntityType: varchar("related_entity_type"), // 'property', 'client', 'note', 'document'
+  relatedEntityId: integer("related_id"), // ID of the related entity
+  secondaryEntityType: varchar("secondary_entity_type"), // For complex relationships
+  secondaryEntityId: integer("secondary_entity_id"),
+  
+  // Actions
+  actionUrl: varchar("action_url", { length: 500 }), // Deep link to resolve/view
+  actionLabel: varchar("action_label", { length: 50 }), // "View Property", "Complete Task"
+  secondaryActionUrl: varchar("secondary_action_url", { length: 500 }),
+  secondaryActionLabel: varchar("secondary_action_label", { length: 50 }),
+  
+  // Status and Priority
+  priority: integer("priority").notNull().default(3), // 1=Critical, 2=High, 3=Normal, 4=Low, 5=Info
+  status: varchar("status").notNull().default("unread"), // 'unread', 'read', 'dismissed', 'archived'
   isRead: boolean("is_read").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
+  isPinned: boolean("is_pinned").default(false),
+  isArchived: boolean("is_archived").default(false),
+  
+  // Scheduling and Expiry
+  scheduledFor: timestamp("scheduled_for"), // For delayed notifications
+  expiresAt: timestamp("expires_at"), // Auto-expire notifications
+  
+  // Rich content and metadata
+  imageUrl: varchar("image_url", { length: 500 }), // Optional image
+  iconType: varchar("icon_type", { length: 50 }), // Icon identifier for frontend
+  metadata: jsonb("metadata"), // Extensible data (properties, settings, etc.)
+  
+  // Delivery tracking
+  deliveryChannels: varchar("delivery_channels", { length: 100 }), // 'in_app,email,push'
+  deliveredAt: timestamp("delivered_at"),
+  deliveryStatus: varchar("delivery_status").default("pending"), // 'pending', 'delivered', 'failed'
+  
+  // User interaction
   readAt: timestamp("read_at"),
-});
+  dismissedAt: timestamp("dismissed_at"),
+  lastInteractionAt: timestamp("last_interaction_at"),
+  
+  // Audit
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("notifications_user_id_idx").on(table.userId),
+  index("notifications_status_idx").on(table.status),
+  index("notifications_category_idx").on(table.category),
+  index("notifications_priority_idx").on(table.priority),
+  index("notifications_created_at_idx").on(table.createdAt),
+  index("notifications_unread_idx").on(table.userId, table.isRead),
+  index("notifications_entity_idx").on(table.relatedEntityType, table.relatedEntityId),
+  index("notifications_scheduled_idx").on(table.scheduledFor),
+  index("notifications_expires_idx").on(table.expiresAt),
+]);
 
-// User settings table
+// Notification Templates - Reusable notification templates
+export const notificationTemplates = pgTable("notification_templates", {
+  id: serial("id").primaryKey(),
+  templateKey: varchar("template_key", { length: 100 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category").notNull(),
+  
+  // Template content with placeholders
+  titleTemplate: varchar("title_template", { length: 255 }).notNull(),
+  messageTemplate: text("message_template").notNull(),
+  shortMessageTemplate: varchar("short_message_template", { length: 100 }),
+  
+  // Default properties
+  defaultType: varchar("default_type").notNull().default("info"),
+  defaultPriority: integer("default_priority").notNull().default(3),
+  defaultIconType: varchar("default_icon_type", { length: 50 }),
+  
+  // Behavior
+  isActive: boolean("is_active").notNull().default(true),
+  autoExpireDays: integer("auto_expire_days"), // Auto-expire after X days
+  allowDuplicates: boolean("allow_duplicates").default(true),
+  
+  // Metadata and configuration
+  triggerConditions: jsonb("trigger_conditions"), // When to trigger this template
+  placeholderDefinitions: jsonb("placeholder_definitions"), // Definition of placeholders
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("notification_templates_key_idx").on(table.templateKey),
+  index("notification_templates_category_idx").on(table.category),
+  index("notification_templates_active_idx").on(table.isActive),
+]);
+
+// Notification Rules - Automated notification generation rules
+export const notificationRules = pgTable("notification_rules", {
+  id: serial("id").primaryKey(),
+  ruleKey: varchar("rule_key", { length: 100 }).notNull().unique(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  
+  // Rule configuration
+  triggerEvents: varchar("trigger_events", { length: 500 }).notNull(), // Comma-separated events
+  entityTypes: varchar("entity_types", { length: 200 }), // Which entities trigger this rule
+  conditions: jsonb("conditions"), // Complex conditions for triggering
+  
+  // Template and target
+  templateId: integer("template_id").references(() => notificationTemplates.id),
+  targetUsers: varchar("target_users", { length: 100 }), // 'owner', 'assigned', 'all_users', 'specific'
+  specificUserIds: text("specific_user_ids"), // Comma-separated user IDs for 'specific'
+  
+  // Scheduling and throttling
+  delayMinutes: integer("delay_minutes").default(0), // Delay before sending
+  throttleMinutes: integer("throttle_minutes"), // Minimum time between same notifications
+  maxNotificationsPerDay: integer("max_notifications_per_day"), // Rate limiting
+  
+  // Status
+  isActive: boolean("is_active").notNull().default(true),
+  lastTriggeredAt: timestamp("last_triggered_at"),
+  triggerCount: integer("trigger_count").default(0),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("notification_rules_key_idx").on(table.ruleKey),
+  index("notification_rules_active_idx").on(table.isActive),
+  index("notification_rules_events_idx").on(table.triggerEvents),
+]);
+
+// Notification Subscriptions - User preferences for notification types
+export const notificationSubscriptions = pgTable("notification_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  
+  // Subscription details
+  category: varchar("category").notNull(),
+  subcategory: varchar("subcategory"),
+  entityType: varchar("entity_type"), // Subscribe to specific entity types
+  entityId: integer("entity_id"), // Subscribe to specific entity instances
+  
+  // Channel preferences
+  enableInApp: boolean("enable_in_app").default(true),
+  enableEmail: boolean("enable_email").default(false),
+  enablePush: boolean("enable_push").default(false),
+  enableSms: boolean("enable_sms").default(false),
+  
+  // Frequency and timing
+  frequency: varchar("frequency").default("immediate"), // 'immediate', 'daily', 'weekly', 'never'
+  quietHoursStart: varchar("quiet_hours_start"), // "22:00"
+  quietHoursEnd: varchar("quiet_hours_end"), // "08:00"
+  timezone: varchar("timezone").default("America/Sao_Paulo"),
+  
+  // Priority filtering
+  minPriority: integer("min_priority").default(1), // Only notifications >= this priority
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("notification_subscriptions_user_idx").on(table.userId),
+  index("notification_subscriptions_category_idx").on(table.category),
+  index("notification_subscriptions_entity_idx").on(table.entityType, table.entityId),
+]);
+
+// Notification Delivery Log - Track delivery attempts and results
+export const notificationDeliveryLog = pgTable("notification_delivery_log", {
+  id: serial("id").primaryKey(),
+  notificationId: integer("notification_id").notNull().references(() => notifications.id, { onDelete: "cascade" }),
+  
+  // Delivery details
+  channel: varchar("channel").notNull(), // 'in_app', 'email', 'push', 'sms'
+  recipientId: text("recipient_id").notNull(), // User ID or email/phone for external channels
+  
+  // Status and timing
+  status: varchar("status").notNull(), // 'pending', 'sent', 'delivered', 'failed', 'bounced'
+  attemptNumber: integer("attempt_number").default(1),
+  deliveredAt: timestamp("delivered_at"),
+  failureReason: text("failure_reason"),
+  
+  // External service tracking
+  externalId: varchar("external_id", { length: 255 }), // ID from email/SMS service
+  externalStatus: varchar("external_status", { length: 100 }),
+  externalResponse: jsonb("external_response"),
+  
+  // Retry configuration
+  nextRetryAt: timestamp("next_retry_at"),
+  maxRetries: integer("max_retries").default(3),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("notification_delivery_notification_idx").on(table.notificationId),
+  index("notification_delivery_channel_idx").on(table.channel),
+  index("notification_delivery_status_idx").on(table.status),
+  index("notification_delivery_retry_idx").on(table.nextRetryAt),
+]);
+
+// Notification Analytics - Track notification effectiveness
+export const notificationAnalytics = pgTable("notification_analytics", {
+  id: serial("id").primaryKey(),
+  
+  // Time period
+  date: date("date").notNull(),
+  hour: integer("hour"), // For hourly breakdowns
+  
+  // Categorization
+  category: varchar("category").notNull(),
+  subcategory: varchar("subcategory"),
+  type: varchar("type").notNull(),
+  channel: varchar("channel"), // Specific channel analytics
+  
+  // Metrics
+  totalSent: integer("total_sent").default(0),
+  totalDelivered: integer("total_delivered").default(0),
+  totalRead: integer("total_read").default(0),
+  totalClicked: integer("total_clicked").default(0),
+  totalDismissed: integer("total_dismissed").default(0),
+  
+  // Performance metrics
+  avgDeliveryTime: integer("avg_delivery_time"), // Average delivery time in seconds
+  avgReadTime: integer("avg_read_time"), // Average time to read in seconds
+  
+  // User engagement
+  uniqueUsers: integer("unique_users").default(0),
+  returningUsers: integer("returning_users").default(0),
+  
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("notification_analytics_date_idx").on(table.date),
+  index("notification_analytics_category_idx").on(table.category),
+  index("notification_analytics_channel_idx").on(table.channel),
+]);
+
+// User settings table (enhanced for notifications)
 export const userSettings = pgTable("user_settings", {
   id: serial("id").primaryKey(),
   userId: text("user_id").notNull(), // Temporarily remove FK constraint
   theme: varchar("theme").default("light"), // 'light', 'dark', 'system'
   language: varchar("language").default("pt-BR"),
   timezone: varchar("timezone").default("America/Sao_Paulo"),
+  
+  // Notification channel preferences
   emailNotifications: boolean("email_notifications").default(true),
   pushNotifications: boolean("push_notifications").default(true),
   smsNotifications: boolean("sms_notifications").default(false),
+  
+  // Notification frequency preferences
+  emailFrequency: varchar("email_frequency").default("immediate"), // 'immediate', 'daily', 'weekly', 'never'
+  pushFrequency: varchar("push_frequency").default("immediate"),
+  smsFrequency: varchar("sms_frequency").default("never"),
+  
+  // Priority thresholds (1=Critical, 2=High, 3=Normal, 4=Low, 5=Info)
+  minInAppPriority: integer("min_inapp_priority").default(1),
+  minEmailPriority: integer("min_email_priority").default(2),
+  minPushPriority: integer("min_push_priority").default(2),
+  minSmsPriority: integer("min_sms_priority").default(1),
+  
+  // Quiet hours settings
+  quietHoursEnabled: boolean("quiet_hours_enabled").default(false),
+  quietHoursStart: varchar("quiet_hours_start").default("22:00"), // HH:MM format
+  quietHoursEnd: varchar("quiet_hours_end").default("08:00"),
+  
+  // Weekend settings
+  enableWeekendsNotifications: boolean("enable_weekends_notifications").default(true),
+  
+  // Legacy settings
   marketingEmails: boolean("marketing_emails").default(false),
   weeklyReports: boolean("weekly_reports").default(true),
   reminderDeadlines: boolean("reminder_deadlines").default(true),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -967,6 +1221,52 @@ export const createScheduledNotificationSchema = z.object({
   notificationType: z.enum(["email", "push", "sms", "in_app"]).default("in_app"),
   metadata: z.record(z.any()).optional(),
 });
+
+// ======================================
+// PUSH NOTIFICATIONS TABLES
+// ======================================
+
+// Push Subscriptions - Store user push notification subscriptions
+export const pushSubscriptions = pgTable("push_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  endpoint: text("endpoint").notNull(),
+  p256dhKey: text("p256dh_key").notNull(),
+  authKey: text("auth_key").notNull(),
+  expirationTime: timestamp("expiration_time"),
+  isActive: boolean("is_active").notNull().default(true),
+  userAgent: text("user_agent"),
+  ipAddress: text("ip_address"),
+  lastUsed: timestamp("last_used"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_push_subscriptions_user").on(table.userId),
+  index("idx_push_subscriptions_active").on(table.isActive),
+  index("idx_push_subscriptions_endpoint").on(table.endpoint),
+]);
+
+// ======================================
+// CLIENT DOCUMENTS TABLE
+// ======================================
+
+// Client Documents - Store client document files
+export const clientDocuments = pgTable("client_documents", {
+  id: serial("id").primaryKey(),
+  clientId: integer("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  fileName: varchar("file_name").notNull(), // Generated filename for storage
+  originalName: varchar("original_name").notNull(), // Original filename from user
+  fileSize: integer("file_size").notNull(), // File size in bytes
+  mimeType: varchar("mime_type").notNull(), // MIME type of the file
+  storageUrl: text("storage_url").notNull(), // URL to the stored file (Supabase Storage)
+  uploadedBy: text("uploaded_by").notNull(), // User ID who uploaded
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_client_documents_client").on(table.clientId),
+  index("idx_client_documents_uploaded_by").on(table.uploadedBy),
+  index("idx_client_documents_uploaded_at").on(table.uploadedAt),
+]);
 
 // TIPOS PARA AUDITORIA E NOTIFICAÇÕES
 export type CreateAuditLog = z.infer<typeof createAuditLogSchema>;

@@ -7,35 +7,160 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, FileText, AlertCircle, X, CloudUpload, Upload } from "lucide-react";
+import { CheckCircle, FileText, AlertCircle, X, CloudUpload, Upload, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 import { apiRequestLegacy as apiRequest } from "@/lib/queryClient";
 
-interface Property {
-  id?: string;
+// ======================================
+// INTERFACES GENÉRICAS
+// ======================================
+
+interface Entity {
+  id?: string | number;
   sequenceNumber?: string;
+  stage?: number;
+  type?: string;
   [key: string]: any;
+}
+
+interface DocumentDefinition {
+  key: string;
+  name: string;
+  icon: string;
+  description: string;
+  category?: string;
+  required?: boolean;
+  stages?: number[]; // Em quais etapas este documento é obrigatório
+  propertyTypes?: string[]; // Para quais tipos de propriedade
+  acceptedFormats?: string[];
+  maxSize?: number; // em MB
+}
+
+interface FieldDefinition {
+  key: string;
+  name: string;
+  required?: boolean;
+  stages?: number[];
+  validator?: (value: any) => boolean;
+}
+
+interface PendencyConfig {
+  entityType: 'property' | 'client' | 'contract' | 'generic';
+  stage?: number;
+  documents?: DocumentDefinition[];
+  fields?: FieldDefinition[];
+  customValidation?: (entity: Entity) => {
+    pendingDocs: DocumentDefinition[];
+    pendingFields: FieldDefinition[];
+  };
 }
 
 interface DocumentsPendingModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  property: Property;
-  docData: {
-    uploadedCount: number;
-    totalRequired: number;
-    filledFieldsCount: number;
-    totalFields: number;
-  };
+  entity: Entity;
+  config: PendencyConfig;
+  title?: string;
+  onDocumentUploaded?: (docKey: string) => void;
+  onComplete?: () => void;
 }
+
+// ======================================
+// CONFIGURAÇÕES PADRÃO DE DOCUMENTOS
+// ======================================
+
+const DEFAULT_PROPERTY_DOCUMENTS: DocumentDefinition[] = [
+  { 
+    key: 'ONUS_REAIS', 
+    name: 'Ônus Reais', 
+    icon: '⚖️', 
+    description: 'Certidão de ônus reais do imóvel',
+    stages: [1, 2, 3], // Captação, Due Diligence, Mercado
+    acceptedFormats: ['.pdf', '.jpg', '.jpeg', '.png'],
+    maxSize: 10
+  },
+  { 
+    key: 'ESPELHO_IPTU', 
+    name: 'Espelho de IPTU', 
+    icon: '🏠', 
+    description: 'Carnê ou espelho do IPTU atual',
+    stages: [1, 2],
+    acceptedFormats: ['.pdf', '.jpg', '.jpeg', '.png'],
+    maxSize: 5
+  },
+  { 
+    key: 'RG_CNH', 
+    name: 'RG/CNH dos Proprietários', 
+    icon: '📄', 
+    description: 'Documentos de identidade dos proprietários',
+    stages: [1, 2, 6], // Captação, Due Diligence, Financiamento
+    acceptedFormats: ['.pdf', '.jpg', '.jpeg', '.png'],
+    maxSize: 5
+  },
+  { 
+    key: 'CERTIDAO_ESTADO_CIVIL', 
+    name: 'Certidão de Estado Civil', 
+    icon: '💍', 
+    description: 'Certidão de casamento ou nascimento',
+    stages: [2, 6],
+    acceptedFormats: ['.pdf'],
+    maxSize: 5
+  },
+  { 
+    key: 'COMPROVANTE_RESIDENCIA', 
+    name: 'Comprovante de Residência', 
+    icon: '📮', 
+    description: 'Conta de luz, água ou telefone',
+    stages: [1, 2],
+    acceptedFormats: ['.pdf', '.jpg', '.jpeg', '.png'],
+    maxSize: 3
+  },
+  { 
+    key: 'ESCRITURA_REGISTRO', 
+    name: 'Escritura/Registro', 
+    icon: '📋', 
+    description: 'Escritura pública ou certidão de registro',
+    stages: [2, 7], // Due Diligence, Instrumento
+    acceptedFormats: ['.pdf'],
+    maxSize: 10
+  },
+  { 
+    key: 'CONTRATO_COMPRA_VENDA', 
+    name: 'Contrato de Compra e Venda', 
+    icon: '📄', 
+    description: 'Contrato assinado entre as partes',
+    stages: [5, 6, 7], // Contratos, Financiamento, Instrumento
+    acceptedFormats: ['.pdf'],
+    maxSize: 10
+  }
+];
+
+const DEFAULT_PROPERTY_FIELDS: FieldDefinition[] = [
+  { key: 'type', name: 'Tipo de Imóvel', stages: [1] },
+  { key: 'street', name: 'Endereço', stages: [1] },
+  { key: 'number', name: 'Número', stages: [1] },
+  { key: 'neighborhood', name: 'Bairro', stages: [1] },
+  { key: 'city', name: 'Cidade', stages: [1] },
+  { key: 'value', name: 'Valor do Imóvel', stages: [1, 4] }, // Captação, Propostas
+  { key: 'owners', name: 'Dados dos Proprietários', stages: [1, 2] },
+  { key: 'registrationNumber', name: 'Número de Matrícula', stages: [2] }
+];
 
 // Estender File para incluir categoria
 interface FileWithCategory extends File {
   category?: string;
 }
 
-export function DocumentsPendingModal({ open, onOpenChange, property, docData }: DocumentsPendingModalProps) {
+export function DocumentsPendingModal({ 
+  open, 
+  onOpenChange, 
+  entity, 
+  config, 
+  title,
+  onDocumentUploaded,
+  onComplete 
+}: DocumentsPendingModalProps) {
   const [uploading, setUploading] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<{[key: string]: FileWithCategory}>({});
   const [uploadedDocsState, setUploadedDocsState] = useState<string[]>([]);
@@ -43,45 +168,96 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
 
   // Inicializar estado dos documentos ao abrir o modal
   useEffect(() => {
-    if (open) {
-      const initialDocs: string[] = [];
-      
-      // Para cadastro #00002 (Nayane) - apenas Ônus Reais enviado
-      if (property.sequenceNumber === '00002') {
-        initialDocs.push('ONUS_REAIS');
-      }
-      
-      setUploadedDocsState(initialDocs);
+    if (open && entity) {
+      loadUploadedDocuments();
     }
-  }, [open, property.sequenceNumber]);
+  }, [open, entity?.id]);
 
-  // Lista de documentos obrigatórios atualizados
-  const requiredDocuments = [
-    { key: 'ONUS_REAIS', name: 'Ônus Reais', icon: '⚖️', description: 'Certidão de ônus reais do imóvel' },
-    { key: 'ESPELHO_IPTU', name: 'Espelho de IPTU', icon: '🏠', description: 'Carnê ou espelho do IPTU atual' },
-    { key: 'RG_CNH', name: 'RG/CNH dos Proprietários', icon: '📄', description: 'Documentos de identidade dos proprietários' },
-    { key: 'CERTIDAO_ESTADO_CIVIL', name: 'Certidão de Estado Civil', icon: '💍', description: 'Certidão de casamento ou nascimento' },
-    { key: 'COMPROVANTE_RESIDENCIA', name: 'Comprovante de Residência', icon: '📮', description: 'Conta de luz, água ou telefone' }
-  ];
+  // Carregar documentos já enviados
+  const loadUploadedDocuments = async () => {
+    try {
+      if (!entity?.id) return;
+      
+      const endpoint = config.entityType === 'property' 
+        ? `/api/property-documents?propertyId=${entity.id}`
+        : `/api/${config.entityType}-documents?${config.entityType}Id=${entity.id}`;
+        
+      const response = await apiRequest('GET', endpoint);
+      const documents = await response.json();
+      
+      const uploadedTypes = documents.map((doc: any) => doc.fileType || doc.category);
+      setUploadedDocsState(uploadedTypes);
+    } catch (error) {
+      console.error('Error loading uploaded documents:', error);
+    }
+  };
 
-  // Campos obrigatórios
-  const requiredFields = [
-    { key: 'type', name: 'Tipo de Imóvel' },
-    { key: 'street', name: 'Endereço' },
-    { key: 'number', name: 'Número' },
-    { key: 'neighborhood', name: 'Bairro' },
-    { key: 'city', name: 'Cidade' },
-    { key: 'value', name: 'Valor do Imóvel' },
-    { key: 'owners', name: 'Dados dos Proprietários' },
-    { key: 'registrationNumber', name: 'Número de Matrícula' }
-  ];
+  // Obter configurações de documentos e campos baseadas no contexto
+  const getRequiredDocuments = (): DocumentDefinition[] => {
+    if (!config) {
+      console.warn('Config is undefined in DocumentsPendingModal');
+      return [];
+    }
+    
+    if (config.customValidation) {
+      return config.customValidation(entity).pendingDocs;
+    }
+    
+    if (config.documents) {
+      return config.documents.filter(doc => 
+        !config.stage || !doc.stages || doc.stages.includes(config.stage)
+      );
+    }
+    
+    // Fallback para configuração padrão de propriedades
+    if (config.entityType === 'property') {
+      return DEFAULT_PROPERTY_DOCUMENTS.filter(doc => 
+        !config.stage || !doc.stages || doc.stages.includes(config.stage)
+      );
+    }
+    
+    return [];
+  };
+
+  const getRequiredFields = (): FieldDefinition[] => {
+    if (!config) {
+      console.warn('Config is undefined in DocumentsPendingModal getRequiredFields');
+      return [];
+    }
+    
+    if (config.customValidation) {
+      return config.customValidation(entity).pendingFields;
+    }
+    
+    if (config.fields) {
+      return config.fields.filter(field => 
+        !config.stage || !field.stages || field.stages.includes(config.stage)
+      );
+    }
+    
+    // Fallback para configuração padrão de propriedades
+    if (config.entityType === 'property') {
+      return DEFAULT_PROPERTY_FIELDS.filter(field => 
+        !config.stage || !field.stages || field.stages.includes(config.stage)
+      );
+    }
+    
+    return [];
+  };
 
   // Verificar quais campos estão preenchidos
-  const getFieldStatus = (fieldKey: string) => {
-    const value = property[fieldKey as keyof Property];
-    if (fieldKey === 'owners') {
+  const getFieldStatus = (field: FieldDefinition) => {
+    const value = entity[field.key];
+    
+    if (field.validator) {
+      return field.validator(value);
+    }
+    
+    // Validação padrão baseada no tipo de campo
+    if (field.key === 'owners') {
       return value && Array.isArray(value) && value.length > 0 && value[0]?.fullName;
     }
+    
     return value && value !== '';
   };
 
@@ -90,8 +266,10 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
     return uploadedDocsState.includes(docKey);
   };
 
+  const requiredDocuments = getRequiredDocuments();
+  const requiredFields = getRequiredFields();
   const pendingDocs = requiredDocuments.filter(doc => !getDocumentStatus(doc.key));
-  const pendingFields = requiredFields.filter(field => !getFieldStatus(field.key));
+  const pendingFields = requiredFields.filter(field => !getFieldStatus(field));
 
   // Função para selecionar arquivo
   const handleFileSelect = (docKey: string, file: File) => {
@@ -102,10 +280,10 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
     }));
   };
 
-  // Função para upload do documento
+  // Função para upload do documento - genérica
   const handleUploadDocument = async (docKey: string) => {
     const file = selectedFiles[docKey];
-    if (!file || !property?.id) {
+    if (!file || !entity?.id) {
       toast({
         title: "Erro",
         description: "Selecione um arquivo primeiro.",
@@ -118,11 +296,15 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
 
     try {
       const fileName = `${Date.now()}-${file.name}`;
-      const filePath = `${property.id}/${fileName}`;
+      const entityId = String(entity.id);
+      const filePath = `${entityId}/${fileName}`;
+
+      // Determinar bucket baseado no tipo de entidade
+      const bucketName = `${config.entityType}-documents`;
 
       // Upload para Supabase
       const { data, error } = await supabase.storage
-        .from('property-documents')
+        .from(bucketName)
         .upload(filePath, file);
 
       if (error) {
@@ -131,20 +313,25 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
 
       // Obter URL pública
       const { data: { publicUrl } } = supabase.storage
-        .from('property-documents')
+        .from(bucketName)
         .getPublicUrl(filePath);
 
-      // Salvar metadata no banco
+      // Construir dados do documento baseado no tipo de entidade
       const documentData = {
-        propertyId: parseInt(property.id),
+        [`${config.entityType}Id`]: parseInt(entityId),
         fileName: file.name,
         fileUrl: publicUrl,
-        fileType: docKey, // Usar docKey como tipo para sincronizar com o sistema de pendências
+        fileType: docKey,
         fileSize: file.size,
         category: docKey
       };
 
-      await apiRequest('POST', '/api/property-documents', documentData);
+      // Determinar endpoint da API baseado no tipo de entidade
+      const apiEndpoint = config.entityType === 'property' 
+        ? '/api/property-documents'
+        : `/api/${config.entityType}-documents`;
+
+      await apiRequest('POST', apiEndpoint, documentData);
 
       // Atualizar estado local dos documentos enviados
       setUploadedDocsState(prev => [...prev, docKey]);
@@ -161,10 +348,8 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
         return updated;
       });
 
-      // Não fechar o modal automaticamente para permitir upload de mais documentos
-      // setTimeout(() => {
-      //   onOpenChange(false);
-      // }, 1000);
+      // Callback para notificar upload
+      onDocumentUploaded?.(docKey);
 
     } catch (error: any) {
       console.error("Upload error:", error);
@@ -178,13 +363,35 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
     }
   };
 
+  // Calcular estatísticas de completude
+  const totalRequiredDocs = requiredDocuments.length;
+  const uploadedDocsCount = requiredDocuments.filter(doc => getDocumentStatus(doc.key)).length;
+  const totalRequiredFields = requiredFields.length;
+  const filledFieldsCount = requiredFields.filter(field => getFieldStatus(field)).length;
+
+  // Gerar título dinâmico baseado no tipo de entidade e configuração
+  const getEntityDisplayName = (): string => {
+    switch (config.entityType) {
+      case 'property':
+        return `Imóvel ${entity.sequenceNumber || entity.id || '00000'}`;
+      case 'client':
+        return `Cliente ${entity.fullName || entity.name || entity.id}`;
+      case 'contract':
+        return `Contrato ${entity.contractNumber || entity.id}`;
+      default:
+        return `${config.entityType} ${entity.id}`;
+    }
+  };
+
+  const modalTitle = title || `Documentos e Campos Pendentes - ${getEntityDisplayName()}`;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-amber-500" />
-            Documentos e Campos Pendentes - Imóvel {property?.sequenceNumber || '00000'}
+            {modalTitle}
           </DialogTitle>
         </DialogHeader>
 
@@ -193,8 +400,8 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <h4 className="font-medium text-amber-800 mb-2">Status Atual</h4>
             <div className="text-sm text-amber-700 space-y-1">
-              <div>📋 Documentos: {docData.uploadedCount}/{docData.totalRequired}</div>
-              <div>📝 Campos: {docData.filledFieldsCount}/{docData.totalFields}</div>
+              <div>📋 Documentos: {uploadedDocsCount}/{totalRequiredDocs}</div>
+              <div>📝 Campos: {filledFieldsCount}/{totalRequiredFields}</div>
             </div>
           </div>
 
@@ -313,7 +520,7 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
               </div>
               <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded">
                 <p className="text-xs text-orange-600">
-                  💡 Para preencher os campos, clique em "Ver Detalhes" na linha do imóvel
+                  💡 Para preencher os campos, acesse a seção de edição da entidade
                 </p>
               </div>
             </div>
@@ -331,12 +538,131 @@ export function DocumentsPendingModal({ open, onOpenChange, property, docData }:
           )}
         </div>
 
-        <div className="flex justify-end pt-4 border-t">
+        <div className="flex justify-end gap-2 pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Fechar
           </Button>
+          {pendingDocs.length === 0 && pendingFields.length === 0 && onComplete && (
+            <Button onClick={() => {
+              onComplete();
+              onOpenChange(false);
+            }}>
+              Continuar
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
   );
+}
+
+// ======================================
+// HELPER FUNCTIONS FOR EASY USAGE
+// ======================================
+
+/**
+ * Criar configuração para modal de documentos de propriedade
+ */
+export function createPropertyDocumentConfig(stage?: number): PendencyConfig {
+  return {
+    entityType: 'property',
+    stage,
+    documents: DEFAULT_PROPERTY_DOCUMENTS,
+    fields: DEFAULT_PROPERTY_FIELDS
+  };
+}
+
+/**
+ * Criar configuração para modal de documentos de cliente
+ */
+export function createClientDocumentConfig(customDocs?: DocumentDefinition[], customFields?: FieldDefinition[]): PendencyConfig {
+  return {
+    entityType: 'client',
+    documents: customDocs || [
+      {
+        key: 'RG_CNH',
+        name: 'RG/CNH',
+        icon: '📄',
+        description: 'Documento de identidade oficial',
+        required: true,
+        acceptedFormats: ['.pdf', '.jpg', '.jpeg', '.png'],
+        maxSize: 5
+      },
+      {
+        key: 'CPF',
+        name: 'CPF',
+        icon: '📋',
+        description: 'Cadastro de Pessoa Física',
+        required: true,
+        acceptedFormats: ['.pdf', '.jpg', '.jpeg', '.png'],
+        maxSize: 3
+      },
+      {
+        key: 'COMPROVANTE_RENDA',
+        name: 'Comprovante de Renda',
+        icon: '💰',
+        description: 'Holerite, declaração de IR ou extrato bancário',
+        required: true,
+        acceptedFormats: ['.pdf'],
+        maxSize: 10
+      }
+    ],
+    fields: customFields || [
+      { key: 'fullName', name: 'Nome Completo', required: true },
+      { key: 'email', name: 'Email', required: true },
+      { key: 'phone', name: 'Telefone', required: true },
+      { key: 'address', name: 'Endereço', required: true }
+    ]
+  };
+}
+
+/**
+ * Criar configuração para modal de documentos de contrato
+ */
+export function createContractDocumentConfig(customDocs?: DocumentDefinition[]): PendencyConfig {
+  return {
+    entityType: 'contract',
+    documents: customDocs || [
+      {
+        key: 'CONTRATO_ASSINADO',
+        name: 'Contrato Assinado',
+        icon: '📄',
+        description: 'Contrato assinado por todas as partes',
+        required: true,
+        acceptedFormats: ['.pdf'],
+        maxSize: 10
+      },
+      {
+        key: 'PROCURACAO',
+        name: 'Procuração',
+        icon: '📋',
+        description: 'Procuração quando aplicável',
+        required: false,
+        acceptedFormats: ['.pdf'],
+        maxSize: 5
+      }
+    ],
+    fields: [
+      { key: 'contractNumber', name: 'Número do Contrato', required: true },
+      { key: 'signedDate', name: 'Data de Assinatura', required: true },
+      { key: 'value', name: 'Valor do Contrato', required: true }
+    ]
+  };
+}
+
+/**
+ * Criar configuração genérica para qualquer tipo de entidade
+ */
+export function createGenericDocumentConfig(
+  entityType: 'property' | 'client' | 'contract' | 'generic',
+  documents: DocumentDefinition[],
+  fields?: FieldDefinition[],
+  customValidation?: (entity: Entity) => { pendingDocs: DocumentDefinition[]; pendingFields: FieldDefinition[] }
+): PendencyConfig {
+  return {
+    entityType,
+    documents,
+    fields: fields || [],
+    customValidation
+  };
 }

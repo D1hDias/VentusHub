@@ -54,7 +54,17 @@ const noteSchema = z.object({
   priority: z.enum(["low", "normal", "high", "urgent"]).default("normal"),
 
   // Campos opcionais para diferentes tipos
-  reminderDate: z.string().optional(),
+  reminderDate: z.string()
+    .optional()
+    .refine((date) => {
+      if (!date || date === "") return true;
+      // Validar formato datetime-local (YYYY-MM-DDTHH:MM)
+      const isValidFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(date);
+      if (!isValidFormat) return false;
+      // Validar se é uma data válida
+      const parsedDate = new Date(date);
+      return !isNaN(parsedDate.getTime());
+    }, "Formato de data e hora inválido"),
   location: z.string().max(255, "Local muito longo").optional(),
   participants: z.string().max(1000, "Lista de participantes muito longa").optional(),
 
@@ -251,11 +261,32 @@ export function ClientNoteModal({
 
   // Função para formatar data/hora para input datetime-local
   const formatDateTimeLocal = (date?: string) => {
-    if (!date) return "";
+    if (!date || date === "") return "";
+    
     try {
+      // Se já está no formato correto (YYYY-MM-DDTHH:MM), retornar como está
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(date)) {
+        return date;
+      }
+      
+      // Se tem mais precisão (segundos), truncar para minutos
+      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(date)) {
+        return date.slice(0, 16);
+      }
+      
+      // Tentar converter de outros formatos (ISO, timestamps, etc.)
       const d = new Date(date);
-      return d.toISOString().slice(0, 16);
-    } catch {
+      if (isNaN(d.getTime())) {
+        console.warn(`Invalid date format: ${date}`);
+        return "";
+      }
+      
+      // Converter para formato datetime-local (YYYY-MM-DDTHH:MM)
+      // Usar toISOString e ajustar para timezone local
+      const localISOTime = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+      return localISOTime;
+    } catch (error) {
+      console.error(`Error formatting date: ${date}`, error);
       return "";
     }
   };
@@ -401,8 +432,11 @@ export function ClientNoteModal({
                           <Input
                             type="datetime-local"
                             className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                            {...field}
-                            value={formatDateTimeLocal(field.value)}
+                            value={formatDateTimeLocal(field.value) || ""}
+                            onChange={(e) => field.onChange(e.target.value)}
+                            onBlur={field.onBlur}
+                            name={field.name}
+                            ref={field.ref}
                           />
                         </FormControl>
                         <FormMessage />

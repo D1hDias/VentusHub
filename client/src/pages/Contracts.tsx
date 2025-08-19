@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { KPICard } from "@/components/KPICard";
-import { SimpleKPICard } from "@/components/SimpleKPICard";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import { useResponsive } from "@/hooks/useMediaQuery";
@@ -27,7 +25,6 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Contracts() {
@@ -37,14 +34,6 @@ export default function Contracts() {
   const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();
   const { isMobile } = useResponsive();
 
-  // Dados dos KPI Cards
-  const kpiData = [
-    { title: "Total", value: 1, icon: File, iconBgColor: "#001f3f", progress: 75, subtitle: "Contratos ativos" },
-    { title: "Rascunhos", value: 1, icon: CheckCircle, iconBgColor: "#d47c16", progress: 50, subtitle: "Em elaboração" },
-    { title: "Enviados", value: 1, icon: CheckCircle, iconBgColor: "#1ea475", progress: 90, subtitle: "Aguardando assinatura" },
-    { title: "Assinados", value: 1, icon: CheckCircle, iconBgColor: "#dc2828", progress: 100, subtitle: "Finalizados" },
-    { title: "Expirando", value: 1, icon: CheckCircle, iconBgColor: "#d47c16", progress: 25, subtitle: "Requer atenção" }
-  ];
 
   const { data: properties, isLoading } = useQuery({
     queryKey: ["/api/properties"],
@@ -200,150 +189,169 @@ export default function Contracts() {
         </div>
       </div>
 
-      {/* KPI Cards - Responsivo */}
+      {/* KPI Cards - Modern Design */}
       <motion.div 
         variants={getListVariants()}
         initial="hidden"
         animate="visible"
       >
-        {isMobile ? (
-          // Layout em grid 2x2 para mobile - otimizado para espaço
-          <div className="grid grid-cols-2 gap-0">
-            <motion.div variants={getListItemVariants()}>
-              <SimpleKPICard
-                title="Total"
-                value={statsData.total}
-                icon={File}
-                iconBgColor="#001f3f"
-                subtitle="Contratos cadastrados"
-              />
-            </motion.div>
-            <motion.div variants={getListItemVariants()}>
-              <SimpleKPICard
-                title="Rascunhos"
-                value={statsData.draft}
-                icon={Clock}
-                iconBgColor="#d47c16"
-                subtitle="Em elaboração"
-              />
-            </motion.div>
-            <motion.div variants={getListItemVariants()}>
-              <SimpleKPICard
-                title="Enviados"
-                value={statsData.sent}
-                icon={Send}
-                iconBgColor="#001f3f"
-                subtitle="Para assinatura"
-              />
-            </motion.div>
-            <motion.div variants={getListItemVariants()}>
-              <SimpleKPICard
-                title="Assinados"
-                value={statsData.signed}
-                icon={CheckCircle}
-                iconBgColor="#1ea475"
-                subtitle="Contratos válidos"
-              />
-            </motion.div>
-            <motion.div variants={getListItemVariants()}>
-              <SimpleKPICard
-                title="Expirando"
-                value={statsData.expiringSoon}
-                icon={AlertTriangle}
-                iconBgColor="#dc2828"
-                subtitle="Atenção urgente"
-              />
-            </motion.div>
-          </div>
-        ) : (
-          // Layout desktop - grid original
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            <motion.div
-              variants={getListItemVariants()}
-              className={`${classes.cardInteractive} touch-target`}
-              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-            >
-              <KPICard
-                title="Total"
-                value={statsData.total}
-                icon={File}
-                iconBgColor="#001f3f"
-                progress={50}
-                subtitle="Contratos cadastrados"
-                onClick={() => {}}
-              />
-            </motion.div>
-
-            <motion.div
-              variants={getListItemVariants()}
-              className={`${classes.cardInteractive} touch-target`}
-              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-            >
-              <KPICard
-                title="Rascunhos"
-                value={statsData.draft}
-                icon={Clock}
-                iconBgColor="#d47c16"
-                progress={25}
-                subtitle="Em elaboração"
-                onClick={() => {}}
-              />
-            </motion.div>
-
-            <motion.div
-              variants={getListItemVariants()}
-              className={`${classes.cardInteractive} touch-target`}
-              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-            >
-              <KPICard
-                title="Enviados"
-                value={statsData.sent}
-                icon={Send}
-                iconBgColor="#001f3f"
-                progress={60}
-                subtitle="Para assinatura"
-                onClick={() => {}}
-              />
-            </motion.div>
-
-            <motion.div
-              variants={getListItemVariants()}
-              className={`${classes.cardInteractive} touch-target`}
-              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-            >
-              <KPICard
-                title="Assinados"
-                value={statsData.signed}
-                icon={CheckCircle}
-                iconBgColor="#1ea475"
-                progress={85}
-                subtitle="Contratos válidos"
-                onClick={() => {}}
-              />
-            </motion.div>
-
-            <motion.div
-              variants={getListItemVariants()}
-              className={`${classes.cardInteractive} touch-target`}
-              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-            >
-              <KPICard
-                title="Expirando"
-                value={statsData.expiringSoon}
-                icon={AlertTriangle}
-                iconBgColor="#dc2828"
-                progress={15}
-                subtitle="Atenção urgente"
-                onClick={() => {}}
-              />
-            </motion.div>
-          </div>
-        )}
+        {/* Data for KPI cards */}
+        {(() => {
+          const kpiData = [
+            {
+              title: "Total",
+              value: statsData.total,
+              icon: File,
+              color: "hsl(211, 100%, 50%)", // blue
+              subtitle: "Contratos cadastrados"
+            },
+            {
+              title: "Rascunhos",
+              value: statsData.draft,
+              icon: Clock,
+              color: "hsl(32, 81%, 46%)", // orange
+              subtitle: "Em elaboração"
+            },
+            {
+              title: "Enviados",
+              value: statsData.sent,
+              icon: Send,
+              color: "hsl(271, 81%, 56%)", // purple
+              subtitle: "Para assinatura"
+            },
+            {
+              title: "Assinados",
+              value: statsData.signed,
+              icon: CheckCircle,
+              color: "hsl(159, 69%, 38%)", // green
+              subtitle: "Contratos válidos"
+            },
+            {
+              title: "Expirando",
+              value: statsData.expiringSoon,
+              icon: AlertTriangle,
+              color: "hsl(0, 84%, 60%)", // red
+              subtitle: "Atenção urgente"
+            }
+          ];
+          
+          return isMobile ? (
+            // Mobile Layout (2x2 grid)
+            <div className="grid grid-cols-2 gap-3">
+              {kpiData.map((kpi, index) => (
+                <motion.div
+                  key={index}
+                  variants={getListItemVariants()}
+                  className="w-full"
+                >
+                  <motion.div
+                    className="cursor-pointer group"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                  >
+                    <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative">
+                      <div 
+                        className="absolute top-0 left-0 right-0 h-1 opacity-80 group-hover:opacity-100 transition-opacity"
+                        style={{ backgroundColor: kpi.color }}
+                      />
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div 
+                            className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200"
+                            style={{ backgroundColor: kpi.color }}
+                          >
+                            <kpi.icon className="h-5 w-5 text-white" />
+                          </div>
+                          <motion.div
+                            className="text-right"
+                            key={kpi.value}
+                            initial={{ scale: 1.1, opacity: 0.8 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.3, ease: "easeOut" }}
+                          >
+                            <div 
+                              className="text-2xl font-bold tabular-nums leading-none"
+                              style={{ color: kpi.color }}
+                            >
+                              {kpi.value}
+                            </div>
+                          </motion.div>
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="font-semibold text-gray-900 text-sm leading-none">{kpi.title}</h3>
+                          <p className="text-xs text-gray-500 leading-tight">{kpi.subtitle}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            // Desktop Layout (1x5 grid)
+            <div className="grid grid-cols-5 gap-4">
+              {kpiData.map((kpi, index) => (
+                <motion.div
+                  key={index}
+                  variants={getListItemVariants()}
+                  className="h-full"
+                >
+                  <motion.div
+                    className="cursor-pointer group h-full"
+                    whileHover={{ scale: 1.02, y: -4 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                  >
+                    <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-lg transition-all duration-300 h-full flex flex-col overflow-hidden relative hover:border-gray-300">
+                      {/* Subtle gradient background */}
+                      <div 
+                        className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.04] transition-opacity"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${kpi.color} 0%, transparent 100%)` 
+                        }}
+                      />
+                      
+                      <CardContent className="p-6 flex flex-col h-full">
+                        <div className="flex items-center justify-between mb-4">
+                          <div 
+                            className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200"
+                            style={{ backgroundColor: kpi.color }}
+                          >
+                            <kpi.icon className="h-6 w-6 text-white" />
+                          </div>
+                          <motion.div
+                            className="text-right"
+                            key={kpi.value}
+                            initial={{ scale: 1.1, opacity: 0.8 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.4, ease: "easeOut", delay: index * 0.1 }}
+                          >
+                            <div 
+                              className="text-3xl font-bold tabular-nums leading-none"
+                              style={{ color: kpi.color }}
+                            >
+                              {kpi.value}
+                            </div>
+                          </motion.div>
+                        </div>
+                        
+                        <div className="flex-1 flex flex-col justify-end">
+                          <h3 className="font-semibold text-gray-900 text-sm mb-1">{kpi.title}</h3>
+                          <p className="text-xs text-gray-500 leading-relaxed">{kpi.subtitle}</p>
+                        </div>
+                        
+                        {/* Bottom accent line */}
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300" 
+                             style={{ color: kpi.color }} />
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </div>
+          );
+        })()}
       </motion.div>
 
       {/* Search and Filters */}
@@ -432,7 +440,12 @@ export default function Contracts() {
                     </TableCell>
                     <TableCell>
                       <div className="space-y-2">
-                        <Progress value={contract.progress} className="h-2" />
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                            style={{ width: `${contract.progress}%` }}
+                          ></div>
+                        </div>
                         <div className="text-xs text-muted-foreground">
                           {contract.progress}% concluído
                         </div>
@@ -522,7 +535,12 @@ export default function Contracts() {
                     <span>Conclusão geral</span>
                     <span>{selectedContract.progress}%</span>
                   </div>
-                  <Progress value={selectedContract.progress} className="h-3" />
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-blue-600 h-3 rounded-full transition-all duration-300" 
+                      style={{ width: `${selectedContract.progress}%` }}
+                    ></div>
+                  </div>
                   <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Clock className="h-4 w-4 text-blue-600" />

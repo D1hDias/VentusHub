@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import logoImage from "@/assets/logo.png";
 import { BottomNavigation, useMobileNavigation } from "@/components/responsive/MobileNavigation";
 import { useResponsive } from "@/hooks/useMediaQuery";
+import { NotificationCenter } from "@/components/NotificationCenter";
 import {
   Home,
   Building2,
@@ -61,8 +62,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useDeviceInfo } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 const navigationItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -329,14 +328,12 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [sidebarHovered, setSidebarHovered] = useState(false);
   const [showFinanciamentoSubmenu, setShowFinanciamentoSubmenu] = useState(false);
   const [showCreditoSidebar, setShowCreditoSidebar] = useState(false);
   const [showCreditoHorizontalNav, setShowCreditoHorizontalNav] = useState(false);
-  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null);
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(1, 5);
+  const { unreadCount, hasUnread, hasUrgent } = useNotifications();
   const [isSimulatorsOpen, setIsSimulatorsOpen] = useState(false);
   const { isMobile, isSmallMobile, isTouchDevice } = useDeviceInfo();
   const { showBottomNav, shouldHideSidebar } = useMobileNavigation();
@@ -421,11 +418,8 @@ export default function Layout({ children }: LayoutProps) {
       if (mouseLeaveTimeoutRef.current) {
         clearTimeout(mouseLeaveTimeoutRef.current);
       }
-      if (hoverTimeout) {
-        clearTimeout(hoverTimeout);
-      }
     };
-  }, [hoverTimeout]);
+  }, []);
 
   // Escutar evento customizado para atualização dinâmica do título
   React.useEffect(() => {
@@ -434,7 +428,7 @@ export default function Layout({ children }: LayoutProps) {
     };
 
     window.addEventListener('updatePageTitle', handleUpdatePageTitle as EventListener);
-    
+
     return () => {
       window.removeEventListener('updatePageTitle', handleUpdatePageTitle as EventListener);
     };
@@ -447,30 +441,13 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [location]);
 
-  // Função para lidar com hover da sidebar principal
+  // Função para lidar com hover da sidebar principal - DESABILITADA
   const handleSidebarMouseEnter = () => {
-    if (sidebarCollapsed && window.innerWidth >= 1024) {
-      // Cancelar timeout de saída se existir
-      if (hoverTimeout) {
-        clearTimeout(hoverTimeout);
-        setHoverTimeout(null);
-      }
-      // Aplicar hover imediatamente
-      setSidebarHovered(true);
-    }
+    // Hover desabilitado - sidebar só expande/colapsa no clique do hamburger
   };
 
   const handleSidebarMouseLeave = () => {
-    if (sidebarCollapsed && window.innerWidth >= 1024) {
-      // Delay antes de colapsar novamente para UX suave
-      // Maior delay quando sidebar de crédito está ativa para facilitar navegação
-      const delayTime = showCreditoSidebar ? 500 : 300;
-      const timeout = setTimeout(() => {
-        setSidebarHovered(false);
-        setHoverTimeout(null);
-      }, delayTime);
-      setHoverTimeout(timeout);
-    }
+    // Hover desabilitado - sidebar só expande/colapsa no clique do hamburger
   };
 
 
@@ -660,22 +637,6 @@ export default function Layout({ children }: LayoutProps) {
     return [];
   };
 
-  const getNotificationIcon = (type: string, category: string) => {
-    if (category === 'property') return Building2;
-    if (category === 'contract') return FileText;
-    if (category === 'document') return FileCheck;
-    if (type === 'warning') return Clock;
-    return Bell;
-  };
-
-  const getNotificationColor = (type: string) => {
-    switch (type) {
-      case 'warning': return 'yellow';
-      case 'error': return 'red';
-      case 'success': return 'green';
-      default: return 'blue';
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -726,54 +687,57 @@ export default function Layout({ children }: LayoutProps) {
       {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-[#001f3f] to-[#004286] transform lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } ${sidebarCollapsed && !sidebarHovered ? "w-14 shadow-2xl shadow-black/40" : "w-60 shadow-lg"
+          } ${sidebarCollapsed ? "w-14 shadow-2xl shadow-black/40" : "w-60 shadow-lg"
           } ${showCreditoSidebar ? 'sidebar-smooth-transition' : 'sidebar-smooth-transition-fast'}`}
-        style={(sidebarCollapsed && !sidebarHovered) ? {
+        style={sidebarCollapsed ? {
           boxShadow: '6px 0 25px rgba(0, 0, 0, 0.5), 3px 0 15px rgba(0, 0, 0, 0.3), 1px 0 5px rgba(0, 0, 0, 0.2)',
           zIndex: 60
         } : {}}
-        onMouseEnter={handleSidebarMouseEnter}
-        onMouseLeave={handleSidebarMouseLeave}
       >
-        <div className={`flex items-center h-16 border-b border-white/10 ${showCreditoSidebar ? 'sidebar-content-transition' : 'sidebar-content-transition-fast'} ${sidebarCollapsed && !sidebarHovered ? "px-2" : "px-3"}`}>
-          <div className="flex items-center justify-between w-full">
-            {/* Logo - sempre visível */}
-            <div className="flex items-center">
-              {/* Imagem principal */}
-              <img
-                src={logoImage}
-                alt="Ventus Hub"
-                className={sidebarCollapsed && !sidebarHovered
-                  ? "w-8 h-8 object-contain cursor-pointer hover:scale-110"
-                  : "w-[120px] h-auto max-h-12"
-                }
-                style={sidebarCollapsed && !sidebarHovered ? {
-                  filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
-                } : {}}
-                onClick={sidebarCollapsed && !sidebarHovered ? () => setSidebarCollapsed(false) : undefined}
-                title={sidebarCollapsed && !sidebarHovered ? "Ventus Hub - Expandir menu" : "Ventus Hub"}
-                onLoad={() => console.log('✅ Logo carregada com sucesso')}
-                onError={(e) => {
-                  console.error('❌ Erro ao carregar logo:', e);
-                }}
-              />
+        <div className={`flex items-center h-16 border-b border-white/10 ${showCreditoSidebar ? 'sidebar-content-transition' : 'sidebar-content-transition-fast'} ${sidebarCollapsed ? "px-2" : "px-3"}`}>
+          <div className={`flex items-center w-full ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
+            {/* Logo - condicional baseado no estado da sidebar */}
+            {!sidebarCollapsed && (
+              <div className="flex items-center">
+                {/* Logo completa - apenas quando sidebar expandida */}
+                <>
+                  {/* Imagem principal */}
+                  <img
+                    src={logoImage}
+                    alt="Ventus Hub"
+                    className="w-[120px] h-auto max-h-12"
+                    title="Ventus Hub"
+                    onLoad={() => console.log('✅ Logo carregada com sucesso')}
+                    onError={(e) => {
+                      console.error('❌ Erro ao carregar logo:', e);
+                    }}
+                  />
 
-              {/* Fallback texto - sempre presente como backup */}
-              <div
-                className={`${sidebarCollapsed && !sidebarHovered
-                  ? "w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white text-xs font-bold cursor-pointer hover:scale-110 transition-transform duration-200 opacity-0"
-                  : "px-3 py-1 bg-white/20 rounded text-white text-sm font-bold opacity-0"
-                  }`}
-                style={{ position: 'absolute', pointerEvents: 'none' }}
-                onClick={sidebarCollapsed && !sidebarHovered ? () => setSidebarCollapsed(false) : undefined}
-                title={sidebarCollapsed && !sidebarHovered ? "Ventus Hub - Expandir menu" : "Ventus Hub"}
-              >
-                {sidebarCollapsed && !sidebarHovered ? 'VH' : 'VENTUS HUB'}
+                  {/* Fallback texto - sempre presente como backup */}
+                  <div
+                    className="px-3 py-1 bg-white/20 rounded text-white text-sm font-bold opacity-0"
+                    style={{ position: 'absolute', pointerEvents: 'none' }}
+                    title="Ventus Hub"
+                  >
+                    VENTUS HUB
+                  </div>
+                </>
               </div>
-            </div>
+            )}
+
+            {/* Hamburger Menu - posição dinâmica: centro quando colapsada, direita quando expandida */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-white hover:bg-white/10 transition-all duration-200 hidden lg:flex group"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              title={sidebarCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
+            >
+              <Menu className="h-4 w-4 transition-colors duration-200 group-hover:text-[#fdd700]" />
+            </Button>
 
             {/* Botão de fechar apenas para mobile */}
-            {(!sidebarCollapsed || sidebarHovered) && (
+            {!sidebarCollapsed && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -786,7 +750,7 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </div>
 
-        <nav className={`mt-6 ${showCreditoSidebar ? 'sidebar-content-transition' : 'sidebar-content-transition-fast'} ${sidebarCollapsed && !sidebarHovered ? "px-1" : "px-3"}`}>
+        <nav className={`mt-6 ${showCreditoSidebar ? 'sidebar-content-transition' : 'sidebar-content-transition-fast'} ${sidebarCollapsed ? "px-1" : "px-3"}`}>
           <div className={isMobile ? "space-y-2" : "space-y-1"}>
             {navigationItems.map((item) => {
               const Icon = item.icon;
@@ -797,31 +761,31 @@ export default function Layout({ children }: LayoutProps) {
                 return (
                   <div key={item.href}>
                     <div
-                      className={`flex items-center rounded-md transition-all duration-300 ease-in-out cursor-pointer ${sidebarCollapsed && !sidebarHovered ? "px-2 py-2" : "px-3"} ${isActive || location.startsWith("/credito") || location.includes("simulador-financiamento") || location.includes("simulador-cgi") || location.includes("simulador-credito-pj")
+                      className={`flex items-center rounded-md transition-all duration-300 ease-in-out cursor-pointer ${sidebarCollapsed ? "px-2 py-2" : "px-3"} ${isActive || location.startsWith("/credito") || location.includes("simulador-financiamento") || location.includes("simulador-cgi") || location.includes("simulador-credito-pj")
                         ? "bg-white/20 text-white border-r-2 border-white"
                         : "text-white/80 hover:bg-white/10 hover:text-white"
-                        } ${sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""} ${isMobile ? "py-3 text-base font-medium" : "py-2 text-sm font-medium"}`}
-                      style={sidebarCollapsed && !sidebarHovered ? {
+                        } ${sidebarCollapsed ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""} ${isMobile ? "py-3 text-base font-medium" : "py-2 text-sm font-medium"}`}
+                      style={sidebarCollapsed ? {
                         filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
                       } : {}}
-                      title={sidebarCollapsed && !sidebarHovered ? item.label : ""}
+                      title={sidebarCollapsed ? item.label : ""}
                       onClick={() => {
-                        if (sidebarCollapsed && !sidebarHovered) {
+                        if (sidebarCollapsed) {
                           // Se sidebar está colapsada, expandir primeiro
                           setSidebarCollapsed(false);
                         } else {
                           // Toggle do submenu de crédito
                           setShowCreditoSidebar(!showCreditoSidebar);
                         }
-                        
+
                         // Fechar sidebar no mobile após clicar
                         if (window.innerWidth < 1024) {
                           setSidebarOpen(false);
                         }
                       }}
                     >
-                      <Icon className={`h-5 w-5 ${sidebarCollapsed && !sidebarHovered ? "" : "mr-3"}`} />
-                      {(!sidebarCollapsed || sidebarHovered) && (
+                      <Icon className={`h-5 w-5 ${sidebarCollapsed ? "" : "mr-3"}`} />
+                      {!sidebarCollapsed && (
                         <>
                           <span className="flex-1">{item.label}</span>
                           <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${showCreditoSidebar ? 'rotate-180' : ''}`} />
@@ -831,7 +795,7 @@ export default function Layout({ children }: LayoutProps) {
 
                     {/* Submenu de Crédito */}
                     <AnimatePresence>
-                      {showCreditoSidebar && (!sidebarCollapsed || sidebarHovered) && (
+                      {showCreditoSidebar && !sidebarCollapsed && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
@@ -841,44 +805,40 @@ export default function Layout({ children }: LayoutProps) {
                         >
                           <div className="ml-6 mt-2 space-y-1 border-l border-white/20 pl-4">
                             <Link href="/credito/financiamento">
-                              <div className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200 cursor-pointer ${
-                                location === "/credito/financiamento" || location === "/simulador-financiamento"
-                                  ? "bg-blue-600/20 text-blue-200 border-r-2 border-blue-400"
-                                  : "text-white/70 hover:bg-white/10 hover:text-white"
-                              }`}>
+                              <div className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200 cursor-pointer ${location === "/credito/financiamento" || location === "/simulador-financiamento"
+                                ? "bg-blue-600/20 text-blue-200 border-r-2 border-blue-400"
+                                : "text-white/70 hover:bg-white/10 hover:text-white"
+                                }`}>
                                 <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
                                 <span>Financiamento</span>
                               </div>
                             </Link>
-                            
+
                             <Link href="/credito/consorcio">
-                              <div className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200 cursor-pointer ${
-                                location === "/credito/consorcio"
-                                  ? "bg-red-600/20 text-red-200 border-r-2 border-red-400"
-                                  : "text-white/70 hover:bg-white/10 hover:text-white"
-                              }`}>
+                              <div className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200 cursor-pointer ${location === "/credito/consorcio"
+                                ? "bg-red-600/20 text-red-200 border-r-2 border-red-400"
+                                : "text-white/70 hover:bg-white/10 hover:text-white"
+                                }`}>
                                 <div className="w-2 h-2 bg-red-400 rounded-full mr-3"></div>
                                 <span>Consórcio</span>
                               </div>
                             </Link>
-                            
+
                             <Link href="/credito/cgi">
-                              <div className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200 cursor-pointer ${
-                                location === "/credito/cgi" || location === "/simulador-cgi"
-                                  ? "bg-emerald-600/20 text-emerald-200 border-r-2 border-emerald-400"
-                                  : "text-white/70 hover:bg-white/10 hover:text-white"
-                              }`}>
+                              <div className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200 cursor-pointer ${location === "/credito/cgi" || location === "/simulador-cgi"
+                                ? "bg-emerald-600/20 text-emerald-200 border-r-2 border-emerald-400"
+                                : "text-white/70 hover:bg-white/10 hover:text-white"
+                                }`}>
                                 <div className="w-2 h-2 bg-emerald-400 rounded-full mr-3"></div>
                                 <span>CGI</span>
                               </div>
                             </Link>
-                            
+
                             <Link href="/credito/pj">
-                              <div className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200 cursor-pointer ${
-                                location === "/credito/pj" || location === "/simulador-credito-pj"
-                                  ? "bg-yellow-600/20 text-yellow-200 border-r-2 border-yellow-400"
-                                  : "text-white/70 hover:bg-white/10 hover:text-white"
-                              }`}>
+                              <div className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200 cursor-pointer ${location === "/credito/pj" || location === "/simulador-credito-pj"
+                                ? "bg-yellow-600/20 text-yellow-200 border-r-2 border-yellow-400"
+                                : "text-white/70 hover:bg-white/10 hover:text-white"
+                                }`}>
                                 <div className="w-2 h-2 bg-yellow-400 rounded-full mr-3"></div>
                                 <span>Crédito PJ</span>
                               </div>
@@ -895,15 +855,15 @@ export default function Layout({ children }: LayoutProps) {
               return (
                 <Link key={item.href} href={item.href}>
                   <div
-                    className={`flex items-center rounded-md transition-all duration-300 ease-in-out cursor-pointer ${sidebarCollapsed && !sidebarHovered ? "px-2 py-2" : "px-3"} ${isActive
+                    className={`flex items-center rounded-md transition-all duration-300 ease-in-out cursor-pointer ${sidebarCollapsed ? "px-2 py-2" : "px-3"} ${isActive
                       ? "bg-white/20 text-white border-r-2 border-white"
                       : "text-white/80 hover:bg-white/10 hover:text-white"
-                      } ${sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
+                      } ${sidebarCollapsed ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
                       } ${isMobile ? "py-3 text-base font-medium" : "py-2 text-sm font-medium"}`}
-                    style={sidebarCollapsed && !sidebarHovered ? {
+                    style={sidebarCollapsed ? {
                       filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
                     } : {}}
-                    title={sidebarCollapsed && !sidebarHovered ? item.label : ""}
+                    title={sidebarCollapsed ? item.label : ""}
                     onClick={() => {
                       // Fechar sidebar no mobile após clicar
                       if (window.innerWidth < 1024) {
@@ -911,8 +871,8 @@ export default function Layout({ children }: LayoutProps) {
                       }
                     }}
                   >
-                    <Icon className={`h-5 w-5 ${sidebarCollapsed && !sidebarHovered ? "" : "mr-3"}`} />
-                    {(!sidebarCollapsed || sidebarHovered) && item.label}
+                    <Icon className={`h-5 w-5 ${sidebarCollapsed ? "" : "mr-3"}`} />
+                    {!sidebarCollapsed && item.label}
                   </div>
                 </Link>
               );
@@ -920,17 +880,17 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </nav>
 
-        <div className={`absolute bottom-4 left-0 right-0 ${showCreditoSidebar ? 'sidebar-content-transition' : 'sidebar-content-transition-fast'} ${sidebarCollapsed && !sidebarHovered ? "px-1" : "px-3"}`}>
+        <div className={`absolute bottom-4 left-0 right-0 ${showCreditoSidebar ? 'sidebar-content-transition' : 'sidebar-content-transition-fast'} ${sidebarCollapsed ? "px-1" : "px-3"}`}>
           <Link href="/configuracoes">
-            <div className={`flex items-center text-white/80 cursor-pointer hover:bg-white/10 rounded-md transition-all duration-300 ease-in-out ${sidebarCollapsed && !sidebarHovered ? "px-2 py-2" : "px-3"} ${sidebarCollapsed && !sidebarHovered ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
+            <div className={`flex items-center text-white/80 cursor-pointer hover:bg-white/10 rounded-md transition-all duration-300 ease-in-out ${sidebarCollapsed ? "px-2 py-2" : "px-3"} ${sidebarCollapsed ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
               } ${isMobile ? "py-3 text-base" : "py-2 text-sm"}`}
-              style={sidebarCollapsed && !sidebarHovered ? {
+              style={sidebarCollapsed ? {
                 filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
               } : {}}
-              title={sidebarCollapsed && !sidebarHovered ? "Configurações" : ""}
+              title={sidebarCollapsed ? "Configurações" : ""}
             >
-              <Settings className={`h-5 w-5 ${sidebarCollapsed && !sidebarHovered ? "" : "mr-3"}`} />
-              {(!sidebarCollapsed || sidebarHovered) && "Configurações"}
+              <Settings className={`h-5 w-5 ${sidebarCollapsed ? "" : "mr-3"}`} />
+              {!sidebarCollapsed && "Configurações"}
             </div>
           </Link>
         </div>
@@ -955,7 +915,7 @@ export default function Layout({ children }: LayoutProps) {
           "left-0 right-0",
           // Desktop: ajuste baseado no estado da sidebar
           "lg:left-auto lg:right-0",
-          sidebarCollapsed && !sidebarHovered ? "lg:left-14" : "lg:left-60"
+          sidebarCollapsed ? "lg:left-14" : "lg:left-60"
         )}
       >
         <div className="flex items-center justify-between h-full px-4 lg:px-6">
@@ -991,9 +951,11 @@ export default function Layout({ children }: LayoutProps) {
               // Título padrão para outras páginas
               const titleInfo = getTitleInfo();
               return (
-                <h1 className={titleInfo.class}>
-                  {titleInfo.title}
-                </h1>
+                <div className="flex items-center space-x-3">
+                  <h1 className={titleInfo.class}>
+                    {titleInfo.title}
+                  </h1>
+                </div>
               );
             })()}
           </div>
@@ -1122,21 +1084,23 @@ export default function Layout({ children }: LayoutProps) {
                 <Search className="h-5 w-5" />
               </Button>
 
-              {/* Bell Icon */}
-              <Link href="/notifications">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="relative h-10 w-10 min-w-[44px] text-white hover:bg-white/10 touch-target"
-                >
-                  <Bell className="h-5 w-5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
-                </Button>
-              </Link>
+              {/* Mobile Notification Center */}
+              <NotificationCenter 
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="relative h-10 w-10 min-w-[44px] text-white hover:bg-white/10 touch-target"
+                  >
+                    <Bell className="h-5 w-5" />
+                    {hasUnread && (
+                      <span className={`absolute -top-1 -right-1 h-4 w-4 ${hasUrgent ? 'bg-red-500' : 'bg-blue-500'} rounded-full text-xs text-white flex items-center justify-center`}>
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                }
+              />
             </div>
 
             {/* Documentos Úteis Button */}
@@ -1164,96 +1128,22 @@ export default function Layout({ children }: LayoutProps) {
 
             {/* Desktop Notifications */}
             <div className="hidden lg:block">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+              <NotificationCenter 
+                trigger={
                   <Button
                     variant="ghost"
                     size={isMobile ? "default" : "sm"}
                     className={`relative ${isMobile ? 'h-10 w-10 min-w-[44px]' : 'h-8 w-8'} text-white hover:bg-white/10 ${isTouchDevice ? 'touch-target' : ''}`}
                   >
                     <Bell className="h-5 w-5" />
-                    {unreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                        {unreadCount > 9 ? '9+' : unreadCount}
+                    {hasUnread && (
+                      <span className={`absolute -top-1 -right-1 h-4 w-4 ${hasUrgent ? 'bg-red-500' : 'bg-blue-500'} rounded-full text-xs text-white flex items-center justify-center`}>
+                        {unreadCount > 99 ? '99+' : unreadCount}
                       </span>
                     )}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-80">
-                  <div className="flex items-center justify-between px-3 py-2 border-b">
-                    <h3 className="font-medium">Notificações</h3>
-                    {unreadCount > 0 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => markAllAsRead()}
-                        className="text-xs"
-                      >
-                        Marcar todas como lidas
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="max-h-96 overflow-y-auto dropdown-scroll">
-                    {notifications.length === 0 ? (
-                      <div className="p-4 text-center text-muted-foreground">
-                        <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p>Nenhuma notificação</p>
-                      </div>
-                    ) : (
-                      notifications.map((notification) => {
-                        const Icon = getNotificationIcon(notification.type, notification.category);
-                        const color = getNotificationColor(notification.type);
-
-                        return (
-                          <DropdownMenuItem
-                            key={notification.id}
-                            className={`flex items-start gap-3 p-3 hover:bg-muted/50 cursor-pointer ${!notification.isRead ? 'bg-primary/5' : ''
-                              }`}
-                            onClick={() => {
-                              if (!notification.isRead) {
-                                markAsRead(notification.id);
-                              }
-                              if (notification.actionUrl) {
-                                window.location.href = notification.actionUrl;
-                              }
-                            }}
-                          >
-                            <div className={`bg-${color}-100 dark:bg-${color}-900/30 p-1.5 rounded-full flex-shrink-0`}>
-                              <Icon className={`h-3 w-3 text-${color}-600 dark:text-${color}-400`} />
-                            </div>
-                            <div className="flex-1 space-y-1 min-w-0">
-                              <p className="text-sm font-medium line-clamp-2">
-                                {notification.title}
-                              </p>
-                              <p className="text-xs leading-none text-muted-foreground line-clamp-2">
-                                {notification.message}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {formatDistanceToNow(new Date(notification.createdAt), {
-                                  addSuffix: true,
-                                  locale: ptBR
-                                })}
-                              </p>
-                            </div>
-                            {!notification.isRead && (
-                              <div className="h-2 w-2 bg-primary rounded-full flex-shrink-0 mt-2" />
-                            )}
-                          </DropdownMenuItem>
-                        );
-                      })
-                    )}
-                  </div>
-
-                  {notifications.length > 0 && (
-                    <div className="border-t p-2">
-                      <Button variant="ghost" size="sm" className="w-full text-xs">
-                        Ver todas as notificações
-                      </Button>
-                    </div>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                }
+              />
             </div>
 
             {/* User menu - atualizado para mostrar avatar - Hidden on mobile */}
@@ -1327,7 +1217,7 @@ export default function Layout({ children }: LayoutProps) {
               "fixed z-30 bg-white/97 backdrop-blur-md border-b shadow-sm",
               "left-0 right-0 top-16",
               "lg:left-auto lg:right-0",
-              sidebarCollapsed && !sidebarHovered ? "lg:left-14" : "lg:left-60"
+              sidebarCollapsed ? "lg:left-14" : "lg:left-60"
             )}
             style={{
               background: `linear-gradient(135deg, rgba(${currentTheme.primaryRgb}, 0.03) 0%, rgba(255, 255, 255, 0.97) 100%)`,
@@ -1443,7 +1333,7 @@ export default function Layout({ children }: LayoutProps) {
         showCreditoHorizontalNav ? "pt-[88px]" : "pt-16",
         // Mobile: sem margem lateral, Desktop: margem baseada no estado da sidebar
         "ml-0",
-        sidebarCollapsed && !sidebarHovered ? "lg:ml-14" : "lg:ml-60",
+        sidebarCollapsed ? "lg:ml-14" : "lg:ml-60",
         isMobile ? "mobile-padding" : "",
         showBottomNav ? "pb-20" : ""
       )}>

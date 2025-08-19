@@ -76,7 +76,17 @@ export function setupAuth(app: Express) {
 
 // Middleware de autenticação
 export function isAuthenticated(req: any, res: any, next: any) {
+  console.log('🔐 Auth check:', { 
+    hasSession: !!req.session, 
+    hasUser: !!req.session?.user,
+    sessionId: req.sessionID,
+    userAgent: req.headers['user-agent'],
+    path: req.path
+  });
+  
   if (req.session && req.session.user) {
+    // Definir req.user para compatibilidade
+    req.user = req.session.user;
     return next();
   }
   return res.status(401).json({ message: "Unauthorized" });
@@ -87,6 +97,15 @@ export function setupAuthRoutes(app: Express) {
   // Health check para autenticação
   app.get("/api/auth/status", (req: any, res: any) => {
     const isLoggedIn = !!(req.session && req.session.user);
+    
+    console.log('📊 Auth status check:', {
+      isLoggedIn,
+      hasSession: !!req.session,
+      hasUser: !!req.session?.user,
+      sessionId: req.sessionID,
+      userAgent: req.headers['user-agent']?.substring(0, 50) + '...'
+    });
+    
     res.json({ 
       authenticated: isLoggedIn,
       user: isLoggedIn ? req.session.user : null,

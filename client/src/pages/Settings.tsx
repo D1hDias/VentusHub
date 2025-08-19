@@ -21,6 +21,7 @@ import {
   Eye,
   EyeOff
 } from "lucide-react";
+import { NotificationSettings } from "@/components/NotificationSettings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -424,105 +425,7 @@ export default function Settings() {
 
           {/* Notifications Tab */}
           {activeTab === "notifications" && (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Preferências de Notificação</CardTitle>
-                  <CardDescription>
-                    Configure como e quando você deseja receber notificações
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="font-medium">Notificações por E-mail</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receber notificações importantes por e-mail
-                        </p>
-                      </div>
-                      <Switch 
-                        defaultChecked 
-                        onCheckedChange={(checked) => handleSettingsUpdate('emailNotifications', checked)}
-                      />
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="font-medium">Notificações Push</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receber notificações no navegador
-                        </p>
-                      </div>
-                      <Switch 
-                        defaultChecked 
-                        onCheckedChange={(checked) => handleSettingsUpdate('pushNotifications', checked)}
-                      />
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="font-medium">SMS</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receber notificações por SMS (apenas urgentes)
-                        </p>
-                      </div>
-                      <Switch 
-                        onCheckedChange={(checked) => handleSettingsUpdate('smsNotifications', checked)}
-                      />
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="font-medium">E-mails de Marketing</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receber dicas, novidades e promoções
-                        </p>
-                      </div>
-                      <Switch 
-                        onCheckedChange={(checked) => handleSettingsUpdate('marketingEmails', checked)}
-                      />
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="font-medium">Relatórios Semanais</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Receber resumo semanal das suas atividades
-                        </p>
-                      </div>
-                      <Switch 
-                        defaultChecked 
-                        onCheckedChange={(checked) => handleSettingsUpdate('weeklyReports', checked)}
-                      />
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="font-medium">Lembretes de Prazos</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Ser notificado sobre prazos importantes
-                        </p>
-                      </div>
-                      <Switch 
-                        defaultChecked 
-                        onCheckedChange={(checked) => handleSettingsUpdate('reminderDeadlines', checked)}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <NotificationSettings />
           )}
 
           {/* Security Tab */}

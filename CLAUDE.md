@@ -83,7 +83,17 @@ npm run check        # TypeScript type checking
 7. **Instrumento**: Final legal instruments
 8. **Concluído**: Completed transactions
 
-### 2. Financial Simulators
+### 2. Client Management System (CRM)
+Complete client relationship management:
+- **Client Profiles**: Full customer information and contact details
+- **Notes & Interactions**: Timeline tracking with notes, reminders, calls, and meetings
+- **Document Management**: File upload/storage with Supabase integration
+  - Support for PDF, DOC, DOCX, JPG, PNG, GIF formats
+  - In-browser document viewer with navigation between multiple files
+  - Secure file storage with access control and 10MB file size limit
+- **Activity Statistics**: Comprehensive interaction tracking and analytics
+
+### 3. Financial Simulators
 Over 15 specialized calculators:
 - Property valuation and registration costs
 - Financing vs. purchase power analysis
@@ -99,6 +109,9 @@ Key tables:
 - `documents`: Document management
 - `proposals`, `contracts`: Transaction management
 - `notifications`: User notification system
+- `clients`: Client management and CRM data
+- `clientNotes`: Client interaction history (notes, calls, meetings, reminders)
+- `clientDocuments`: Client file storage with Supabase integration
 
 ## Important Technical Details
 
@@ -124,6 +137,10 @@ Key tables:
 ### API Integration
 - Market indicators fetched from external APIs with caching
 - Real-time data updates for financial calculations
+- Supabase Storage integration for file management
+  - `/api/clients/documents/upload` - POST multipart file upload
+  - `/api/clients/:id/documents` - GET client documents list
+  - `/api/clients/documents/:id` - DELETE document removal
 
 ## Development Patterns
 
@@ -184,3 +201,201 @@ Key tables:
 - Code splitting with dynamic imports
 - Image optimization for assets
 - Database query optimization with Drizzle
+
+## Notification System
+
+### Comprehensive Notification Infrastructure
+VentusHub includes a complete notification system with real-time delivery, multi-channel support, and user preferences:
+
+- **Real-time WebSocket**: Socket.IO integration for instant notifications
+- **Multi-channel Delivery**: In-app, email, SMS, and push notifications
+- **Provider System**: Flexible email/SMS provider integration (Resend, SendGrid, Twilio, Amazon SNS)
+- **User Preferences**: Granular notification settings and subscription management
+- **Templates & Rules**: Event-driven notification generation with templates
+- **Analytics**: Comprehensive delivery tracking and performance metrics
+
+### Key Files
+- **`server/notification-service.ts`**: Core notification service with event processing
+- **`server/notification-providers.ts`**: Multi-provider email/SMS system
+- **`client/src/hooks/useEnhancedNotifications.ts`**: Frontend notification management
+- **`client/src/components/NotificationSettings.tsx`**: User preference interface
+
+### Usage
+```typescript
+// Trigger notifications for system events
+await notificationService.onPropertyStageAdvanced(propertyId, fromStage, toStage, userId);
+await notificationService.onDocumentUploaded(documentId, propertyId, userId, documentType);
+
+// Create custom notifications
+await notificationService.createNotification({
+  userId,
+  type: 'info',
+  category: 'property',
+  title: 'Notification Title',
+  message: 'Notification content'
+});
+```
+
+## Universal Document Pendency Modal
+
+### DocumentsPendingModal - Universal Component
+**Location**: `/client/src/components/DocumentsPendingModal.tsx`
+
+A highly configurable, universal component for managing document pendencies across all entity types in the system (properties, clients, contracts, etc.).
+
+### Key Features
+- **Universal Design**: Single component handles all entity types
+- **Configurable**: Fully customizable documents and field requirements
+- **Stage-Based**: Documents filtered by workflow stages
+- **Upload Integration**: Direct Supabase upload with progress tracking
+- **Validation System**: Custom validation logic per entity type
+- **Responsive UI**: Mobile-first design with intuitive UX
+
+### Core Interfaces
+```typescript
+interface Entity {
+  id?: string | number;
+  sequenceNumber?: string;
+  stage?: number;
+  type?: string;
+  [key: string]: any;
+}
+
+interface DocumentDefinition {
+  key: string;
+  name: string;
+  icon: string;
+  description: string;
+  required?: boolean;
+  stages?: number[];
+  acceptedFormats?: string[];
+  maxSize?: number;
+}
+
+interface PendencyConfig {
+  entityType: 'property' | 'client' | 'contract' | 'generic';
+  stage?: number;
+  documents?: DocumentDefinition[];
+  fields?: FieldDefinition[];
+  customValidation?: (entity: Entity) => {
+    pendingDocs: DocumentDefinition[];
+    pendingFields: FieldDefinition[];
+  };
+}
+```
+
+### Helper Functions
+```typescript
+// Pre-configured setups for common entity types
+createPropertyDocumentConfig(stage?: number): PendencyConfig
+createClientDocumentConfig(customDocs?, customFields?): PendencyConfig
+createContractDocumentConfig(customDocs?): PendencyConfig
+createGenericDocumentConfig(entityType, documents, fields?, customValidation?): PendencyConfig
+```
+
+### Usage Examples
+```typescript
+// Property documents for specific stage
+const config = createPropertyDocumentConfig(2); // Due Diligence stage
+
+// Custom client documents
+const clientConfig = createClientDocumentConfig(customDocs, customFields);
+
+// Generic entity with custom validation
+const genericConfig = createGenericDocumentConfig('generic', docs, fields, validation);
+
+// Implementation
+<DocumentsPendingModal
+  open={modalOpen}
+  onOpenChange={setModalOpen}
+  entity={entity}
+  config={config}
+  onDocumentUploaded={(docKey) => {
+    // Automatic notification integration
+    notificationService.onDocumentUploaded(documentId, entityId, userId, docKey);
+  }}
+  onComplete={() => {
+    // Called when all requirements are met
+  }}
+/>
+```
+
+### Upload System
+- **Dynamic Buckets**: `{entityType}-documents` (e.g., `property-documents`, `client-documents`)
+- **Dynamic APIs**: `/api/{entityType}-documents`
+- **File Organization**: Files organized by entity ID in Supabase
+- **Format Support**: PDF, JPG, JPEG, PNG with configurable size limits
+- **Progress Tracking**: Real-time upload progress and error handling
+
+### Default Configurations
+
+#### Property Documents (Stage-Based)
+- **Ônus Reais**: Stages 1, 2, 3 (Captação, Due Diligence, Mercado)
+- **Espelho de IPTU**: Stages 1, 2
+- **RG/CNH dos Proprietários**: Stages 1, 2, 6
+- **Certidão de Estado Civil**: Stages 2, 6
+- **Comprovante de Residência**: Stages 1, 2
+- **Escritura/Registro**: Stages 2, 7
+- **Contrato de Compra e Venda**: Stages 5, 6, 7
+
+#### Property Fields
+- **Basic Info**: Type, address, number, neighborhood, city
+- **Financial**: Property value (required in stages 1 and 4)
+- **Legal**: Owner data, registration number
+
+### Benefits
+- **Code Organization**: Single component for all document scenarios
+- **Maintainability**: Centralized logic, easier updates
+- **Consistency**: Uniform UX across all entity types
+- **Flexibility**: Easy extension for new entity types
+- **Integration**: Seamless notification system integration
+
+### Documentation
+Complete documentation available in: `/DOCUMENTOS-PENDENCIAS-MODAL.md`
+Usage examples available in: `/client/src/components/DocumentsPendingModal.example.tsx`
+
+## Format Utilities
+
+### Universal Formatting Functions
+**Location**: `/client/src/lib/formatUtils.ts`
+
+Centralized formatting utilities for consistent data presentation across the entire application.
+
+### Available Functions
+```typescript
+// Sequence number formatting
+formatSequenceNumber(sequenceNumber: string | undefined | null): string
+// Example: formatSequenceNumber("1") → "#00001"
+
+// Currency formatting
+formatCurrency(value: number | string): string
+// Example: formatCurrency(500000) → "R$ 500.000,00"
+
+// Property address formatting
+formatPropertyAddress(property: PropertyObject): string
+// Example: formatPropertyAddress({street: "Rua A", number: "123", neighborhood: "Centro"}) → "Rua A, 123 - Centro"
+
+// Stage name formatting
+formatStageName(stage: number): string
+// Example: formatStageName(1) → "Captação"
+
+// Stage CSS classes
+formatStageClasses(stage: number): string
+// Example: formatStageClasses(1) → "bg-orange-100 text-orange-600 border-orange-200"
+```
+
+### Usage
+```typescript
+import { formatSequenceNumber, formatCurrency, formatPropertyAddress, formatStageName, formatStageClasses } from "@/lib/formatUtils";
+
+// In components
+const displayNumber = formatSequenceNumber(property.sequenceNumber);
+const displayValue = formatCurrency(property.value);
+const displayAddress = formatPropertyAddress(property);
+```
+
+### Benefits
+- **Consistency**: Uniform formatting across all components
+- **Maintainability**: Single point of change for format rules
+- **Type Safety**: TypeScript support with proper error handling
+- **Performance**: Optimized functions with proper validation

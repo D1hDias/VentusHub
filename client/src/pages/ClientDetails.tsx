@@ -18,7 +18,14 @@ import {
   PhoneCall,
   Users,
   DollarSign,
-  Briefcase
+  Briefcase,
+  Upload,
+  Eye,
+  Trash2,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,9 +72,22 @@ interface ClientNote {
   updatedAt: string;
 }
 
+interface ClientDocument {
+  id: number;
+  clientId: number;
+  fileName: string;
+  originalName: string;
+  fileSize: number;
+  mimeType: string;
+  storageUrl: string;
+  uploadedAt: string;
+  uploadedBy: string;
+}
+
 interface ClientDetailsResponse {
   client: Client;
   notes: ClientNote[];
+  documents?: ClientDocument[];
   stats: {
     total: number;
     pending: number;
@@ -88,6 +108,12 @@ export default function ClientDetails() {
   const [noteModalType, setNoteModalType] = useState<'note' | 'reminder' | 'call' | 'meeting'>('note');
   const [refreshKey, setRefreshKey] = useState(0);
   const [localClientData, setLocalClientData] = useState<Client | null>(null);
+  
+  // Document management state
+  const [showDocumentViewer, setShowDocumentViewer] = useState(false);
+  const [currentDocumentIndex, setCurrentDocumentIndex] = useState(0);
+  const [uploadingDocument, setUploadingDocument] = useState(false);
+  const [documents, setDocuments] = useState<ClientDocument[]>([]);
 
   const { data: clientDetails, isLoading, error } = useQuery({
     queryKey: [`/api/clients/${clientId}/details`, refreshKey],
@@ -99,6 +125,12 @@ export default function ClientDetails() {
       }
 
       const data = await response.json() as ClientDetailsResponse;
+      
+      // Update local documents state
+      if (data.documents) {
+        setDocuments(data.documents);
+      }
+      
       return data;
     },
     enabled: !!clientId,
@@ -133,6 +165,91 @@ export default function ClientDetails() {
     setRefreshKey(prev => prev + 1);
   };
 
+  // Document handling functions
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0 || !clientId) return;
+
+    setUploadingDocument(true);
+    
+    try {
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('clientId', clientId);
+
+        const response = await fetch('/api/clients/documents/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          if (response.status === 503) {
+            throw new Error('Serviço de upload não configurado. Entre em contato com o administrador.');
+          }
+          throw new Error('Falha no upload do documento');
+        }
+
+        const newDocument = await response.json();
+        setDocuments(prev => [...prev, newDocument]);
+      }
+
+      // Clear the input
+      event.target.value = '';
+      
+      // Show success message
+      alert('Documento(s) enviado(s) com sucesso!');
+    } catch (error) {
+      console.error('Erro no upload:', error);
+      alert('Erro ao enviar documento. Tente novamente.');
+    } finally {
+      setUploadingDocument(false);
+    }
+  };
+
+  const handleViewDocument = (index: number) => {
+    setCurrentDocumentIndex(index);
+    setShowDocumentViewer(true);
+  };
+
+  const handleDeleteDocument = async (documentId: number) => {
+    if (!confirm('Tem certeza que deseja deletar este documento?')) return;
+
+    try {
+      const response = await fetch(`/api/clients/documents/${documentId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha ao deletar documento');
+      }
+
+      setDocuments(prev => prev.filter(doc => doc.id !== documentId));
+      alert('Documento deletado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar:', error);
+      alert('Erro ao deletar documento. Tente novamente.');
+    }
+  };
+
+  const navigateDocument = (direction: 'prev' | 'next') => {
+    setCurrentDocumentIndex(prev => {
+      if (direction === 'prev') {
+        return prev > 0 ? prev - 1 : documents.length - 1;
+      } else {
+        return prev < documents.length - 1 ? prev + 1 : 0;
+      }
+    });
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -144,6 +261,19 @@ export default function ClientDetails() {
     if (!dateString) return 'Não informado';
     return new Date(dateString).toLocaleDateString('pt-BR');
   };
+
+  // Atualizar título do documento/header quando cliente carregar
+  useEffect(() => {
+    if (clientDetails?.client) {
+      const pageTitle = `Cliente`;
+      document.title = `${pageTitle} - VentusHub`;
+
+      // Dispatchar evento customizado para atualizar o header do Layout
+      window.dispatchEvent(new CustomEvent('updatePageTitle', {
+        detail: { title: pageTitle }
+      }));
+    }
+  }, [clientDetails?.client]);
 
   const getMaritalStatusBadge = (status: string) => {
     const statusMap = {
@@ -493,6 +623,98 @@ export default function ClientDetails() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Documents Section */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <FileText className="h-5 w-5 mr-2" />
+                    Documentos ({documents.length})
+                  </CardTitle>
+                  <div>
+                    <input
+                      type="file"
+                      id="document-upload"
+                      multiple
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      disabled={uploadingDocument}
+                    />
+                    <Button
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={() => document.getElementById('document-upload')?.click()}
+                      disabled={uploadingDocument}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploadingDocument ? 'Enviando...' : 'Upload'}
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {documents.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>Nenhum documento anexado</p>
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => document.getElementById('document-upload')?.click()}
+                      disabled={uploadingDocument}
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Adicionar Primeiro Documento
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {documents.map((doc, index) => (
+                      <div
+                        key={doc.id}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center justify-center w-8 h-8 rounded bg-blue-100">
+                            <FileText className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {doc.originalName}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {formatFileSize(doc.fileSize)} • {formatDate(doc.uploadedAt)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewDocument(index)}
+                            className="hover:bg-blue-50 hover:text-blue-600"
+                            title="Ver documento"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteDocument(doc.id)}
+                            className="hover:bg-red-50 hover:text-red-600"
+                            title="Deletar documento"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sidebar */}
@@ -636,6 +858,104 @@ export default function ClientDetails() {
           clientId={clientId}
           noteType={noteModalType}
         />
+      )}
+
+      {/* Document Viewer Modal */}
+      {showDocumentViewer && documents.length > 0 && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-full max-w-4xl h-full max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <div className="flex items-center space-x-4">
+                <h3 className="text-lg font-semibold">
+                  {documents[currentDocumentIndex]?.originalName}
+                </h3>
+                {documents.length > 1 && (
+                  <span className="text-sm text-gray-500">
+                    {currentDocumentIndex + 1} de {documents.length}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                {documents.length > 1 && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigateDocument('prev')}
+                      title="Documento anterior"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigateDocument('next')}
+                      title="Próximo documento"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = documents[currentDocumentIndex]?.storageUrl;
+                    link.download = documents[currentDocumentIndex]?.originalName;
+                    link.click();
+                  }}
+                  title="Baixar documento"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowDocumentViewer(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            {/* Document Content */}
+            <div className="flex-1 p-4 overflow-auto">
+              {documents[currentDocumentIndex]?.mimeType.startsWith('image/') ? (
+                <img
+                  src={documents[currentDocumentIndex]?.storageUrl}
+                  alt={documents[currentDocumentIndex]?.originalName}
+                  className="max-w-full h-auto mx-auto"
+                />
+              ) : documents[currentDocumentIndex]?.mimeType === 'application/pdf' ? (
+                <iframe
+                  src={documents[currentDocumentIndex]?.storageUrl}
+                  className="w-full h-full min-h-[600px] border-0"
+                  title={documents[currentDocumentIndex]?.originalName}
+                />
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                  <p className="text-gray-600 mb-4">
+                    Visualização não disponível para este tipo de arquivo.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = documents[currentDocumentIndex]?.storageUrl;
+                      link.download = documents[currentDocumentIndex]?.originalName;
+                      link.click();
+                    }}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Baixar Arquivo
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

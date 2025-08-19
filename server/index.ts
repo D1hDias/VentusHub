@@ -3,12 +3,12 @@ dotenv.config();
 
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
-import { createServer } from "http";
 import { setupAuth, setupAuthRoutes } from "./auth.js";
 import { setupBetterAuthRoutes } from "./better-auth-routes.js";
 import { registerApiRoutes } from "./routes.js"; // Renomeado para maior clareza
 import { initializeDB } from "./db.js";
 import { initCRMServices } from "./crm-service.js";
+import notificationRoutes from "./notification-routes.js";
 // Vite imports condicionais
 
 // Função de log simples
@@ -28,7 +28,6 @@ log(`
     log("🚀 Iniciando servidor...");
     
     const app = express();
-    const httpServer = createServer(app);
 
     log("✅ Express criado");
     
@@ -103,16 +102,38 @@ log(`
   setupAuthRoutes(app); // Rotas de autenticação legadas
   registerApiRoutes(app); // Outras rotas da API
   
+  // 5.5. Registrar rotas de notificação
+  app.use('/api/notifications', notificationRoutes);
+  
+  // 5.6. Registrar rotas de preferências de usuário
+  const userPreferencesRoutes = await import('./user-preferences-routes.js');
+  app.use('/api/user-preferences', userPreferencesRoutes.default);
+  
+  // 5.7. Registrar rotas de push notifications
+  const pushNotificationRoutes = await import('./push-notifications-routes.js');
+  app.use('/api/push', pushNotificationRoutes.default);
+  
   // Servir arquivos de upload estaticamente
   app.use('/uploads', express.static('./uploads'));
   
-  // 6. Inicializar serviços CRM
+  // 6. Inicializar serviços CRM e Notificações
   try {
     initCRMServices();
     log("✅ Serviços CRM inicializados");
   } catch (error) {
     log(`⚠️ Erro ao inicializar serviços CRM: ${error.message}`);
   }
+  
+  // Inicializar serviço de notificações
+  try {
+    const { getNotificationService } = await import('./notification-service.js');
+    const notificationService = getNotificationService();
+    await notificationService.initialize();
+    log("✅ Serviço de notificações inicializado");
+  } catch (error) {
+    log(`⚠️ Erro ao inicializar serviço de notificações: ${error.message}`);
+  }
+  
   log("✅ Rotas registradas");
 
   // 6. Middleware de tratamento de erros com tratamento especial para timeouts
@@ -123,7 +144,6 @@ log(`
     // Tratamento especial para erros de timeout do Neon
     if (err.message && (
       err.message.includes('Connection terminated due to connection timeout') ||
-      err.message.includes('WebSocket was closed before the connection was established') ||
       err.message.includes('timeout')
     )) {
       console.warn(`⚠️ Timeout de banco em ${req.method} ${req.path} - usando fallback`);
@@ -155,7 +175,7 @@ log(`
   if (process.env.NODE_ENV === "development") {
     try {
       const { setupVite } = await import("./vite.js");
-      await setupVite(app, httpServer);
+      await setupVite(app);
       log("✅ Vite configurado com sucesso");
     } catch (error) {
       console.error("❌ Erro no Vite:", error.message);
@@ -186,13 +206,14 @@ log(`
     });
   }
 
+
   // Iniciar o servidor
   const port = parseInt(process.env.PORT || "5000");
   const host = "0.0.0.0"; // Configuração original
   
   log(`🔧 Variáveis: PORT=${process.env.PORT}, port=${port}`);
   
-  httpServer.listen(port, host, () => {
+  app.listen(port, host, () => {
     log(`✅ Server listening on ${host}:${port}`);
     log(`🌐 Acesse: http://localhost:${port}`);
     log(`🔧 Host: ${host}, Port: ${port}`);

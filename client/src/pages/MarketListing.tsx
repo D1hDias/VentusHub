@@ -5,8 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { KPICard } from "@/components/KPICard";
-import { SimpleKPICard } from "@/components/SimpleKPICard";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import { useResponsive } from "@/hooks/useMediaQuery";
@@ -112,99 +110,117 @@ export default function MarketListing() {
         initial="hidden"
         animate="visible"
       >
-        {isMobile ? (
-          // Layout em grid 2x2 para mobile - otimizado para espaço
-          <div className="grid grid-cols-2 gap-0">
-            {[
-              { title: "Ativos", value: 1, icon: CheckCircle, iconBgColor: "#1ea475", subtitle: "Imóveis no mercado" },
-              { title: "Preparando", value: 1, icon: Camera, iconBgColor: "#001f3f", subtitle: "Aguardando fotos" },
-              { title: "Visualizações", value: 247, icon: Eye, iconBgColor: "#d47c16", subtitle: "Este mês" },
-              { title: "Leads", value: 12, icon: TrendingUp, iconBgColor: "#dc2828", subtitle: "Interessados" }
-            ].map((kpi, index) => (
-              <motion.div
-                key={index}
-                variants={getListItemVariants()}
-                className="w-full"
-              >
-                <SimpleKPICard 
-                  title={kpi.title}
-                  value={kpi.value}
-                  icon={kpi.icon}
-                  iconBgColor={kpi.iconBgColor}
-                  subtitle={kpi.subtitle}
+        {/* Mobile Layout (2x2 grid) */}
+        <div className="grid grid-cols-2 gap-3 md:hidden">
+          {[
+            { title: "Ativos", value: 1, icon: CheckCircle, color: "#1ea475", subtitle: "Imóveis no mercado" },
+            { title: "Preparando", value: 1, icon: Camera, color: "#001f3f", subtitle: "Aguardando fotos" },
+            { title: "Visualizações", value: 247, icon: Eye, color: "#d47c16", subtitle: "Este mês" },
+            { title: "Leads", value: 12, icon: TrendingUp, color: "#dc2828", subtitle: "Interessados" }
+          ].map((kpi, index) => (
+            <motion.div
+              key={kpi.title}
+              variants={getListItemVariants()}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 }}
+              className="group cursor-pointer"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative">
+                <div 
+                  className="absolute top-0 left-0 right-0 h-1 opacity-80 group-hover:opacity-100 transition-opacity"
+                  style={{ backgroundColor: kpi.color }}
                 />
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          // Layout em grid para desktop
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <motion.div
-              variants={getListItemVariants()}
-              className={`${classes.cardInteractive} touch-target`}
-              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-            >
-              <KPICard
-                title="Ativos"
-                value={1}
-                icon={CheckCircle}
-                iconBgColor="#1ea475"
-                progress={75}
-                subtitle="Imóveis no mercado"
-                onClick={() => {}}
-              />
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-600 truncate mb-1">{kpi.title}</p>
+                      <motion.p 
+                        className="text-2xl font-bold text-gray-900 tabular-nums"
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: index * 0.1 + 0.2 }}
+                      >
+                        {kpi.value}
+                      </motion.p>
+                      <p className="text-xs text-gray-500 mt-1">{kpi.subtitle}</p>
+                    </div>
+                    <div 
+                      className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm"
+                      style={{ backgroundColor: kpi.color }}
+                    >
+                      <kpi.icon className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
+          ))}
+        </div>
+
+        {/* Desktop Layout (1x4 grid) */}
+        <div className="hidden md:grid grid-cols-4 gap-6">
+          {[
+            { title: "Ativos", value: 1, icon: CheckCircle, color: "#1ea475", subtitle: "Imóveis no mercado" },
+            { title: "Preparando", value: 1, icon: Camera, color: "#001f3f", subtitle: "Aguardando fotos" },
+            { title: "Visualizações", value: 247, icon: Eye, color: "#d47c16", subtitle: "Este mês" },
+            { title: "Leads", value: 12, icon: TrendingUp, color: "#dc2828", subtitle: "Interessados" }
+          ].map((kpi, index) => (
             <motion.div
+              key={kpi.title}
               variants={getListItemVariants()}
-              className={`${classes.cardInteractive} touch-target`}
-              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="group cursor-pointer"
+              whileHover={{ scale: 1.02, y: -4 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <KPICard
-                title="Preparando"
-                value={1}
-                icon={Camera}
-                iconBgColor="#001f3f"
-                progress={50}
-                subtitle="Aguardando fotos"
-                onClick={() => {}}
-              />
+              <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-lg transition-all duration-300 h-full flex flex-col overflow-hidden relative hover:border-gray-300">
+                {/* Subtle gradient background */}
+                <div 
+                  className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.04] transition-opacity"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${kpi.color}22 0%, ${kpi.color}11 50%, transparent 100%)` 
+                  }}
+                />
+                <CardContent className="p-6 flex-1 flex flex-col relative">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-600 mb-2">{kpi.title}</p>
+                      <motion.p 
+                        className="text-3xl font-bold text-gray-900 tabular-nums"
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: index * 0.1 + 0.3 }}
+                      >
+                        {kpi.value}
+                      </motion.p>
+                    </div>
+                    <motion.div 
+                      className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+                      style={{ backgroundColor: kpi.color }}
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <kpi.icon className="w-6 h-6 text-white" />
+                    </motion.div>
+                  </div>
+                  <div className="mt-auto">
+                    <p className="text-sm text-gray-500">{kpi.subtitle}</p>
+                  </div>
+                  {/* Bottom accent line */}
+                  <div 
+                    className="absolute bottom-0 left-0 right-0 h-1 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"
+                    style={{ backgroundColor: kpi.color }}
+                  />
+                </CardContent>
+              </Card>
             </motion.div>
-            <motion.div
-              variants={getListItemVariants()}
-              className={`${classes.cardInteractive} touch-target`}
-              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-            >
-              <KPICard
-                title="Visualizações"
-                value={247}
-                icon={Eye}
-                iconBgColor="#d47c16"
-                progress={85}
-                subtitle="Este mês"
-                onClick={() => {}}
-              />
-            </motion.div>
-            <motion.div
-              variants={getListItemVariants()}
-              className={`${classes.cardInteractive} touch-target`}
-              whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-              whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
-            >
-              <KPICard
-                title="Leads"
-                value={12}
-                icon={TrendingUp}
-                iconBgColor="#dc2828"
-                progress={40}
-                subtitle="Interessados"
-                onClick={() => {}}
-              />
-            </motion.div>
-          </div>
-        )}
+          ))}
+        </div>
       </motion.div>
 
       {/* Search and Filters */}

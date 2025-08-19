@@ -1,13 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Home, Store, Handshake, File, Plus, TrendingUp, Search, Edit, Trash2 } from "lucide-react";
+import { Home, Store, Handshake, File, Plus, TrendingUp, Search, Edit, Trash2, FileCheck, CreditCard, Stamp, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { KPICard } from "@/components/KPICard";
-import { SimpleKPICard } from "@/components/SimpleKPICard";
 import { TimelineStep } from "@/components/TimelineStep";
 import { PropertyModal } from "@/components/PropertyModal";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,10 +13,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequestLegacy as apiRequest } from "@/lib/queryClient";
-import { KPIGrid } from "@/components/responsive/ResponsiveGrid";
 import { useSmoothtTransitions, useEntranceAnimation } from "@/hooks/useSmoothtTransitions";
 import { useResponsive } from "@/hooks/useMediaQuery";
 import { PageLoader } from "@/components/PageLoader";
+import { formatSequenceNumber, formatCurrency, formatPropertyAddress, formatStageName, formatStageClasses } from "@/lib/formatUtils";
 
 // Garantir que crypto está disponível
 if (typeof crypto === 'undefined') {
@@ -93,6 +91,7 @@ export default function Dashboard() {
     // Usar o queryFn padrão que já inclui credentials
   });
 
+
   // Calcular estatísticas baseadas no status das propriedades
   const stats: Stats = {
     captacao: allProperties.filter((p: Property) =>
@@ -109,10 +108,20 @@ export default function Dashboard() {
     ).length,
   };
 
+  // Calcular estatísticas detalhadas por etapa
+  const detailedStats = {
+    captacao: allProperties.filter((p: Property) => p.currentStage === 1).length,
+    dueDiligence: allProperties.filter((p: Property) => p.currentStage === 2).length,
+    mercado: allProperties.filter((p: Property) => p.currentStage === 3).length,
+    propostas: allProperties.filter((p: Property) => p.currentStage === 4).length,
+    contratos: allProperties.filter((p: Property) => p.currentStage === 5).length,
+    financiamento: allProperties.filter((p: Property) => p.currentStage === 6).length,
+    instrumento: allProperties.filter((p: Property) => p.currentStage === 7).length,
+    concluido: allProperties.filter((p: Property) => p.currentStage === 8).length,
+  };
+
   // Calcular quantos estão em Due Diligence  
-  const dueDiligenceCount = allProperties.filter((p: Property) =>
-    p.currentStage === 2
-  ).length;
+  const dueDiligenceCount = detailedStats.dueDiligence;
 
   // Propriedades recentes (últimas 5)
   const recentTransactions = allProperties
@@ -120,7 +129,7 @@ export default function Dashboard() {
     .slice(0, 5)
     .map((prop: Property) => ({
       ...prop,
-      address: `${prop.street || ''}, ${prop.number || ''}${prop.complement ? ', ' + prop.complement : ''} - ${prop.neighborhood || ''}, ${prop.city || ''}${prop.state ? '/' + prop.state : ''}`
+      address: formatPropertyAddress(prop)
     }));
 
   // Função para navegar para seções específicas
@@ -140,6 +149,15 @@ export default function Dashboard() {
         break;
       case 'contratos':
         setLocation('/contratos');
+        break;
+      case 'financiamento':
+        setLocation('/financiamento');
+        break;
+      case 'instrumento':
+        setLocation('/instrumento-final');
+        break;
+      case 'timeline':
+        setLocation('/timeline');
         break;
       default:
         break;
@@ -209,40 +227,68 @@ export default function Dashboard() {
 
   const kpiData = [
     {
-      title: "Imóveis em Captação",
-      value: stats.captacao,
+      title: "Captação",
+      value: detailedStats.captacao,
       icon: Home,
-      iconBgColor: "#001f3f",
-      progress: Math.min(stats.captacao * 10, 100),
-      subtitle: `${stats.captacao} captações ativas`,
+      iconBgColor: "hsl(32, 81%, 46%)", // orange
+      subtitle: "Novos imóveis",
       onClick: () => navigateToSection('captacao')
     },
     {
-      title: "Ativos no Mercado",
-      value: stats.mercado,
+      title: "Due Diligence",
+      value: detailedStats.dueDiligence,
+      icon: FileCheck,
+      iconBgColor: "hsl(217, 91%, 60%)", // blue
+      subtitle: "Em análise",
+      onClick: () => navigateToSection('due-diligence')
+    },
+    {
+      title: "No Mercado",
+      value: detailedStats.mercado,
       icon: Store,
-      iconBgColor: "hsl(159, 69%, 38%)",
-      progress: Math.min(stats.mercado * 8, 100),
-      subtitle: "Prontos para venda",
+      iconBgColor: "hsl(159, 69%, 38%)", // green
+      subtitle: "À venda",
       onClick: () => navigateToSection('mercado')
     },
     {
-      title: "Propostas Pendentes",
-      value: stats.propostas,
+      title: "Propostas",
+      value: detailedStats.propostas,
       icon: Handshake,
-      iconBgColor: "hsl(32, 81%, 46%)",
-      progress: Math.min(stats.propostas * 15, 100),
-      subtitle: "Aguardando negociação",
+      iconBgColor: "hsl(271, 81%, 56%)", // purple
+      subtitle: "Em negociação",
       onClick: () => navigateToSection('propostas')
     },
     {
-      title: "Contratos Ativos",
-      value: stats.contratos,
+      title: "Contratos",
+      value: detailedStats.contratos,
       icon: File,
-      iconBgColor: "hsl(0, 72%, 51%)",
-      progress: Math.min(stats.contratos * 12, 100),
-      subtitle: "Em andamento",
+      iconBgColor: "hsl(231, 48%, 48%)", // indigo
+      subtitle: "Assinados",
       onClick: () => navigateToSection('contratos')
+    },
+    {
+      title: "Financiamento",
+      value: detailedStats.financiamento,
+      icon: CreditCard,
+      iconBgColor: "hsl(180, 67%, 47%)", // teal
+      subtitle: "Em aprovação",
+      onClick: () => navigateToSection('financiamento')
+    },
+    {
+      title: "Instrumento",
+      value: detailedStats.instrumento,
+      icon: Stamp,
+      iconBgColor: "hsl(142, 76%, 36%)", // emerald
+      subtitle: "Finalizando",
+      onClick: () => navigateToSection('instrumento')
+    },
+    {
+      title: "Concluídos",
+      value: detailedStats.concluido,
+      icon: CheckCircle,
+      iconBgColor: "hsl(120, 100%, 25%)", // dark green
+      subtitle: "Finalizados",
+      onClick: () => navigateToSection('timeline')
     }
   ];
 
@@ -268,40 +314,122 @@ export default function Dashboard() {
         className="container-query"
       >
         {isMobile ? (
-          // Layout em grid 2x2 para mobile - otimizado para espaço
-          <div className="grid grid-cols-2 gap-0">
+          // Modern Mobile Layout - Clean cards without progress bars
+          <div className="grid grid-cols-2 gap-3">
             {kpiData.map((kpi, index) => (
               <motion.div
                 key={index}
                 variants={getListItemVariants()}
                 className="w-full"
               >
-                <SimpleKPICard
-                  title={kpi.title}
-                  value={kpi.value}
-                  icon={kpi.icon}
-                  iconBgColor={kpi.iconBgColor}
-                  subtitle={kpi.subtitle}
-                />
+                <motion.div
+                  onClick={kpi.onClick}
+                  className="cursor-pointer group"
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                >
+                  <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden relative">
+                    <div 
+                      className="absolute top-0 left-0 right-0 h-1 opacity-80 group-hover:opacity-100 transition-opacity"
+                      style={{ backgroundColor: kpi.iconBgColor }}
+                    />
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div 
+                          className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-200"
+                          style={{ backgroundColor: kpi.iconBgColor }}
+                        >
+                          <kpi.icon className="h-5 w-5 text-white" />
+                        </div>
+                        <motion.div
+                          className="text-right"
+                          key={kpi.value}
+                          initial={{ scale: 1.1, opacity: 0.8 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ duration: 0.3, ease: "easeOut" }}
+                        >
+                          <div 
+                            className="text-2xl font-bold tabular-nums leading-none"
+                            style={{ color: kpi.iconBgColor }}
+                          >
+                            {kpi.value}
+                          </div>
+                        </motion.div>
+                      </div>
+                      <div className="space-y-1">
+                        <h3 className="font-semibold text-gray-900 text-sm leading-none">{kpi.title}</h3>
+                        <p className="text-xs text-gray-500 leading-tight">{kpi.subtitle}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               </motion.div>
             ))}
           </div>
         ) : (
-          // Layout em grid para desktop
-          <KPIGrid animateItems>
+          // Modern Desktop Layout - Elegant cards without progress bars
+          <div className="grid grid-cols-4 gap-4">
             {kpiData.map((kpi, index) => (
               <motion.div
                 key={index}
                 variants={getListItemVariants()}
-                className={`${classes.cardInteractive} touch-target`}
-                onClick={kpi.onClick}
-                whileHover={{ scale: classes.hoverScale ? 1.02 : 1 }}
-                whileTap={{ scale: classes.hoverScale ? 0.98 : 1 }}
+                className="h-full"
               >
-                <KPICard {...kpi} />
+                <motion.div
+                  onClick={kpi.onClick}
+                  className="cursor-pointer group h-full"
+                  whileHover={{ scale: 1.02, y: -4 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                >
+                  <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-lg transition-all duration-300 h-full flex flex-col overflow-hidden relative hover:border-gray-300">
+                    {/* Subtle gradient background */}
+                    <div 
+                      className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.04] transition-opacity"
+                      style={{ 
+                        background: `linear-gradient(135deg, ${kpi.iconBgColor} 0%, transparent 100%)` 
+                      }}
+                    />
+                    
+                    <CardContent className="p-6 flex flex-col h-full">
+                      <div className="flex items-center justify-between mb-4">
+                        <div 
+                          className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200"
+                          style={{ backgroundColor: kpi.iconBgColor }}
+                        >
+                          <kpi.icon className="h-6 w-6 text-white" />
+                        </div>
+                        <motion.div
+                          className="text-right"
+                          key={kpi.value}
+                          initial={{ scale: 1.1, opacity: 0.8 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ duration: 0.4, ease: "easeOut", delay: index * 0.1 }}
+                        >
+                          <div 
+                            className="text-3xl font-bold tabular-nums leading-none"
+                            style={{ color: kpi.iconBgColor }}
+                          >
+                            {kpi.value}
+                          </div>
+                        </motion.div>
+                      </div>
+                      
+                      <div className="flex-1 flex flex-col justify-end">
+                        <h3 className="font-semibold text-gray-900 text-sm mb-1">{kpi.title}</h3>
+                        <p className="text-xs text-gray-500 leading-relaxed">{kpi.subtitle}</p>
+                      </div>
+                      
+                      {/* Bottom accent line */}
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300" 
+                           style={{ color: kpi.iconBgColor }} />
+                    </CardContent>
+                  </Card>
+                </motion.div>
               </motion.div>
             ))}
-          </KPIGrid>
+          </div>
         )}
       </motion.div>
 
@@ -338,9 +466,7 @@ export default function Dashboard() {
               ) : (
                 <div className="space-y-4 transition-smooth">
                   {recentTransactions.map((property, index) => {
-                    const formattedValue = typeof property.value === 'number'
-                      ? property.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-                      : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseFloat(property.value) || 0);
+                    const formattedValue = formatCurrency(property.value);
 
                     // Extract just street and number for mobile
                     const mobileAddress = `${property.street || 'Endereço'}, ${property.number || 'S/N'}`;
@@ -358,7 +484,7 @@ export default function Dashboard() {
                             <div className="flex items-center space-x-3">
                               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
                                 <span className="text-primary font-medium text-xs">
-                                  {property.registrationNumber || property.sequenceNumber || '00000'}
+                                  {formatSequenceNumber(property.sequenceNumber)}
                                 </span>
                               </div>
                               <span className="text-xs font-medium text-gray-900">
@@ -379,24 +505,8 @@ export default function Dashboard() {
 
                           {/* Third Row: Status Badge and Action Icons */}
                           <div className="flex items-center justify-between">
-                            <Badge
-                              className={`text-xs px-1.5 py-0.5 ${property.currentStage === 1 ? "bg-orange-100 text-orange-600 border-orange-200" :
-                                property.currentStage === 2 ? "bg-blue-100 text-blue-600 border-blue-200" :
-                                  property.currentStage === 3 ? "bg-green-100 text-green-600 border-green-200" :
-                                    property.currentStage === 4 ? "bg-purple-100 text-purple-600 border-purple-200" :
-                                      property.currentStage === 5 ? "bg-indigo-100 text-indigo-600 border-indigo-200" :
-                                        property.currentStage === 6 ? "bg-teal-100 text-teal-600 border-teal-200" :
-                                          property.currentStage >= 7 ? "bg-green-100 text-green-600 border-green-200" :
-                                            "bg-gray-100 text-gray-600 border-gray-200"
-                                }`}
-                            >
-                              {property.currentStage === 1 ? "Captação" :
-                                property.currentStage === 2 ? "Due Diligence" :
-                                  property.currentStage === 3 ? "Mercado" :
-                                    property.currentStage === 4 ? "Proposta" :
-                                      property.currentStage === 5 ? "Contrato" :
-                                        property.currentStage === 6 ? "Instrumento" :
-                                          property.currentStage >= 7 ? "Concluído" : "Pendente"}
+                            <Badge className={`text-xs px-1.5 py-0.5 ${formatStageClasses(property.currentStage)}`}>
+                              {formatStageName(property.currentStage)}
                             </Badge>
                             <div className="flex items-center space-x-1">
                               <Button
@@ -461,9 +571,7 @@ export default function Dashboard() {
                 ) : (
                   <div className="space-y-4 transition-smooth">
                     {recentTransactions.map((property, index) => {
-                      const formattedValue = typeof property.value === 'number'
-                        ? property.value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-                        : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(parseFloat(property.value) || 0);
+                      const formattedValue = formatCurrency(property.value);
 
                       return (
                         <div
@@ -475,7 +583,9 @@ export default function Dashboard() {
                           <div className="flex items-center justify-between p-4">
                             <div className="flex items-center space-x-4">
                               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
-                                <span className="text-primary font-medium text-xs">{property.registrationNumber || property.sequenceNumber || '00000'}</span>
+                                <span className="text-primary font-medium text-xs">
+                                  {formatSequenceNumber(property.sequenceNumber)}
+                                </span>
                               </div>
                               <div>
                                 <div className="font-medium">
@@ -487,25 +597,8 @@ export default function Dashboard() {
                               </div>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <Badge
-                                className={
-                                  property.currentStage === 1 ? "bg-orange-100 text-orange-600 border-orange-200" :
-                                    property.currentStage === 2 ? "bg-blue-100 text-blue-600 border-blue-200" :
-                                      property.currentStage === 3 ? "bg-green-100 text-green-600 border-green-200" :
-                                        property.currentStage === 4 ? "bg-purple-100 text-purple-600 border-purple-200" :
-                                          property.currentStage === 5 ? "bg-indigo-100 text-indigo-600 border-indigo-200" :
-                                            property.currentStage === 6 ? "bg-teal-100 text-teal-600 border-teal-200" :
-                                              property.currentStage >= 7 ? "bg-green-100 text-green-600 border-green-200" :
-                                                "bg-gray-100 text-gray-600 border-gray-200"
-                                }
-                              >
-                                {property.currentStage === 1 ? "Captação" :
-                                  property.currentStage === 2 ? "Due Diligence" :
-                                    property.currentStage === 3 ? "Mercado" :
-                                      property.currentStage === 4 ? "Proposta" :
-                                        property.currentStage === 5 ? "Contrato" :
-                                          property.currentStage === 6 ? "Instrumento" :
-                                            property.currentStage >= 7 ? "Concluído" : "Pendente"}
+                              <Badge className={formatStageClasses(property.currentStage)}>
+                                {formatStageName(property.currentStage)}
                               </Badge>
                               <Button
                                 variant="ghost"
@@ -550,32 +643,52 @@ export default function Dashboard() {
                   </AlertDescription>
                 </Alert>
 
-                {dueDiligenceCount > 0 && (
+                {detailedStats.dueDiligence > 0 && (
                   <Alert className="cursor-pointer button-interactive" onClick={() => navigateToSection('due-diligence')}>
-                    <File className="h-4 w-4" />
+                    <FileCheck className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>{dueDiligenceCount} imóveis em Due Diligence</strong><br />
+                      <strong>{detailedStats.dueDiligence} imóveis em Due Diligence</strong><br />
                       Verificar documentação pendente
                     </AlertDescription>
                   </Alert>
                 )}
 
-                {stats.propostas > 0 && (
+                {detailedStats.financiamento > 0 && (
+                  <Alert className="cursor-pointer button-interactive" onClick={() => navigateToSection('financiamento')}>
+                    <CreditCard className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>{detailedStats.financiamento} em financiamento</strong><br />
+                      Acompanhar aprovações bancárias
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {detailedStats.propostas > 0 && (
                   <Alert className="cursor-pointer button-interactive" onClick={() => navigateToSection('propostas')}>
                     <Handshake className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>{stats.propostas} propostas pendentes</strong><br />
+                      <strong>{detailedStats.propostas} propostas pendentes</strong><br />
                       Revisar negociações em andamento
                     </AlertDescription>
                   </Alert>
                 )}
 
-                {stats.contratos > 0 && (
+                {detailedStats.contratos > 0 && (
                   <Alert className="cursor-pointer button-interactive" onClick={() => navigateToSection('contratos')}>
                     <File className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>{stats.contratos} contratos ativos</strong><br />
+                      <strong>{detailedStats.contratos} contratos assinados</strong><br />
                       Acompanhar prazos e documentação
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {detailedStats.instrumento > 0 && (
+                  <Alert className="cursor-pointer button-interactive" onClick={() => navigateToSection('instrumento')}>
+                    <Stamp className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>{detailedStats.instrumento} em instrumento final</strong><br />
+                      Finalizar documentação de cartório
                     </AlertDescription>
                   </Alert>
                 )}

@@ -1,90 +1,214 @@
+/**
+ * NOTIFICATION HOOK
+ * 
+ * Simple and reliable notification system using polling
+ * Optimized for VentusHub's alerting and pendency management needs
+ */
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequestLegacy as apiRequest } from '@/lib/queryClient';
+import { useToast } from './use-toast';
 
 interface Notification {
   id: number;
-  userId: number;
-  type: 'info' | 'warning' | 'error' | 'success';
+  userId: string;
+  type: 'info' | 'warning' | 'error' | 'success' | 'urgent';
+  category: 'property' | 'client' | 'document' | 'system' | 'reminder' | 'pendency';
   title: string;
   message: string;
-  category: 'property' | 'contract' | 'document' | 'system';
-  relatedId?: number;
-  actionUrl?: string;
   isRead: boolean;
+  priority: number;
   createdAt: string;
-  readAt?: string;
+  actionUrl?: string;
+  actionLabel?: string;
 }
 
-interface NotificationsResponse {
-  notifications: Notification[];
-  unreadCount: number;
-  pagination: {
-    page: number;
-    limit: number;
-    hasMore: boolean;
+interface NotificationSummary {
+  summary: Array<{
+    status: string;
+    priority: number;
+    category: string;
+    count: number;
+  }>;
+  totals: {
+    unread: number;
+    urgent: number;
   };
 }
 
-export function useNotifications(page = 1, limit = 10) {
+export const useNotifications = () => {
+  const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Query para buscar notificações
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['notifications', page, limit],
-    queryFn: async (): Promise<NotificationsResponse> => {
-      const response = await apiRequest('GET', `/api/notifications?page=${page}&limit=${limit}`);
-      return await response.json();
+  // Fetch notification summary for header badge (with polling)
+  const {
+    data: summaryData,
+    isLoading: isLoadingSummary,
+    error: summaryError
+  } = useQuery({
+    queryKey: ['notifications', 'summary'],
+    queryFn: async (): Promise<NotificationSummary> => {
+      const response = await fetch('/api/notifications/summary', {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          // User not authenticated, return empty summary
+          return {
+            summary: [],
+            totals: { unread: 0, urgent: 0 }
+          };
+        }
+        throw new Error(`Failed to fetch notification summary: ${response.status}`);
+      }
+
+      return response.json();
     },
-    staleTime: 30 * 1000, // 30 segundos
+    staleTime: 30000, // 30 seconds
+    cacheTime: 60000, // 1 minute
+    refetchOnWindowFocus: true,
+    refetchInterval: 90000, // Poll every 90 seconds (otimizado)
+    retry: (failureCount, error: any) => {
+      // Don't retry on 401 errors
+      if (error?.message?.includes('401')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 
-  // Mutation para marcar como lida
+  // Fetch notifications list
+  const {
+    data: notificationsData,
+    isLoading: isLoadingNotifications,
+    error: notificationsError,
+    refetch: refetchNotifications
+  } = useQuery({
+    queryKey: ['notifications', 'list'],
+    queryFn: async () => {
+      const response = await fetch('/api/notifications?limit=20&sortBy=createdAt&sortOrder=desc', {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          return { notifications: [], pagination: null };
+        }
+        throw new Error(`Failed to fetch notifications: ${response.status}`);
+      }
+
+      return response.json();
+    },
+    staleTime: 30000,
+    cacheTime: 60000,
+    refetchOnWindowFocus: true,
+    enabled: false, // Only fetch when needed (when dropdown is opened)
+    refetchInterval: false // Disable auto-polling for list, only on-demand
+  });
+
+  // Mark notification as read
   const markAsReadMutation = useMutation({
-    mutationFn: async (notificationId: number) => {
-      const response = await apiRequest('PATCH', `/api/notifications/${notificationId}/read`);
-      return await response.json();
+    mutationFn: async ({ id, isRead }: { id: number; isRead: boolean }) => {
+      const response = await fetch(`/api/notifications/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ isRead })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update notification');
+      }
+
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    },
+    }
   });
 
-  // Mutation para marcar todas como lidas
+  // Mark all notifications as read
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('PATCH', '/api/notifications/read-all');
-      return await response.json();
+      const response = await fetch('/api/notifications/mark-all-read', {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to mark all notifications as read');
+      }
+
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    },
+      toast({
+        title: "Sucesso",
+        description: "Todas as notificações foram marcadas como lidas"
+      });
+    }
   });
 
+  // Helper functions
+  const markAsRead = (id: number) => {
+    markAsReadMutation.mutate({ id, isRead: true });
+  };
+
+  const markAllAsRead = () => {
+    markAllAsReadMutation.mutate();
+  };
+
+  const openNotifications = () => {
+    refetchNotifications();
+  };
+
+  // Stub implementations for enhanced features (for compatibility)
+  const archiveNotification = (id: number) => {
+    console.log(`Archive notification ${id} - feature not implemented in simplified version`);
+  };
+
+  const togglePin = (id: number) => {
+    console.log(`Toggle pin notification ${id} - feature not implemented in simplified version`);
+  };
+
+  // Computed values
+  const notifications = notificationsData?.notifications || [];
+  const unreadCount = summaryData?.totals?.unread || 0;
+  const urgentCount = summaryData?.totals?.urgent || 0;
+  const hasUnread = unreadCount > 0;
+  const hasUrgent = urgentCount > 0;
+
   return {
-    notifications: data?.notifications || [],
-    unreadCount: data?.unreadCount || 0,
-    pagination: data?.pagination,
-    isLoading,
-    error,
-    refetch,
-    markAsRead: markAsReadMutation.mutate,
-    markAllAsRead: markAllAsReadMutation.mutate,
+    // Data
+    notifications,
+    summaryData,
+    unreadCount,
+    urgentCount,
+    hasUnread,
+    hasUrgent,
+    
+    // Loading states
+    isLoadingNotifications,
+    isLoadingSummary,
+    
+    // Error states  
+    notificationsError,
+    summaryError,
+    
+    // Connection state (always true for simplified version)
+    isConnected: true,
+    
+    // Actions
+    markAsRead,
+    markAllAsRead,
+    refetchNotifications,
+    openNotifications,
+    archiveNotification,
+    togglePin,
+    
+    // Mutation states
     isMarkingAsRead: markAsReadMutation.isPending,
     isMarkingAllAsRead: markAllAsReadMutation.isPending,
   };
-}
-
-// Hook para buscar apenas o contador de não lidas
-export function useUnreadCount() {
-  const { data } = useQuery({
-    queryKey: ['notifications', 1, 1],
-    queryFn: async (): Promise<NotificationsResponse> => {
-      const response = await apiRequest('GET', '/api/notifications?page=1&limit=1');
-      return await response.json();
-    },
-    staleTime: 10 * 1000, // 10 segundos
-    refetchInterval: 30 * 1000, // Atualizar a cada 30 segundos
-  });
-
-  return data?.unreadCount || 0;
-}
+};

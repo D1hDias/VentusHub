@@ -30,10 +30,11 @@ import {
   createStageRequirementSchema,
   updatePropertyRequirementSchema,
   stageAdvancementSchema,
-  type PendencyValidationResult
+  type PendencyValidationResult,
+  clientDocuments
 } from "../shared/schema.js";
 import { z } from "zod";
-import { db } from "./db.js";
+import { db, isDBHealthy, reconnectDB } from "./db.js";
 import { documents as propertyDocuments, properties } from "../shared/schema.js";
 import { eq, and, or, ilike, desc, count, sql } from "drizzle-orm";
 import indicadoresRouter from "./indicadores.js";
@@ -48,6 +49,7 @@ import {
   runDailyPendencyCleanup,
   initializePendencyNotifications
 } from "./pendency-notifications.js";
+import { supabaseAdmin } from "./supabase-client.js";
 import { 
   consultarStatusCartorio, 
   enviarDocumentosCartorio, 
@@ -85,6 +87,32 @@ const documentUpload = multer({
   }
 });
 
+// Middleware para verificar saúde do banco de dados
+const dbHealthCheck = async (req: any, res: any, next: any) => {
+  try {
+    const isHealthy = await isDBHealthy();
+    if (!isHealthy) {
+      console.warn('⚠️ Database unhealthy, attempting reconnection...');
+      const reconnected = await reconnectDB();
+      if (!reconnected) {
+        return res.status(503).json({ 
+          error: 'Database temporarily unavailable',
+          code: 'DB_UNAVAILABLE',
+          retry: true
+        });
+      }
+    }
+    next();
+  } catch (error: any) {
+    console.error('❌ Database health check failed:', error.message);
+    return res.status(503).json({ 
+      error: 'Database connection error',
+      code: 'DB_CONNECTION_ERROR',
+      retry: true
+    });
+  }
+};
+
 export function registerApiRoutes(app: Express): void {
   // Market indicators routes (não requer autenticação) 
   app.use('/api', indicadoresRouter);
@@ -108,7 +136,7 @@ export function registerApiRoutes(app: Express): void {
   
 
   // Property routes
-  app.get("/api/properties", isAuthenticated, async (req: any, res) => {
+  app.get("/api/properties", isAuthenticated, dbHealthCheck, async (req: any, res) => {
     try {
       const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
       const properties = await storage.getProperties(userId);
@@ -1502,6 +1530,12 @@ export function registerApiRoutes(app: Express): void {
         .where(eq(clientNotes.clientId, clientId))
         .orderBy(desc(clientNotes.createdAt));
       
+      // Buscar documentos do cliente
+      const documents = await db.select()
+        .from(clientDocuments)
+        .where(eq(clientDocuments.clientId, clientId))
+        .orderBy(desc(clientDocuments.uploadedAt));
+      
       // Contar notas por tipo
       const noteStats = {
         total: notes.length,
@@ -1516,6 +1550,7 @@ export function registerApiRoutes(app: Express): void {
       res.json({
         client,
         notes,
+        documents,
         stats: noteStats
       });
     } catch (error) {
@@ -2882,6 +2917,211 @@ export function registerApiRoutes(app: Express): void {
       console.error("Error creating property with pendency tracking:", error);
       res.status(500).json({ 
         message: "Erro ao criar propriedade com controle de pendências", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // ======================================
+  // CLIENT DOCUMENTS ROUTES
+  // ======================================
+
+  /**
+   * POST /api/clients/documents/upload
+   * Upload document for client
+   */
+  app.post("/api/clients/documents/upload", isAuthenticated, multer().single('file'), async (req: any, res) => {
+    try {
+      // Check if Supabase is configured
+      if (!supabaseAdmin) {
+        return res.status(503).json({ 
+          message: "Serviço de upload não configurado. Entre em contato com o administrador." 
+        });
+      }
+
+      const userId = req.session.user.id.toString();
+      const { clientId } = req.body;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ message: "Nenhum arquivo fornecido" });
+      }
+
+      if (!clientId) {
+        return res.status(400).json({ message: "ID do cliente é obrigatório" });
+      }
+
+      const clientIdNum = parseInt(clientId);
+      if (isNaN(clientIdNum)) {
+        return res.status(400).json({ message: "ID do cliente inválido" });
+      }
+
+      // Verificar se cliente existe e pertence ao usuário
+      const client = await storage.getClient(clientIdNum);
+      if (!client || client.userId !== userId) {
+        return res.status(404).json({ message: "Cliente não encontrado" });
+      }
+
+      // Validar tipo de arquivo
+      const allowedTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'image/jpeg',
+        'image/jpg', 
+        'image/png',
+        'image/gif'
+      ];
+
+      if (!allowedTypes.includes(file.mimetype)) {
+        return res.status(400).json({ 
+          message: "Tipo de arquivo não permitido. Use PDF, DOC, DOCX, JPG, PNG ou GIF" 
+        });
+      }
+
+      // Limitar tamanho do arquivo (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        return res.status(400).json({ message: "Arquivo muito grande. Máximo 10MB" });
+      }
+
+      // Gerar nome único para o arquivo
+      const timestamp = Date.now();
+      const extension = path.extname(file.originalname);
+      const fileName = `client-${clientId}-${timestamp}${extension}`;
+      const bucketPath = `clients/${clientId}/${fileName}`;
+
+      // Upload para Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+        .from('documents')
+        .upload(bucketPath, file.buffer, {
+          contentType: file.mimetype,
+          duplex: 'half'
+        });
+
+      if (uploadError) {
+        console.error("Supabase upload error:", uploadError);
+        return res.status(500).json({ message: "Erro ao fazer upload do arquivo" });
+      }
+
+      // Obter URL pública do arquivo
+      const { data: urlData } = supabaseAdmin.storage
+        .from('documents')
+        .getPublicUrl(bucketPath);
+
+      // Salvar registro no banco de dados
+      const [document] = await db.insert(clientDocuments).values({
+        clientId: clientIdNum,
+        fileName,
+        originalName: file.originalname,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+        storageUrl: urlData.publicUrl,
+        uploadedBy: userId
+      }).returning();
+
+      res.status(201).json({
+        message: "Documento enviado com sucesso",
+        document
+      });
+
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ 
+        message: "Erro interno do servidor", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  /**
+   * GET /api/clients/:id/documents
+   * Get all documents for a client
+   */
+  app.get("/api/clients/:id/documents", isAuthenticated, async (req: any, res) => {
+    try {
+      const clientId = parseInt(req.params.id);
+      const userId = req.session.user.id.toString();
+
+      if (isNaN(clientId)) {
+        return res.status(400).json({ message: "ID do cliente inválido" });
+      }
+
+      // Verificar se cliente existe e pertence ao usuário
+      const client = await storage.getClient(clientId);
+      if (!client || client.userId !== userId) {
+        return res.status(404).json({ message: "Cliente não encontrado" });
+      }
+
+      // Buscar documentos do cliente
+      const documents = await db.select()
+        .from(clientDocuments)
+        .where(eq(clientDocuments.clientId, clientId))
+        .orderBy(desc(clientDocuments.uploadedAt));
+
+      res.json({ documents });
+
+    } catch (error) {
+      console.error("Error fetching client documents:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar documentos", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  /**
+   * DELETE /api/clients/documents/:id
+   * Delete a client document
+   */
+  app.delete("/api/clients/documents/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      const userId = req.session.user.id.toString();
+
+      if (isNaN(documentId)) {
+        return res.status(400).json({ message: "ID do documento inválido" });
+      }
+
+      // Buscar documento
+      const [document] = await db.select()
+        .from(clientDocuments)
+        .where(eq(clientDocuments.id, documentId));
+
+      if (!document) {
+        return res.status(404).json({ message: "Documento não encontrado" });
+      }
+
+      // Verificar se cliente pertence ao usuário
+      const client = await storage.getClient(document.clientId);
+      if (!client || client.userId !== userId) {
+        return res.status(403).json({ message: "Sem permissão para deletar este documento" });
+      }
+
+      // Deletar do Supabase Storage se configurado
+      if (supabaseAdmin) {
+        const urlParts = document.storageUrl.split('/');
+        const bucketPath = urlParts.slice(-3).join('/'); // clients/{clientId}/{fileName}
+
+        const { error: storageError } = await supabaseAdmin.storage
+          .from('documents')
+          .remove([bucketPath]);
+
+        if (storageError) {
+          console.error("Supabase storage delete error:", storageError);
+          // Continue mesmo se o storage falhar (arquivo pode já ter sido deletado)
+        }
+      }
+
+      // Deletar registro do banco
+      await db.delete(clientDocuments)
+        .where(eq(clientDocuments.id, documentId));
+
+      res.json({ message: "Documento deletado com sucesso" });
+
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      res.status(500).json({ 
+        message: "Erro ao deletar documento", 
         error: error instanceof Error ? error.message : String(error) 
       });
     }
