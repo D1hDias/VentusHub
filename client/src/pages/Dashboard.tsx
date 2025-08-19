@@ -368,67 +368,137 @@ export default function Dashboard() {
             ))}
           </div>
         ) : (
-          // Modern Desktop Layout - Elegant cards without progress bars
-          <div className="grid grid-cols-4 gap-4">
-            {kpiData.map((kpi, index) => (
-              <motion.div
-                key={index}
-                variants={getListItemVariants()}
-                className="h-full"
-              >
+          // Modern Desktop Layout - Compact cards in 2 rows
+          <div className="space-y-4">
+            {/* First Row - Primary Metrics */}
+            <div className="grid grid-cols-4 gap-3">
+              {kpiData.slice(0, 4).map((kpi, index) => (
                 <motion.div
-                  onClick={kpi.onClick}
-                  className="cursor-pointer group h-full"
-                  whileHover={{ scale: 1.02, y: -4 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  key={index}
+                  variants={getListItemVariants()}
+                  className="h-full"
                 >
-                  <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-lg transition-all duration-300 h-full flex flex-col overflow-hidden relative hover:border-gray-300">
-                    {/* Subtle gradient background */}
-                    <div 
-                      className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.04] transition-opacity"
-                      style={{ 
-                        background: `linear-gradient(135deg, ${kpi.iconBgColor} 0%, transparent 100%)` 
-                      }}
-                    />
-                    
-                    <CardContent className="p-6 flex flex-col h-full">
-                      <div className="flex items-center justify-between mb-4">
-                        <div 
-                          className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200"
-                          style={{ backgroundColor: kpi.iconBgColor }}
-                        >
-                          <kpi.icon className="h-6 w-6 text-white" />
-                        </div>
-                        <motion.div
-                          className="text-right"
-                          key={kpi.value}
-                          initial={{ scale: 1.1, opacity: 0.8 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          transition={{ duration: 0.4, ease: "easeOut", delay: index * 0.1 }}
-                        >
+                  <motion.div
+                    onClick={kpi.onClick}
+                    className="cursor-pointer group h-full"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                  >
+                    <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col overflow-hidden relative hover:border-gray-300">
+                      {/* Subtle gradient background */}
+                      <div 
+                        className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.04] transition-opacity"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${kpi.iconBgColor} 0%, transparent 100%)` 
+                        }}
+                      />
+                      
+                      <CardContent className="p-4 flex flex-col h-full">
+                        <div className="flex items-center justify-between mb-3">
                           <div 
-                            className="text-3xl font-bold tabular-nums leading-none"
-                            style={{ color: kpi.iconBgColor }}
+                            className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200"
+                            style={{ backgroundColor: kpi.iconBgColor }}
                           >
-                            {kpi.value}
+                            <kpi.icon className="h-5 w-5 text-white" />
                           </div>
-                        </motion.div>
-                      </div>
-                      
-                      <div className="flex-1 flex flex-col justify-end">
-                        <h3 className="font-semibold text-gray-900 text-sm mb-1">{kpi.title}</h3>
-                        <p className="text-xs text-gray-500 leading-relaxed">{kpi.subtitle}</p>
-                      </div>
-                      
-                      {/* Bottom accent line */}
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300" 
-                           style={{ color: kpi.iconBgColor }} />
-                    </CardContent>
-                  </Card>
+                          <motion.div
+                            className="text-right"
+                            key={kpi.value}
+                            initial={{ scale: 1.1, opacity: 0.8 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.4, ease: "easeOut", delay: index * 0.1 }}
+                          >
+                            <div 
+                              className="text-2xl font-bold tabular-nums leading-none"
+                              style={{ color: kpi.iconBgColor }}
+                            >
+                              {kpi.value}
+                            </div>
+                          </motion.div>
+                        </div>
+                        
+                        <div className="flex-1 flex flex-col justify-end">
+                          <h3 className="font-semibold text-gray-900 text-sm mb-1">{kpi.title}</h3>
+                          <p className="text-xs text-gray-500 leading-tight">{kpi.subtitle}</p>
+                        </div>
+                        
+                        {/* Bottom accent line */}
+                        <div 
+                          className="absolute bottom-0 left-0 right-0 h-1 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"
+                          style={{ backgroundColor: kpi.iconBgColor }}
+                        />
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 </motion.div>
-              </motion.div>
-            ))}
+              ))}
+            </div>
+            
+            {/* Second Row - Secondary Metrics */}
+            <div className="grid grid-cols-4 gap-3">
+              {kpiData.slice(4, 8).map((kpi, index) => (
+                <motion.div
+                  key={index + 4}
+                  variants={getListItemVariants()}
+                  className="h-full"
+                >
+                  <motion.div
+                    onClick={kpi.onClick}
+                    className="cursor-pointer group h-full"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                  >
+                    <Card className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col overflow-hidden relative hover:border-gray-300">
+                      {/* Subtle gradient background */}
+                      <div 
+                        className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.04] transition-opacity"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${kpi.iconBgColor} 0%, transparent 100%)` 
+                        }}
+                      />
+                      
+                      <CardContent className="p-4 flex flex-col h-full">
+                        <div className="flex items-center justify-between mb-3">
+                          <div 
+                            className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200"
+                            style={{ backgroundColor: kpi.iconBgColor }}
+                          >
+                            <kpi.icon className="h-5 w-5 text-white" />
+                          </div>
+                          <motion.div
+                            className="text-right"
+                            key={kpi.value}
+                            initial={{ scale: 1.1, opacity: 0.8 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.4, ease: "easeOut", delay: (index + 4) * 0.1 }}
+                          >
+                            <div 
+                              className="text-2xl font-bold tabular-nums leading-none"
+                              style={{ color: kpi.iconBgColor }}
+                            >
+                              {kpi.value}
+                            </div>
+                          </motion.div>
+                        </div>
+                        
+                        <div className="flex-1 flex flex-col justify-end">
+                          <h3 className="font-semibold text-gray-900 text-sm mb-1">{kpi.title}</h3>
+                          <p className="text-xs text-gray-500 leading-tight">{kpi.subtitle}</p>
+                        </div>
+                        
+                        {/* Bottom accent line */}
+                        <div 
+                          className="absolute bottom-0 left-0 right-0 h-1 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"
+                          style={{ backgroundColor: kpi.iconBgColor }}
+                        />
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </div>
           </div>
         )}
       </motion.div>

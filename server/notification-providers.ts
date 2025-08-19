@@ -219,7 +219,14 @@ class SendGridEmailProvider implements NotificationProvider {
 
   private formatEmailContent(payload: NotificationPayload): string {
     // Same format as Resend for consistency
-    return new ResendEmailProvider().formatEmailContent(payload);
+    const resendProvider = new ResendEmailProvider();
+    // Use public method or recreate formatting logic
+    return `
+      <h2>${payload.title}</h2>
+      <p>${payload.message}</p>
+      <hr>
+      <p><small>Enviado via VentusHub</small></p>
+    `;
   }
 }
 

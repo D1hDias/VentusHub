@@ -140,7 +140,7 @@ router.use(async (req, res, next) => {
  */
 router.get('/', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -186,7 +186,7 @@ router.get('/', async (req, res) => {
     query = query.where(and(...conditions));
 
     // Apply sorting
-    const sortColumn = notifications[filters.sortBy as keyof typeof notifications];
+    const sortColumn = notifications[filters.sortBy as keyof typeof notifications] as any;
     query = filters.sortOrder === 'desc' 
       ? query.orderBy(desc(sortColumn))
       : query.orderBy(asc(sortColumn));
@@ -223,7 +223,7 @@ router.get('/', async (req, res) => {
  */
 router.get('/debug', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -260,13 +260,13 @@ router.get('/debug', async (req, res) => {
  */
 router.get('/summary', dbHealthCheck, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
     console.log('📊 Summary request:', { 
       hasReqUser: !!req.user,
       userId, 
       userIdType: typeof userId,
-      sessionUser: req.session?.user?.id,
-      sessionUserType: typeof req.session?.user?.id
+      sessionUser: (req.session as any)?.user?.id,
+      sessionUserType: typeof (req.session as any)?.user?.id
     });
     
     if (!userId) {
@@ -324,7 +324,7 @@ router.get('/summary', dbHealthCheck, async (req, res) => {
  */
 router.get('/:id', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
     const notificationId = parseInt(req.params.id);
 
     if (!userId || isNaN(notificationId)) {
@@ -359,7 +359,7 @@ router.get('/:id', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -368,6 +368,11 @@ router.post('/', async (req, res) => {
     
     const notificationId = await getNotificationService().createNotification({
       userId,
+      type: payload.type || 'info',
+      title: payload.title || '',
+      message: payload.message || '',
+      category: payload.category || 'system',
+      priority: payload.priority || 'normal',
       ...payload,
       scheduledFor: payload.scheduledFor ? new Date(payload.scheduledFor) : undefined,
       expiresAt: payload.expiresAt ? new Date(payload.expiresAt) : undefined
@@ -395,7 +400,7 @@ router.post('/', async (req, res) => {
  */
 router.patch('/:id', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
     const notificationId = parseInt(req.params.id);
 
     if (!userId || isNaN(notificationId)) {
@@ -481,7 +486,7 @@ router.patch('/:id', async (req, res) => {
  */
 router.post('/mark-all-read', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -515,7 +520,7 @@ router.post('/mark-all-read', async (req, res) => {
  */
 router.delete('/:id', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
     const notificationId = parseInt(req.params.id);
 
     if (!userId || isNaN(notificationId)) {
@@ -562,7 +567,7 @@ router.delete('/:id', async (req, res) => {
  */
 router.get('/subscriptions', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -586,7 +591,7 @@ router.get('/subscriptions', async (req, res) => {
  */
 router.post('/subscriptions', async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = (req.user as any)?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }

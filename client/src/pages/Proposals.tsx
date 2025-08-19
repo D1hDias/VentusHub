@@ -312,8 +312,10 @@ export default function Proposals() {
                         </div>
                         
                         {/* Bottom accent line */}
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-300" 
-                             style={{ color: kpi.color }} />
+                        <div 
+                          className="absolute bottom-0 left-0 right-0 h-1 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"
+                          style={{ backgroundColor: kpi.color }}
+                        />
                       </CardContent>
                     </Card>
                   </motion.div>

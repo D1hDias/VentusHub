@@ -16,6 +16,7 @@ import {
   check,
   unique,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -76,8 +77,8 @@ export const enhancedNotifications = pgTable("enhanced_notifications", {
   index("idx_enhanced_notifications_scheduled").on(table.scheduledFor),
   index("idx_enhanced_notifications_expires").on(table.expiresAt),
   index("idx_enhanced_notifications_severity").on(table.severity),
-  check("valid_type", `type IN ('info', 'success', 'warning', 'error', 'reminder')`),
-  check("valid_severity", `severity IN ('low', 'normal', 'high', 'critical')`),
+  check("valid_type", sql`type IN ('info', 'success', 'warning', 'error', 'reminder')`),
+  check("valid_severity", sql`severity IN ('low', 'normal', 'high', 'critical')`),
 ]);
 
 // Notification templates for consistent messaging
@@ -194,7 +195,7 @@ export const enhancedNotificationPreferences = pgTable("enhanced_notification_pr
 }, (table) => [
   unique("unique_user_preferences").on(table.userId),
   index("idx_notification_preferences_user").on(table.userId),
-  check("valid_digest_frequency", `digest_frequency IN ('instant', 'hourly', 'daily', 'weekly')`),
+  check("valid_digest_frequency", sql`digest_frequency IN ('instant', 'hourly', 'daily', 'weekly')`),
 ]);
 
 // Notification delivery log for analytics and debugging
@@ -231,8 +232,8 @@ export const notificationDeliveryLog = pgTable("notification_delivery_log", {
   index("idx_delivery_log_channel").on(table.channel),
   index("idx_delivery_log_status").on(table.status),
   index("idx_delivery_log_date").on(table.createdAt),
-  check("valid_channel", `channel IN ('in_app', 'email', 'push', 'sms', 'whatsapp')`),
-  check("valid_status", `status IN ('pending', 'sent', 'delivered', 'failed', 'bounced', 'opened', 'clicked')`),
+  check("valid_channel", sql`channel IN ('in_app', 'email', 'push', 'sms', 'whatsapp')`),
+  check("valid_status", sql`status IN ('pending', 'sent', 'delivered', 'failed', 'bounced', 'opened', 'clicked')`),
 ]);
 
 // Enhanced activity tracking for comprehensive notification triggers
@@ -272,7 +273,7 @@ export const enhancedUserActivityLog = pgTable("enhanced_user_activity_log", {
   index("idx_activity_log_action").on(table.action, table.createdAt),
   index("idx_activity_log_entity").on(table.entityType, table.entityId),
   index("idx_activity_log_session").on(table.sessionId),
-  check("valid_device_type", `device_type IN ('desktop', 'mobile', 'tablet', 'unknown')`),
+  check("valid_device_type", sql`device_type IN ('desktop', 'mobile', 'tablet', 'unknown')`),
 ]);
 
 // Notification analytics and metrics
@@ -371,8 +372,8 @@ export const notificationQueue = pgTable("notification_queue", {
   index("idx_notification_queue_scheduled").on(table.scheduledFor),
   index("idx_notification_queue_priority").on(table.priority),
   index("idx_notification_queue_job_type").on(table.jobType),
-  check("valid_status", `status IN ('pending', 'processing', 'completed', 'failed', 'cancelled')`),
-  check("valid_job_type", `job_type IN ('send_notification', 'process_digest', 'cleanup_expired', 'send_reminder')`),
+  check("valid_status", sql`status IN ('pending', 'processing', 'completed', 'failed', 'cancelled')`),
+  check("valid_job_type", sql`job_type IN ('send_notification', 'process_digest', 'cleanup_expired', 'send_reminder')`),
 ]);
 
 // Relations

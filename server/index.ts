@@ -175,7 +175,7 @@ log(`
   if (process.env.NODE_ENV === "development") {
     try {
       const { setupVite } = await import("./vite.js");
-      await setupVite(app);
+      await setupVite(app, undefined);
       log("✅ Vite configurado com sucesso");
     } catch (error) {
       console.error("❌ Erro no Vite:", error.message);
