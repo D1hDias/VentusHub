@@ -9,7 +9,7 @@ import {
   clientNoteAuditLogs, 
   scheduledNotifications,
   notifications 
-} from "../shared/schema.js";
+} from "../shared/schema";
 import { eq, and, lte, gte } from "drizzle-orm";
 
 interface AuditLogData {

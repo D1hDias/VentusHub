@@ -13,7 +13,7 @@ import {
   properties,
   stageRequirements,
   propertyRequirements
-} from "../shared/schema.js";
+} from "../shared/schema";
 import { eq, and, sql, lt, gte } from "drizzle-orm";
 
 // ======================================

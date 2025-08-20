@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { db } from "./db.js";
 import { eq, desc, and, count } from "drizzle-orm";
-import { notifications, users } from "../shared/schema.js";
+import { notifications, users } from "../shared/schema";
 
 export function setupNotifications(app: Express) {
   
