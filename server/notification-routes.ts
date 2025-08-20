@@ -527,12 +527,14 @@ router.delete('/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid request' });
     }
 
+    const userIdString = String(userId);
+
     // Check if notification belongs to user
     const notification = await db.select()
       .from(notifications)
       .where(and(
         eq(notifications.id, notificationId),
-        eq(notifications.userId, userId)
+        eq(notifications.userId, userIdString)
       ))
       .limit(1);
 

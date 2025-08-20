@@ -222,7 +222,7 @@ class SendGridEmailProvider implements NotificationProvider {
     const resendProvider = new ResendEmailProvider();
     // Use public method or recreate formatting logic
     return `
-      <h2>${payload.title}</h2>
+      <h2>${payload.subject || 'Notificação VentusHub'}</h2>
       <p>${payload.message}</p>
       <hr>
       <p><small>Enviado via VentusHub</small></p>
