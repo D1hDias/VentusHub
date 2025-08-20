@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { db } from "./db.js";
 import { eq, desc } from "drizzle-orm";
-import { users, userSettings, activityLogs } from "../shared/schema";
+import { users, userSettings, activityLogs } from "../shared/schema.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";

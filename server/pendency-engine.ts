@@ -18,7 +18,7 @@ import {
   propertyOwners,
   type PendencyValidationResult,
   type StageAdvancement 
-} from "../shared/schema";
+} from "../shared/schema.js";
 import { eq, and, sql, desc } from "drizzle-orm";
 
 // ======================================

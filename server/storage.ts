@@ -10,7 +10,7 @@ import {
   timelineEntries,
   registros,
   clients
-} from "../shared/schema";
+} from "../shared/schema.js";
 
 // Wrapper para operações com timeout
 const withTimeout = async <T>(operation: () => Promise<T>, timeoutMs: number = 8000): Promise<T> => {

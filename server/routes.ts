@@ -32,10 +32,10 @@ import {
   stageAdvancementSchema,
   type PendencyValidationResult,
   clientDocuments
-} from "../shared/schema";
+} from "../shared/schema.js";
 import { z } from "zod";
 import { db, isDBHealthy, reconnectDB } from "./db.js";
-import { documents as propertyDocuments, properties } from "../shared/schema";
+import { documents as propertyDocuments, properties } from "../shared/schema.js";
 import { eq, and, or, ilike, desc, count, sql } from "drizzle-orm";
 import indicadoresRouter from "./indicadores.js";
 import { 

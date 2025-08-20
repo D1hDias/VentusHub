@@ -20,13 +20,13 @@ import {
   propertyOwners,
   proposals,
   contracts
-} from "../shared/schema";
+} from "../shared/schema.js";
 import { eq, and, or, count, desc } from "drizzle-orm";
 import type { 
   PendencyValidationResult, 
   UpdatePropertyRequirement,
   StageAdvancement 
-} from "../shared/schema";
+} from "../shared/schema.js";
 
 // ======================================
 // VALIDATION RULE INTERFACES
