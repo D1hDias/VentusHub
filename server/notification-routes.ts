@@ -364,15 +364,16 @@ router.post('/', async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    const userIdString = String(userId);
     const payload = createNotificationSchema.parse(req.body);
     
     const notificationId = await getNotificationService().createNotification({
-      userId,
+      userId: userIdString,
       type: payload.type || 'info',
       title: payload.title || '',
       message: payload.message || '',
       category: payload.category || 'system',
-      priority: payload.priority || 'normal',
+      priority: payload.priority || 3,
       ...payload,
       scheduledFor: payload.scheduledFor ? new Date(payload.scheduledFor) : undefined,
       expiresAt: payload.expiresAt ? new Date(payload.expiresAt) : undefined
