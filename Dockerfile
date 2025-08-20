@@ -3,8 +3,8 @@ FROM node:20-alpine AS base
 WORKDIR /app
 # Copiar arquivos de pacote e instalar dependências
 COPY package.json package-lock.json* ./
-# Usar npm ci para instalações limpas e reprodutíveis
-RUN npm ci
+# Instalar dependências e fixar versão do Neon para produção
+RUN npm ci && npm install @neondatabase/serverless@0.10.1
 
 # Estágio 2: Construir a aplicação
 FROM node:20-alpine AS builder

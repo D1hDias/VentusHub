@@ -27,7 +27,10 @@ const conectarComRetry = async (tentativas = 3): Promise<boolean> => {
       neonConfig.webSocketConstructor = ws.default;
       neonConfig.poolQueryViaFetch = true; // Prefer fetch over WebSocket
       neonConfig.useSecureWebSocket = true;
-      neonConfig.fetchConnectionCache = true; // Enable connection caching
+      // fetchConnectionCache é deprecated na v0.10.4+ (sempre true)
+      if (neonConfig.fetchConnectionCache !== undefined) {
+        neonConfig.fetchConnectionCache = true;
+      }
       
       pool = new Pool({ 
         connectionString: process.env.DATABASE_URL,
@@ -60,9 +63,15 @@ const conectarComRetry = async (tentativas = 3): Promise<boolean> => {
       
       db = drizzle(pool, { schema });
       
-      // Error handling para o pool
+      // Error handling para o pool com tratamento robusto
       pool.on('error', (err: any) => {
-        console.warn('⚠️ Database pool error:', err.message);
+        console.warn('⚠️ Database pool error:', err.message || err.type || 'Unknown error');
+        
+        // Tratamento específico para erros de conexão WebSocket
+        if (err.message && err.message.includes('Cannot set property message')) {
+          console.warn('⚠️ Neon WebSocket error - this is usually temporary');
+          return; // Não propagar este erro específico
+        }
       });
       
       console.log('✅ Conexão com Neon Database estabelecida com sucesso!');
