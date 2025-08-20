@@ -5,7 +5,7 @@
  * Supports multiple delivery channels, templates, rules, and real-time updates
  */
 
-import { db } from './db';
+import { db } from './db.js';
 import { 
   notifications, 
   notificationTemplates, 
@@ -19,9 +19,9 @@ import {
   clients,
   clientNotes,
   scheduledNotifications
-} from '../shared/schema';
+} from '../shared/schema.js';
 import { eq, and, desc, count, sql, gte, lte, inArray } from 'drizzle-orm';
-import { notificationProviderManager, type NotificationPayload as ProviderPayload } from './notification-providers';
+import { notificationProviderManager, type NotificationPayload as ProviderPayload } from './notification-providers.js';
 
 // ======================================
 // TYPES AND INTERFACES

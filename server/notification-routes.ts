@@ -7,7 +7,7 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-import { db, isDBHealthy, reconnectDB } from './db';
+import { db, isDBHealthy, reconnectDB } from './db.js';
 import { 
   notifications, 
   notificationTemplates,
@@ -15,10 +15,10 @@ import {
   notificationSubscriptions,
   notificationAnalytics,
   userSettings
-} from '../shared/schema';
+} from '../shared/schema.js';
 import { eq, and, desc, count, sql, gte, lte, inArray, or, isNull, asc } from 'drizzle-orm';
-import { getNotificationService } from './notification-service';
-import { isAuthenticated } from './auth';
+import { getNotificationService } from './notification-service.js';
+import { isAuthenticated } from './auth.js';
 
 const router = Router();
 

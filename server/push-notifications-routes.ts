@@ -6,13 +6,13 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-import { db } from './db';
+import { db } from './db.js';
 import { 
   pushSubscriptions,
   userSettings
-} from '../shared/schema';
+} from '../shared/schema.js';
 import { eq, and } from 'drizzle-orm';
-import { isAuthenticated } from './auth';
+import { isAuthenticated } from './auth.js';
 
 const router = Router();
 

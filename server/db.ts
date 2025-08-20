@@ -108,7 +108,16 @@ export const initializeDB = async () => {
       console.log('🔄 Ativando modo fallback para desenvolvimento...');
       
       try {
-        const { createFallbackDB } = await import('./db-fallback.js');
+        // Try to import the fallback module
+        let fallbackModule;
+        try {
+          fallbackModule = await import('./db-fallback.js');
+        } catch (importError) {
+          // If .js extension fails, try without extension for older Node versions
+          fallbackModule = await import('./db-fallback');
+        }
+        
+        const { createFallbackDB } = fallbackModule;
         db = createFallbackDB();
         
         console.log('⚠️ Usando banco SQLite local como fallback');
@@ -118,6 +127,7 @@ export const initializeDB = async () => {
         throw new Error('Nenhuma opção de banco disponível');
       }
     } else {
+      console.error('❌ Production database connection failed - no fallback available');
       throw error; // Em produção, falhar se não conseguir conectar
     }
   }

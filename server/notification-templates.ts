@@ -5,8 +5,8 @@
  * Covers all major user actions in the VentusHub system
  */
 
-import { db } from './db';
-import { notificationTemplates, notificationRules } from '../shared/schema';
+import { db } from './db.js';
+import { notificationTemplates, notificationRules } from '../shared/schema.js';
 import { eq } from 'drizzle-orm';
 
 // ======================================
