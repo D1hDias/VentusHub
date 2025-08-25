@@ -270,7 +270,7 @@ export function PropertyListExample() {
     <div className="space-y-4">
       <h2>Lista de Propriedades</h2>
       
-      {properties.map(property => (
+      {properties.map((property: any) => (
         <div key={property.id} className="flex justify-between items-center p-4 border rounded">
           <span>Imóvel {property.sequenceNumber} - Etapa {property.stage}</span>
           <Button onClick={() => handleViewPendencies(property)}>

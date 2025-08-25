@@ -100,7 +100,7 @@ class ResendEmailProvider implements NotificationProvider {
         metadata: result
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         providerId: this.id,
@@ -208,7 +208,7 @@ class SendGridEmailProvider implements NotificationProvider {
         metadata: { status: response.status }
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         providerId: this.id,
@@ -298,7 +298,7 @@ class TwilioSMSProvider implements NotificationProvider {
         metadata: result
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         providerId: this.id,
@@ -366,7 +366,7 @@ export class NotificationProviderManager {
     this.emailProviders = [
       new ResendEmailProvider(process.env.RESEND_API_KEY),
       new SendGridEmailProvider(process.env.SENDGRID_API_KEY),
-    ].filter(provider => provider.enabled)
+    ].filter((provider: any) => provider.enabled)
      .sort((a, b) => a.priority - b.priority);
 
     // Initialize SMS providers
@@ -381,12 +381,12 @@ export class NotificationProviderManager {
         process.env.AWS_SECRET_ACCESS_KEY,
         process.env.AWS_REGION
       ),
-    ].filter(provider => provider.enabled)
+    ].filter((provider: any) => provider.enabled)
      .sort((a, b) => a.priority - b.priority);
 
     console.log(`✅ Notification providers initialized:`);
-    console.log(`📧 Email providers: ${this.emailProviders.map(p => p.name).join(', ') || 'None'}`);
-    console.log(`📱 SMS providers: ${this.smsProviders.map(p => p.name).join(', ') || 'None'}`);
+    console.log(`📧 Email providers: ${this.emailProviders.map((p: any) => p.name).join(', ') || 'None'}`);
+    console.log(`📱 SMS providers: ${this.smsProviders.map((p: any) => p.name).join(', ') || 'None'}`);
   }
 
   async sendEmail(payload: NotificationPayload): Promise<NotificationResult> {
@@ -407,7 +407,7 @@ export class NotificationProviderManager {
           return result;
         }
         console.warn(`⚠️ Email failed via ${provider.name}: ${result.error}`);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`❌ Email provider ${provider.name} error:`, error);
       }
     }
@@ -437,7 +437,7 @@ export class NotificationProviderManager {
           return result;
         }
         console.warn(`⚠️ SMS failed via ${provider.name}: ${result.error}`);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`❌ SMS provider ${provider.name} error:`, error);
       }
     }
@@ -451,13 +451,13 @@ export class NotificationProviderManager {
 
   getAvailableProviders() {
     return {
-      email: this.emailProviders.map(p => ({
+      email: this.emailProviders.map((p: any) => ({
         id: p.id,
         name: p.name,
         enabled: p.enabled,
         priority: p.priority
       })),
-      sms: this.smsProviders.map(p => ({
+      sms: this.smsProviders.map((p: any) => ({
         id: p.id,
         name: p.name,
         enabled: p.enabled,

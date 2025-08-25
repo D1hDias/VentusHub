@@ -104,7 +104,7 @@ export class PendencyValidationEngine {
       
       return metrics;
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error validating property stage:', error);
       throw error;
     }
@@ -224,11 +224,11 @@ export class PendencyValidationEngine {
     try {
       // Apply validation rules
       const ruleResults = await Promise.all(
-        validationRules.map(rule => this.applyValidationRule(rule, context))
+        validationRules.map((rule: any) => this.applyValidationRule(rule, context))
       );
 
       // Calculate overall status
-      const passedRules = ruleResults.filter(r => r.passed).length;
+      const passedRules = ruleResults.filter((r: any) => r.passed).length;
       const totalRules = ruleResults.length;
       
       if (totalRules === 0) {
@@ -258,7 +258,7 @@ export class PendencyValidationEngine {
       // Generate message
       message = this.generateValidationMessage(requirement, status, ruleResults);
 
-    } catch (error) {
+    } catch (error: any) {
       status = 'FAILED';
       message = `Validation error: ${error.message}`;
       validationData = { error: error.message };
@@ -331,7 +331,7 @@ export class PendencyValidationEngine {
    * Validate document uploaded rule
    */
   private validateDocumentUploaded(rule: ValidationRule, context: ValidationContext) {
-    const document = context.documents.find(doc => 
+    const document = context.documents.find((doc: any) => 
       doc.type === rule.documentType || doc.name?.includes(rule.documentType!)
     );
     
@@ -412,7 +412,7 @@ export class PendencyValidationEngine {
         passed,
         message: passed ? 'Custom validation passed' : 'Custom validation failed'
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         rule,
         passed: false,
@@ -459,11 +459,11 @@ export class PendencyValidationEngine {
   ): PendencyValidationResult {
     
     const totalRequirements = requirements.length;
-    const completedRequirements = validationResults.filter(r => r.status === 'COMPLETED').length;
-    const criticalRequirements = requirements.filter(r => r.isCritical).length;
-    const completedCritical = validationResults.filter(r => 
+    const completedRequirements = validationResults.filter((r: any) => r.status === 'COMPLETED').length;
+    const criticalRequirements = requirements.filter((r: any) => r.isCritical).length;
+    const completedCritical = validationResults.filter((r: any) => 
       r.status === 'COMPLETED' && 
-      requirements.find(req => req.id === r.requirementId)?.isCritical
+      requirements.find((req: any) => req.id === r.requirementId)?.isCritical
     ).length;
     
     const completionPercentage = totalRequirements > 0 ? 
@@ -473,12 +473,12 @@ export class PendencyValidationEngine {
       Math.round((completedCritical / criticalRequirements) * 100) : 100;
     
     const blockingRequirements = validationResults
-      .filter(r => {
-        const requirement = requirements.find(req => req.id === r.requirementId);
+      .filter((r: any) => {
+        const requirement = requirements.find((req: any) => req.id === r.requirementId);
         return requirement?.isCritical && r.status !== 'COMPLETED';
       })
-      .map(r => {
-        const requirement = requirements.find(req => req.id === r.requirementId);
+      .map((r: any) => {
+        const requirement = requirements.find((req: any) => req.id === r.requirementId);
         return {
           id: r.requirementId,
           requirementKey: r.requirementKey,
@@ -644,9 +644,9 @@ export class PendencyValidationEngine {
       return `${requirement.requirementName} pending completion`;
     }
     
-    const failedRules = ruleResults.filter(r => !r.passed);
+    const failedRules = ruleResults.filter((r: any) => !r.passed);
     if (failedRules.length > 0) {
-      return failedRules.map(r => r.message).join('; ');
+      return failedRules.map((r: any) => r.message).join('; ');
     }
     
     return `${requirement.requirementName} validation in progress`;
@@ -655,10 +655,10 @@ export class PendencyValidationEngine {
   private async executeCustomValidator(validatorName: string, context: ValidationContext): Promise<boolean> {
     // Predefined custom validators for security
     const validators: Record<string, (context: ValidationContext) => boolean> = {
-      'hasOwnerDocuments': (ctx) => ctx.propertyOwners.length > 0 && ctx.documents.length > 0,
-      'hasAcceptedProposal': (ctx) => ctx.proposals.some(p => p.status === 'accepted'),
-      'hasSignedContract': (ctx) => ctx.contracts.some(c => c.status === 'active'),
-      'valueAbove100k': (ctx) => parseFloat(ctx.property.value) > 100000,
+      'hasOwnerDocuments': (ctx: any) => ctx.propertyOwners.length > 0 && ctx.documents.length > 0,
+      'hasAcceptedProposal': (ctx: any) => ctx.proposals.some((p: any) => p.status === 'accepted'),
+      'hasSignedContract': (ctx: any) => ctx.contracts.some((c: any) => c.status === 'active'),
+      'valueAbove100k': (ctx: any) => parseFloat(ctx.property.value) > 100000,
     };
     
     const validator = validators[validatorName];
@@ -694,8 +694,8 @@ export class PendencyValidationEngine {
     const results = await query;
     
     return results
-      .filter(r => !r.propertyRequirement || r.propertyRequirement.status !== 'COMPLETED')
-      .map(r => ({
+      .filter((r: any) => !r.propertyRequirement || r.propertyRequirement.status !== 'COMPLETED')
+      .map((r: any) => ({
         ...r.requirement,
         currentStatus: r.propertyRequirement?.status || 'PENDING',
         completionPercentage: r.propertyRequirement?.completionPercentage || 0,

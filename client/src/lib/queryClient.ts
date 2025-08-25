@@ -7,7 +7,7 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-// Nova função com interface moderna (url, options)
+// Nova função com interface moderna (url: any, options)
 export async function apiRequest(
   url: string,
   options?: RequestInit,
@@ -63,10 +63,30 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
-      retry: false,
+      retry: (failureCount, error) => {
+        // Don't retry on 401 errors (user not authenticated)
+        if (error && typeof error === 'object' && 'message' in error) {
+          const errorMessage = error.message as string;
+          if (errorMessage.includes('401')) {
+            return false;
+          }
+        }
+        return failureCount < 2;
+      },
     },
     mutations: {
       retry: false,
+    },
+  },
+  logger: {
+    log: console.log,
+    warn: console.warn,
+    error: (message) => {
+      // Don't log 401 errors to console (they're expected when not logged in)
+      if (typeof message === 'string' && message.includes('401')) {
+        return;
+      }
+      console.error(message);
     },
   },
 });

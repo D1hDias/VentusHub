@@ -223,7 +223,8 @@ export function ClientNoteModal({
     },
   });
 
-  const handleTypeChange = (type: NoteType) => {
+  const handleTypeChange = (value: string) => {
+    const type = value as NoteType;
     setSelectedType(type);
     form.setValue("type", type);
 
@@ -256,7 +257,7 @@ export function ClientNoteModal({
     }
   };
 
-  const currentTypeInfo = NOTE_TYPES.find(t => t.value === selectedType);
+  const currentTypeInfo = NOTE_TYPES.find((t: any) => t.value === selectedType);
   const Icon = currentTypeInfo?.icon || StickyNote;
 
   // Função para formatar data/hora para input datetime-local
@@ -285,7 +286,7 @@ export function ClientNoteModal({
       // Usar toISOString e ajustar para timezone local
       const localISOTime = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
       return localISOTime;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error formatting date: ${date}`, error);
       return "";
     }

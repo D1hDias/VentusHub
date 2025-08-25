@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+// import { useOrganization } from "@/hooks/useOrganization"; // Temporarily disabled
 import { X, User, Phone, Mail, MapPin, DollarSign, FileText } from "lucide-react";
 
 const BRAZILIAN_STATES = [
@@ -136,7 +136,7 @@ async function fetchAddressByCep(cep: string) {
       city: data.localidade,
       state: data.uf,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao buscar CEP:', error);
     return null;
   }
@@ -145,7 +145,18 @@ async function fetchAddressByCep(cep: string) {
 export function ClientModal({ open, onOpenChange, client, onClientUpdated }: ClientModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  // const { currentOrganization, canManageClients } = useOrganization(); // Temporarily disabled
+  
+  // Mock values
+  const currentOrganization = { id: 'temp-org' };
+  const canManageClients = () => true;
+  
   const isEditing = !!client;
+
+  // Verificar permissões
+  if (!canManageClients()) {
+    return null;
+  }
 
   const form = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
@@ -220,7 +231,7 @@ export function ClientModal({ open, onOpenChange, client, onClientUpdated }: Cli
   const createClientMutation = useMutation({
     mutationFn: async (data: ClientFormData) => {
       // Converter monthlyIncome de centavos para valor decimal
-      const monthlyIncome = data.monthlyIncome ? (parseFloat(data.monthlyIncome) / 100).toString() : undefined;
+      const monthlyIncome = data.monthlyIncome ? (parseFloat(data.monthlyIncome) / 100) : undefined;
 
       const clientData = {
         ...data,
@@ -234,23 +245,31 @@ export function ClientModal({ open, onOpenChange, client, onClientUpdated }: Cli
         addressComplement: data.addressComplement || undefined,
         profession: data.profession || undefined,
         notes: data.notes || undefined,
+        tipo: 'cliente', // Garantir que o tipo seja cliente
       };
 
-      const url = `/api/clients${isEditing ? `/${client.id}` : ''}`;
+      const url = isEditing && client?.id 
+        ? `/api/pessoas/${client.id}` 
+        : '/api/pessoas';
       const method = isEditing ? 'PUT' : 'POST';
-
-      const response = await apiRequest(url, {
+      
+      const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(clientData),
       });
-
-      const result = await response.json();
-      return result;
+      
+      if (!response.ok) {
+        throw new Error('Erro ao salvar cliente');
+      }
+      
+      return response.json();
     },
     onSuccess: (result) => {
       // Invalidar cache para lista de clientes
-      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+      queryClient.invalidateQueries({ queryKey: ['clients', currentOrganization?.id] });
       
       // Se estiver editando e temos callback, chamar diretamente
       if (isEditing && onClientUpdated && result) {

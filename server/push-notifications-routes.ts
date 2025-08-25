@@ -8,11 +8,19 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { db } from './db.js';
 import { 
-  pushSubscriptions,
-  userSettings
+  pushSubscriptions
 } from '../shared/schema.js';
 import { eq, and } from 'drizzle-orm';
-import { isAuthenticated } from './auth.js';
+// Legacy imports removed - userSettings table and auth.js removed
+
+// Simple auth middleware replacement
+function isAuthenticated(req: any, res: any, next: any) {
+  if (req.session && req.session.user) {
+    req.user = req.session.user;
+    return next();
+  }
+  return res.status(401).json({ message: "Unauthorized" });
+}
 
 const router = Router();
 
@@ -99,20 +107,14 @@ router.post('/subscribe', async (req, res) => {
       });
     }
 
-    // Update user settings to enable push notifications
-    await db.update(userSettings)
-      .set({ 
-        pushNotifications: true,
-        updatedAt: new Date()
-      })
-      .where(eq(userSettings.userId, userId));
+    // User settings update removed - push subscription is sufficient indicator
 
     res.json({ 
       success: true, 
       message: 'Push subscription created successfully' 
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating push subscription:', error);
     res.status(500).json({ error: 'Failed to create push subscription' });
   }
@@ -153,7 +155,7 @@ router.delete('/unsubscribe', async (req, res) => {
       message: 'Push subscription removed successfully' 
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error removing push subscription:', error);
     res.status(500).json({ error: 'Failed to remove push subscription' });
   }
@@ -184,7 +186,7 @@ router.get('/subscriptions', async (req, res) => {
 
     res.json({ subscriptions });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching push subscriptions:', error);
     res.status(500).json({ error: 'Failed to fetch push subscriptions' });
   }
@@ -281,7 +283,7 @@ router.post('/test', async (req, res) => {
       });
     }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error sending test notification:', error);
     res.status(500).json({ error: 'Failed to send test notification' });
   }
@@ -302,7 +304,7 @@ router.get('/vapid-key', async (req, res) => {
       message: 'Use this key to subscribe to push notifications'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching VAPID key:', error);
     res.status(500).json({ error: 'Failed to fetch VAPID key' });
   }

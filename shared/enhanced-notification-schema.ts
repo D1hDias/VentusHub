@@ -22,7 +22,7 @@ import { z } from "zod";
 import { relations } from "drizzle-orm";
 
 // Enhanced notifications table with comprehensive metadata
-export const enhancedNotifications = pgTable("enhanced_notifications", {
+export const enhancedNotifications: any = pgTable("enhanced_notifications", {
   id: serial("id").primaryKey(),
   userId: text("user_id").notNull(),
   

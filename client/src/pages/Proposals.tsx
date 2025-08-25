@@ -131,10 +131,10 @@ export default function Proposals() {
 
   const statsData = {
     total: mockProposals.length,
-    pending: mockProposals.filter(p => p.status === "pending").length,
-    accepted: mockProposals.filter(p => p.status === "accepted").length,
-    negotiating: mockProposals.filter(p => p.status === "negotiating").length,
-    rejected: mockProposals.filter(p => p.status === "rejected").length,
+    pending: mockProposals.filter((p: any) => p.status === "pending").length,
+    accepted: mockProposals.filter((p: any) => p.status === "accepted").length,
+    negotiating: mockProposals.filter((p: any) => p.status === "negotiating").length,
+    rejected: mockProposals.filter((p: any) => p.status === "rejected").length,
   };
 
   if (isLoading) {

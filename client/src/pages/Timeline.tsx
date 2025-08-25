@@ -80,16 +80,16 @@ export default function Timeline() {
   };
 
   const handleStageAdvancement = (timeline: any, targetStage: number) => {
-    const propertyPendencies = getPendenciesForProperty(timeline.id);
+    const propertyPendencies = getPendenciesForProperty(timeline.id) as any;
     const currentStagePendencies = propertyPendencies[timeline.currentStage] || [];
-    const incompletePendencies = currentStagePendencies.filter(p => p.status !== 'completed');
+    const incompletePendencies = currentStagePendencies.filter((p: any) => p.status !== 'completed');
     
     if (incompletePendencies.length > 0) {
       setSelectedStage({
         timeline,
         targetStage,
         pendencies: incompletePendencies,
-        stageName: timeline.stages.find(s => s.stage === timeline.currentStage)?.title || 'Etapa Atual'
+        stageName: timeline.stages.find((s: any) => s.stage === timeline.currentStage)?.title || 'Etapa Atual'
       });
       setPendencyModalOpen(true);
     } else {
@@ -118,10 +118,10 @@ export default function Timeline() {
   const getStageStatus = (stageId: number, pendencies: any[]) => {
     if (!pendencies || pendencies.length === 0) return 'complete';
     
-    const incomplete = pendencies.filter(p => p.status !== 'completed');
+    const incomplete = pendencies.filter((p: any) => p.status !== 'completed');
     if (incomplete.length === 0) return 'complete';
     
-    const critical = incomplete.filter(p => p.priority === 'critical');
+    const critical = incomplete.filter((p: any) => p.priority === 'critical');
     if (critical.length > 0) return 'critical';
     
     return 'incomplete';
@@ -346,9 +346,9 @@ export default function Timeline() {
 
   const overallStats = {
     totalProperties: mockTimelines.length,
-    completed: mockTimelines.filter(t => t.currentStage === 7).length,
-    inProgress: mockTimelines.filter(t => t.currentStage > 1 && t.currentStage < 7).length,
-    starting: mockTimelines.filter(t => t.currentStage === 1).length,
+    completed: mockTimelines.filter((t: any) => t.currentStage === 7).length,
+    inProgress: mockTimelines.filter((t: any) => t.currentStage > 1 && t.currentStage < 7).length,
+    starting: mockTimelines.filter((t: any) => t.currentStage === 1).length,
     alerts: mockTimelines.reduce((acc, timeline) => {
       return acc + timeline.stages.reduce((stageAcc, stage) => stageAcc + stage.alerts.length, 0);
     }, 0)
@@ -593,7 +593,7 @@ export default function Timeline() {
               className="button-interactive border rounded-md m-1 transition-shadow"
               style={{
                 '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.08)`
-              }}
+              } as any}
             >
               <Card>
               <CardHeader>
@@ -644,9 +644,9 @@ export default function Timeline() {
                       )}>
                         <BadgeWrapper
                           badge={(() => {
-                            const propertyPendencies = getPendenciesForProperty(timeline.id);
+                            const propertyPendencies = getPendenciesForProperty(timeline.id) as any;
                             const stagePendencies = propertyPendencies[stage.stage] || [];
-                            const incompletePendencies = stagePendencies.filter(p => p.status !== 'completed');
+                            const incompletePendencies = stagePendencies.filter((p: any) => p.status !== 'completed');
                             if (incompletePendencies.length === 0) return null;
                             
                             const stageStatus = getStageStatus(stage.stage, stagePendencies);
@@ -671,10 +671,10 @@ export default function Timeline() {
                               <div className="flex items-center gap-2">
                                 <h4 className="font-medium">{stage.stage}. {stage.title}</h4>
                                 {(() => {
-                                  const propertyPendencies = getPendenciesForProperty(timeline.id);
+                                  const propertyPendencies = getPendenciesForProperty(timeline.id) as any;
                                   const stagePendencies = propertyPendencies[stage.stage] || [];
-                                  const incompletePendencies = stagePendencies.filter(p => p.status !== 'completed');
-                                  const criticalPendencies = incompletePendencies.filter(p => p.priority === 'critical');
+                                  const incompletePendencies = stagePendencies.filter((p: any) => p.status !== 'completed');
+                                  const criticalPendencies = incompletePendencies.filter((p: any) => p.priority === 'critical');
                                   
                                   if (incompletePendencies.length === 0) {
                                     return <Badge className="bg-green-100 text-green-800 text-xs">Completo</Badge>;
@@ -696,9 +696,9 @@ export default function Timeline() {
                             <div className="flex items-center gap-2">
                               {/* Pendency Actions */}
                               {(() => {
-                                const propertyPendencies = getPendenciesForProperty(timeline.id);
+                                const propertyPendencies = getPendenciesForProperty(timeline.id) as any;
                                 const stagePendencies = propertyPendencies[stage.stage] || [];
-                                const incompletePendencies = stagePendencies.filter(p => p.status !== 'completed');
+                                const incompletePendencies = stagePendencies.filter((p: any) => p.status !== 'completed');
                                 
                                 if (incompletePendencies.length > 0) {
                                   return (
@@ -783,7 +783,7 @@ export default function Timeline() {
                       
                       {/* Expandable Checklist */}
                       {(() => {
-                        const propertyPendencies = getPendenciesForProperty(timeline.id);
+                        const propertyPendencies = getPendenciesForProperty(timeline.id) as any;
                         const stagePendencies = propertyPendencies[stage.stage] || [];
                         const checklistKey = `${timeline.id}-${stage.stage}`;
                         const isExpanded = expandedChecklists[checklistKey];

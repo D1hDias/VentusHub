@@ -111,7 +111,7 @@ export class PendencyNotificationService {
         isRead: false
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating pendency notification:', error);
     }
   }
@@ -181,7 +181,7 @@ export class PendencyNotificationService {
         });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error notifying missing critical requirements:', error);
     }
   }
@@ -214,7 +214,7 @@ export class PendencyNotificationService {
         }
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error notifying stage blocked:', error);
     }
   }
@@ -261,7 +261,7 @@ export class PendencyNotificationService {
         autoResolveAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // Auto-resolve in 24h
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error notifying stage advanced:', error);
     }
   }
@@ -299,7 +299,7 @@ export class PendencyNotificationService {
         }
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error notifying validation failed:', error);
     }
   }
@@ -334,7 +334,7 @@ export class PendencyNotificationService {
         }
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error notifying missing document:', error);
     }
   }
@@ -359,7 +359,7 @@ export class PendencyNotificationService {
           )
         );
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error resolving expired notifications:', error);
     }
   }
@@ -382,7 +382,7 @@ export class PendencyNotificationService {
           )
         );
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error resolving notification:', error);
     }
   }
@@ -410,7 +410,7 @@ export class PendencyNotificationService {
       .orderBy(sql`${pendencyNotifications.severity} DESC, ${pendencyNotifications.createdAt} DESC`)
       .limit(limit);
 
-      return userNotifications.map(n => ({
+      return userNotifications.map((n: any) => ({
         ...n.notification,
         property: {
           sequenceNumber: n.property?.sequenceNumber,
@@ -418,7 +418,7 @@ export class PendencyNotificationService {
         }
       }));
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting user pendency notifications:', error);
       return [];
     }
@@ -447,7 +447,7 @@ export class PendencyNotificationService {
       )
       .orderBy(sql`${pendencyNotifications.severity} DESC, ${pendencyNotifications.createdAt} DESC`);
 
-      return propertyNotifications.map(n => ({
+      return propertyNotifications.map((n: any) => ({
         ...n.notification,
         requirement: n.requirement ? {
           requirementName: n.requirement.requirementName,
@@ -456,7 +456,7 @@ export class PendencyNotificationService {
         } : null
       }));
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting property pendency notifications:', error);
       return [];
     }
@@ -482,7 +482,7 @@ export class PendencyNotificationService {
       // Check for missing critical requirements
       await this.notifyMissingCriticalRequirements(propertyId, userId);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error triggering pendency review:', error);
     }
   }
@@ -534,7 +534,7 @@ export class RealTimePendencyTracker {
       // Trigger comprehensive review
       await PendencyNotificationService.triggerPendencyReview(propertyId, userId);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error tracking requirement update:', error);
     }
   }
@@ -574,7 +574,7 @@ export class RealTimePendencyTracker {
           )
         );
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error tracking stage advancement:', error);
     }
   }
@@ -604,7 +604,7 @@ export class RealTimePendencyTracker {
           )
         );
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error tracking document upload:', error);
     }
   }
@@ -637,7 +637,7 @@ export async function runDailyPendencyCleanup(): Promise<void> {
 
     console.log('Daily pendency cleanup completed');
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in daily pendency cleanup:', error);
   }
 }
@@ -659,7 +659,7 @@ export async function initializePendencyNotifications(): Promise<void> {
 
     console.log(`Initialized pendency notifications for ${allProperties.length} properties`);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error initializing pendency notifications:', error);
   }
 }

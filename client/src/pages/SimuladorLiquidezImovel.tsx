@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Lightbulb, TrendingUp, CheckCircle, AlertTriangle, BarChart, FileImage, Info } from 'lucide-react';
-import { LiquidityIndexIn, LiquidityIndexOut } from "@/../shared/liquidity";
+import { LiquidityIndexIn, LiquidityIndexOut } from "../../../shared/liquidity";
 
 const BairrosMock = [
   { id: "SP_PINHEIROS", nome: "Pinheiros, São Paulo" },
@@ -35,7 +35,7 @@ export default function SimuladorLiquidezImovel() {
   const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (field: keyof LiquidityIndexIn, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev: any) => ({ ...prev, [field]: value }));
   };
 
   const handleMonetaryChange = (field: 'preco_anuncio', value: string) => {
@@ -111,7 +111,7 @@ export default function SimuladorLiquidezImovel() {
                 <Select value={formData.bairro_id} onValueChange={(val) => handleInputChange('bairro_id', val)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {BairrosMock.map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}
+                    {BairrosMock.map((b: any) => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -121,7 +121,7 @@ export default function SimuladorLiquidezImovel() {
               </div>
               <div>
                 <Label htmlFor="fotos_urls">URLs das Fotos (separadas por vírgula)</Label>
-                <Input id="fotos_urls" type="text" placeholder="https://.../1.jpg,https://.../2.jpg" onChange={(e) => handleInputChange('fotos_urls', e.target.value.split(',').map(url => url.trim()))} />
+                <Input id="fotos_urls" type="text" placeholder="https://.../1.jpg,https://.../2.jpg" onChange={(e) => handleInputChange('fotos_urls', e.target.value.split(',').map((url: any) => url.trim()))} />
               </div>
             </CardContent>
           </Card>
@@ -153,26 +153,26 @@ export default function SimuladorLiquidezImovel() {
               <CardContent className="space-y-6">
                 <div className="text-center">
                   <p className="text-muted-foreground">Score de Liquidez (0-100)</p>
-                  <p className={`text-6xl font-bold ${resultado.score_0_100 > 70 ? 'text-green-600' : resultado.score_0_100 > 40 ? 'text-yellow-500' : 'text-red-600'}`}>
-                    {resultado.score_0_100}
+                  <p className={`text-6xl font-bold ${(resultado as any).score_0_100 > 70 ? 'text-green-600' : (resultado as any).score_0_100 > 40 ? 'text-yellow-500' : 'text-red-600'}`}>
+                    {(resultado as any).score_0_100}
                   </p>
                   <p className="text-muted-foreground">
-                    Probabilidade de venda em {resultado.horizonte_dias} dias: {(resultado.prob_venda_pct * 100).toFixed(0)}%
+                    Probabilidade de venda em {(resultado as any).horizonte_dias} dias: {((resultado as any).prob_venda_pct * 100).toFixed(0)}%
                   </p>
                 </div>
 
                 <div>
                   <h3 className="font-semibold flex items-center gap-2 mb-2"><Lightbulb className="w-5 h-5 text-yellow-400" /> Recomendações</h3>
                   <ul className="list-disc pl-5 space-y-1">
-                    {resultado.recomendacoes.map((rec, i) => <li key={i}>{rec}</li>)}
+                    {(resultado as any).recomendacoes.map((rec: any, i: any) => <li key={i}>{rec}</li>)}
                   </ul>
                 </div>
 
-                {resultado.features_debug && (
+                {(resultado as any).features_debug && (
                   <div>
                     <h3 className="font-semibold">Dados de Debug</h3>
                     <pre className="bg-muted p-4 rounded-md text-xs overflow-x-auto">
-                      {JSON.stringify(resultado.features_debug, null, 2)}
+                      {JSON.stringify((resultado as any).features_debug, null, 2)}
                     </pre>
                   </div>
                 )}

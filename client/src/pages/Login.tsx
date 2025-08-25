@@ -1,276 +1,167 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequestLegacy as apiRequest } from "@/lib/queryClient";
-import { Eye, EyeOff, Mail } from "lucide-react";
-
-const loginSchema = z.object({
-  email: z.string().email("E-mail inválido"),
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-});
-
-const forgotPasswordSchema = z.object({
-  email: z.string().email("E-mail inválido"),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
-type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+import React, { useState } from 'react';
+import { Link, useLocation } from 'wouter';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Building2, Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
 
 export default function Login() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
-  const { toast } = useToast();
   const [, setLocation] = useLocation();
+  const { login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
 
-  const forgotPasswordForm = useForm<ForgotPasswordFormData>({
-    resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: {
-      email: "",
-    },
-  });
-
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginFormData) => {
-
-      try {
-        const response = await apiRequest("POST", "/api/auth/login", data);
-        const result = await response.json();
-        return result;
-      } catch (error) {
-        console.error("=== MUTATION ERROR ===");
-        console.error("Error:", error);
-        console.error("Stack:", error instanceof Error ? error.stack : "No stack");
-        console.error("======================");
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      console.log("Success data:", data);
-
-      toast({
-        title: "Login realizado com sucesso!",
-        description: "Redirecionando para o dashboard...",
-      });
-      // Aguardar um pouco e recarregar para que o AuthProvider atualize
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    },
-    onError: (error: any) => {
-
-      toast({
-        title: "Erro no login",
-        description: error.message || "E-mail ou senha incorretos",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const forgotPasswordMutation = useMutation({
-    mutationFn: async (data: ForgotPasswordFormData) => {
-      const response = await apiRequest("POST", "/api/auth/forget-password", data);
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "E-mail enviado!",
-        description: "Verifique sua caixa de entrada para redefinir sua senha.",
-      });
-      setForgotPasswordOpen(false);
-      forgotPasswordForm.reset();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao enviar e-mail",
-        description: error.message || "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onSubmit = (data: LoginFormData) => {
-    loginMutation.mutate(data);
-  };
-
-  const onForgotPasswordSubmit = (data: ForgotPasswordFormData) => {
-    forgotPasswordMutation.mutate(data);
+    try {
+      await login(email, password);
+      setLocation('/');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Erro ao fazer login. Verifique suas credenciais.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat relative"
-      style={{
-        backgroundImage: `url('https://i.ibb.co/MDH82jQG/the-deal-was-successfully-done-hose-agent-and-cus-2025-01-10-05-36-33-utc.jpg')`
-      }}
-    >
-      {/* Overlay para melhorar legibilidade */}
-      <div className="absolute inset-0 bg-black/70"></div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center p-3 bg-blue-600 rounded-xl shadow-lg mb-4">
+            <Building2 className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900">VentusHub</h1>
+          <p className="text-gray-600 mt-2">Sistema Imobiliário Integrado</p>
+        </div>
 
-      {/* Card do login com z-index maior */}
-      <div className="relative z-10 w-full max-w-md">
-        <Card className="w-full">
-          <CardHeader className="space-y-1 text-center">
-            <div className="flex items-center justify-center mb-4">
-              <img
-                src="https://i.ibb.co/GQgj134N/logo2.png"
-                alt="Ventus Hub"
-                className="w-[120px] h-auto"
-              />
-            </div>
-            <p className="text-muted-foreground">Entre na sua conta</p>
+        {/* Login Card */}
+        <Card className="shadow-xl border-0">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">Entrar</CardTitle>
+            <CardDescription className="text-center">
+              Digite seu email e senha para acessar o sistema
+            </CardDescription>
           </CardHeader>
 
           <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>E-mail</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="seu@email.com"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Error Alert */}
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Senha</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder="••••••••"
-                            {...field}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {/* Email Field */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                    required
+                    disabled={isLoading}
+                    autoComplete="username"
+                  />
+                </div>
+              </div>
 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={loginMutation.isPending}
-                >
-                  {loginMutation.isPending ? "Entrando..." : "Entrar"}
-                </Button>
-              </form>
-            </Form>
+              {/* Password Field */}
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 pr-10"
+                    required
+                    disabled={isLoading}
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
 
-            <div className="mt-4 text-center">
-              <Dialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="link" size="sm" className="text-blue-600 hover:text-blue-500">
-                    Esqueci minha senha
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                      <Mail className="h-5 w-5" />
-                      Redefinir Senha
-                    </DialogTitle>
-                    <DialogDescription>
-                      Digite seu e-mail para receber um link de redefinição de senha.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Form {...forgotPasswordForm}>
-                    <form onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)} className="space-y-4">
-                      <FormField
-                        control={forgotPasswordForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>E-mail</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="email"
-                                placeholder="seu@email.com"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          className="flex-1"
-                          onClick={() => setForgotPasswordOpen(false)}
-                        >
-                          Cancelar
-                        </Button>
-                        <Button
-                          type="submit"
-                          className="flex-1"
-                          disabled={forgotPasswordMutation.isPending}
-                        >
-                          {forgotPasswordMutation.isPending ? "Enviando..." : "Enviar"}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
+              {/* Forgot Password Link */}
+              <div className="flex items-center justify-end">
+                <Link href="/reset-password" className="text-sm text-blue-600 hover:text-blue-700 hover:underline">
+                  Esqueceu sua senha?
+                </Link>
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Entrando...
+                  </>
+                ) : (
+                  'Entrar'
+                )}
+              </Button>
+            </form>
+          </CardContent>
+
+          <CardFooter className="flex flex-col space-y-4">
+            <div className="relative w-full">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">Ou</span>
+              </div>
             </div>
 
-            <div className="mt-6 text-center text-sm">
-              <span className="text-muted-foreground">Não tem uma conta? </span>
-              <Link
-                href="/register"
-                className="text-blue-600 hover:text-blue-500 font-medium"
-              >
+            {/* Register Link */}
+            <div className="text-center text-sm">
+              <span className="text-gray-600">Não tem uma conta? </span>
+              <Link href="/register" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">
                 Cadastre-se
               </Link>
             </div>
-          </CardContent>
+          </CardFooter>
         </Card>
+
+        {/* Footer */}
+        <div className="mt-8 text-center text-sm text-gray-500">
+          <p>&copy; 2025 VentusHub. Todos os direitos reservados.</p>
+        </div>
       </div>
     </div>
   );

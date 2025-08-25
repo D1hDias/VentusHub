@@ -1,7 +1,6 @@
 import { db } from "./db.js";
 import { eq, and, desc, or, ilike, ne, count } from "drizzle-orm";
 import { 
-  users, 
   properties,
   propertyOwners,
   documents,
@@ -20,7 +19,7 @@ const withTimeout = async <T>(operation: () => Promise<T>, timeoutMs: number = 8
   
   try {
     return await Promise.race([operation(), timeoutPromise]);
-  } catch (error) {
+  } catch (error: any) {
     if (error.message === 'Database operation timeout') {
       console.warn('⚠️ Database timeout - retornando dados mock para desenvolvimento');
       // Em desenvolvimento, retornar dados mock em caso de timeout
@@ -33,32 +32,7 @@ const withTimeout = async <T>(operation: () => Promise<T>, timeoutMs: number = 8
 };
 
 export const storage = {
-  // USER METHODS
-  async getUser(id: number) {
-    return withTimeout(async () => {
-      const [user] = await db.select().from(users).where(eq(users.id, id));
-      return user;
-    });
-  },
-
-  async getUserByEmail(email: string) {
-    return withTimeout(async () => {
-      const [user] = await db.select().from(users).where(eq(users.email, email));
-      return user;
-    });
-  },
-
-  async createUser(userData: any) {
-    return withTimeout(async () => {
-      const [user] = await db.insert(users).values(userData).returning();
-      return user;
-    });
-  },
-
-  async updateUser(id: number, userData: any) {
-    const [user] = await db.update(users).set(userData).where(eq(users.id, id)).returning();
-    return user;
-  },
+  // Note: User management now handled by Better Auth system
 
   // PROPERTY METHODS
   async getProperties(userId: string) {
@@ -88,8 +62,8 @@ export const storage = {
     
     // Extrair todos os números e encontrar o maior
     const numbers = result
-      .map(r => parseInt(r.sequenceNumber.replace('#', '')) || 0)
-      .filter(n => n > 0); // Filtrar números válidos
+      .map((r: any) => parseInt(r.sequenceNumber.replace('#', '')) || 0)
+      .filter((n: any) => n > 0); // Filtrar números válidos
     
     const maxNumber = numbers.length > 0 ? Math.max(...numbers) : 0;
     const nextNumber = maxNumber + 1;
@@ -435,15 +409,15 @@ export const storage = {
       if (options?.search) {
         const searchTerm = `%${options.search}%`;
         // Buscar por nome, email, CPF ou telefone
-        conditions.push(
-          // SQL: WHERE (fullName LIKE ? OR email LIKE ? OR cpf LIKE ? OR phonePrimary LIKE ?)
-          or(
-            ilike(clients.fullName, searchTerm),
-            ilike(clients.email, searchTerm),
-            ilike(clients.cpf, searchTerm),
-            ilike(clients.phonePrimary, searchTerm)
-          )
+        const searchCondition = or(
+          ilike(clients.fullName, searchTerm),
+          ilike(clients.email, searchTerm),
+          ilike(clients.cpf, searchTerm),
+          ilike(clients.phonePrimary, searchTerm)
         );
+        if (searchCondition) {
+          conditions.push(searchCondition);
+        }
       }
       
       if (options?.maritalStatus) {

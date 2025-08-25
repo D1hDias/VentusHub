@@ -160,13 +160,13 @@ export default function SimuladorComissaoEMetas() {
     if (formData.commission_tiers.length > 1) {
       setFormData(prev => ({
         ...prev,
-        commission_tiers: prev.commission_tiers.filter(tier => tier.id !== id)
+        commission_tiers: prev.commission_tiers.filter((tier: any) => tier.id !== id)
       }));
     }
   };
 
   const atualizarCommissionTier = (id: string, campo: string, valor: number) => {
-    const newTiers = formData.commission_tiers.map(tier =>
+    const newTiers = formData.commission_tiers.map((tier: any) =>
       tier.id === id ? { ...tier, [campo]: valor } : tier
     );
     setFormData(prev => ({ ...prev, commission_tiers: newTiers }));
@@ -188,13 +188,13 @@ export default function SimuladorComissaoEMetas() {
     if (formData.bonus_tiers.length > 1) {
       setFormData(prev => ({
         ...prev,
-        bonus_tiers: prev.bonus_tiers.filter(tier => tier.id !== id)
+        bonus_tiers: prev.bonus_tiers.filter((tier: any) => tier.id !== id)
       }));
     }
   };
 
   const atualizarBonusTier = (id: string, campo: string, valor: number) => {
-    const newTiers = formData.bonus_tiers.map(tier =>
+    const newTiers = formData.bonus_tiers.map((tier: any) =>
       tier.id === id ? { ...tier, [campo]: valor } : tier
     );
     setFormData(prev => ({ ...prev, bonus_tiers: newTiers }));
@@ -245,7 +245,7 @@ export default function SimuladorComissaoEMetas() {
 
       // Calcular metas mensais
       const metasMensais = formData.toggle_sazonalidade
-        ? formData.sazonalidade_percent.map(pct => metaAnual * (pct / 100))
+        ? formData.sazonalidade_percent.map((pct: any) => metaAnual * (pct / 100))
         : Array(12).fill(metaAnual / 12);
 
       // Ordenar tiers por pct_meta
@@ -311,7 +311,7 @@ export default function SimuladorComissaoEMetas() {
         }
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro no cálculo:", error);
       alert("Erro ao calcular simulação. Verifique os dados inseridos.");
     } finally {
@@ -323,7 +323,7 @@ export default function SimuladorComissaoEMetas() {
   const prepararDadosGrafico = () => {
     if (!resultado) return [];
     
-    return resultado.dashboard_anual.map((item, index) => ({
+    return (resultado as any).dashboard_anual.map((item: any, index: any) => ({
       mes: meses[index],
       meta: item.meta,
       vendas: item.vendas,
@@ -432,10 +432,10 @@ export default function SimuladorComissaoEMetas() {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Faturamento Total</p>
                         <p className="text-2xl font-bold text-blue-600">
-                          {formatCurrency(resultado.totais.faturamento_projetado)}
+                          {formatCurrency((resultado as any).totais.faturamento_projetado)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {formatPercent(resultado.totais.pct_meta_anual_atingida)} da meta
+                          {formatPercent((resultado as any).totais.pct_meta_anual_atingida)} da meta
                         </p>
                       </div>
                       <BarChart3 className="w-8 h-8 text-blue-600" />
@@ -449,7 +449,7 @@ export default function SimuladorComissaoEMetas() {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Comissão Total</p>
                         <p className="text-2xl font-bold text-green-600">
-                          {formatCurrency(resultado.totais.comissao_total)}
+                          {formatCurrency((resultado as any).totais.comissao_total)}
                         </p>
                         <p className="text-xs text-muted-foreground">Projetada</p>
                       </div>
@@ -464,7 +464,7 @@ export default function SimuladorComissaoEMetas() {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Gaps Identificados</p>
                         <p className="text-2xl font-bold text-red-600">
-                          {resultado.dashboard_anual.filter(item => item.alerta_gap).length}
+                          {(resultado as any).dashboard_anual.filter((item: any) => item.alerta_gap).length}
                         </p>
                         <p className="text-xs text-muted-foreground">Meses com alerta</p>
                       </div>
@@ -493,7 +493,7 @@ export default function SimuladorComissaoEMetas() {
                         </tr>
                       </thead>
                       <tbody>
-                        {resultado.dashboard_anual.map((item, index) => (
+                        {(resultado as any).dashboard_anual.map((item: any, index: any) => (
                           <tr key={index} className="border-b border-border">
                             <td className="p-3 font-medium text-foreground">{meses[index]}</td>
                             <td className="text-right p-3 text-muted-foreground">{formatCurrency(item.meta)}</td>
@@ -540,10 +540,10 @@ export default function SimuladorComissaoEMetas() {
                         />
                         <YAxis 
                           className="text-muted-foreground"
-                          tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                          tickFormatter={(value: any) => `${(value / 1000).toFixed(0)}k`}
                         />
                         <Tooltip 
-                          formatter={(value) => formatCurrency(Number(value))}
+                          formatter={(value: any) => formatCurrency(Number(value))}
                           contentStyle={{
                             backgroundColor: 'hsl(var(--background))',
                             border: '1px solid hsl(var(--border))',

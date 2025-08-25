@@ -8,7 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 // Função para converter hex para RGB
-const hexToRgb = (hex) => {
+const hexToRgb = (hex: any) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
     r: parseInt(result[1], 16),
@@ -18,7 +18,7 @@ const hexToRgb = (hex) => {
 };
 
 // Função para converter imagem em base64
-const imageToBase64 = (url) => {
+const imageToBase64 = (url: any) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -49,7 +49,7 @@ const INDICADORES_FLIP = {
 };
 
 // Função para calcular TIR (Taxa Interna de Retorno) mensal
-const calcularTIRMensal = (fluxosCaixa) => {
+const calcularTIRMensal = (fluxosCaixa: any) => {
   const maxIteracoes = 100;
   const tolerancia = 0.0001;
   let taxa = 0.02; // Estimativa inicial de 2% ao mês
@@ -95,7 +95,7 @@ export default function SimuladorRoiFlipping() {
     custoOportunidadeAM: '1.01'
   });
 
-  const [resultado, setResultado] = useState(null);
+  const [resultado, setResultado] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   // Função para controlar a sidebar secundária - desabilitar quando acessado diretamente
@@ -120,18 +120,18 @@ export default function SimuladorRoiFlipping() {
     };
   }, []);
 
-  const formatCurrency = (value) => {
+  const formatCurrency = (value: any) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(value || 0);
   };
 
-  const formatPercent = (value) => {
+  const formatPercent = (value: any) => {
     return `${value.toFixed(2)}%`;
   };
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: any, value: any) => {
     if (field === 'precoAquisicao' || field === 'custoObra' || field === 'iptuAnual' || 
         field === 'condominioMensal' || field === 'precoRevenda') {
       const numericValue = value.replace(/[^\d]/g, '');
@@ -196,7 +196,7 @@ export default function SimuladorRoiFlipping() {
       const roiAnualizado = Math.pow(1 + roiSimples, 12 / prazoObraMeses) - 1;
       
       // Fluxo de caixa mensal
-      const fluxoCaixa = [];
+      const fluxoCaixa: number[] = [];
       
       // Mês 0: Aquisição + ITBI
       fluxoCaixa.push(-(precoAquisicao + itbiRegistro));
@@ -231,7 +231,7 @@ export default function SimuladorRoiFlipping() {
       const deltaPrecos = formData.toggleDeltaPreco ? 
         formData.deltaPrecoPercent : [-5, 0, 5];
       
-      const sensibilidade = deltaPrecos.map(delta => {
+      const sensibilidade = deltaPrecos.map((delta: any) => {
         const precoRevendaAjustado = precoRevenda * (1 + delta / 100);
         const corretagemAjustada = precoRevendaAjustado * corretagemPercent;
         const receitaLiquidaAjustada = precoRevendaAjustado - corretagemAjustada;
@@ -310,10 +310,10 @@ export default function SimuladorRoiFlipping() {
       const rgbVentusHub = hexToRgb(corVentusHub);
       
       // Carregar logo VentusHub
-      let logoVentusHub = null;
+      let logoVentusHub: any = null;
       try {
         logoVentusHub = await imageToBase64('/src/assets/logo.png');
-      } catch (error) {
+      } catch (error: any) {
         console.warn('Erro ao carregar logo VentusHub:', error);
       }
       
@@ -366,12 +366,12 @@ export default function SimuladorRoiFlipping() {
       
       // Tabela de resultados
       const dadosTabela = [
-        ['ROI Simples', formatPercent(resultado.roi * 100)],
-        ['ROI Anualizado', formatPercent(resultado.roiAnualizado * 100)],
-        ['TIR Anual', formatPercent(resultado.tirAnual * 100)],
-        ['Payback', resultado.paybackMeses ? `${resultado.paybackMeses} meses` : 'N/A'],
-        ['Lucro Líquido', formatCurrency(resultado.detalhes.lucroLiquido)],
-        ['Investimento Total', formatCurrency(resultado.detalhes.investimentoTotal)]
+        ['ROI Simples', formatPercent((resultado as any).roi * 100)],
+        ['ROI Anualizado', formatPercent((resultado as any).roiAnualizado * 100)],
+        ['TIR Anual', formatPercent((resultado as any).tirAnual * 100)],
+        ['Payback', (resultado as any).paybackMeses ? `${(resultado as any).paybackMeses} meses` : 'N/A'],
+        ['Lucro Líquido', formatCurrency((resultado as any).detalhes.lucroLiquido)],
+        ['Investimento Total', formatCurrency((resultado as any).detalhes.investimentoTotal)]
       ];
       
       autoTable(doc, {
@@ -399,10 +399,10 @@ export default function SimuladorRoiFlipping() {
       // Análise de viabilidade
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
-      const viabilidade = resultado.roi > 0.2 ? 'PROJETO VIÁVEL' : 
-                         resultado.roi > 0.1 ? 'PROJETO MODERADO' : 'PROJETO ARRISCADO';
-      const cor = resultado.roi > 0.2 ? [0, 100, 0] : 
-                  resultado.roi > 0.1 ? [255, 140, 0] : [255, 0, 0];
+      const viabilidade = (resultado as any).roi > 0.2 ? 'PROJETO VIÁVEL' : 
+                         (resultado as any).roi > 0.1 ? 'PROJETO MODERADO' : 'PROJETO ARRISCADO';
+      const cor = (resultado as any).roi > 0.2 ? [0, 100, 0] : 
+                  (resultado as any).roi > 0.1 ? [255, 140, 0] : [255, 0, 0];
       doc.setTextColor(cor[0], cor[1], cor[2]);
       doc.text(`Análise: ${viabilidade}`, 15, currentY);
       
@@ -427,7 +427,7 @@ export default function SimuladorRoiFlipping() {
       const fileName = `Simulacao_Flip_Revenda_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
       doc.save(fileName);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
       alert('Erro ao gerar PDF: ' + error.message);
     }
@@ -715,26 +715,26 @@ export default function SimuladorRoiFlipping() {
                     
                     <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-500">
                       <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">ROI Simples</h3>
-                      <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{formatPercent(resultado.roi * 100)}</p>
+                      <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{formatPercent((resultado as any).roi * 100)}</p>
                       <p className="text-xs text-blue-700">Retorno sobre investimento</p>
                     </div>
 
                     <div className="bg-green-50 rounded-lg p-6 border-l-4 border-green-500">
                       <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">ROI Anualizado</h3>
-                      <p className="text-2xl font-bold text-green-900 dark:text-green-100">{formatPercent(resultado.roiAnualizado * 100)}</p>
+                      <p className="text-2xl font-bold text-green-900 dark:text-green-100">{formatPercent((resultado as any).roiAnualizado * 100)}</p>
                       <p className="text-xs text-green-700">Equivalente anual</p>
                     </div>
 
                     <div className="bg-purple-50 rounded-lg p-6 border-l-4 border-purple-500">
                       <h3 className="text-lg font-semibold text-purple-900 mb-2">TIR Anual</h3>
-                      <p className="text-2xl font-bold text-purple-900">{formatPercent(resultado.tirAnual * 100)}</p>
+                      <p className="text-2xl font-bold text-purple-900">{formatPercent((resultado as any).tirAnual * 100)}</p>
                       <p className="text-xs text-purple-700">Taxa interna retorno</p>
                     </div>
 
                     <div className="bg-orange-50 rounded-lg p-6 border-l-4 border-orange-500">
                       <h3 className="text-lg font-semibold text-orange-900 mb-2">Payback</h3>
                       <p className="text-2xl font-bold text-orange-900">
-                        {resultado.paybackMeses ? `${resultado.paybackMeses}m` : 'N/A'}
+                        {(resultado as any).paybackMeses ? `${(resultado as any).paybackMeses}m` : 'N/A'}
                       </p>
                       <p className="text-xs text-orange-700">Tempo para retorno</p>
                     </div>
@@ -748,24 +748,24 @@ export default function SimuladorRoiFlipping() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span>Aquisição:</span>
-                          <span className="font-medium">{formatCurrency(resultado.detalhes.precoAquisicao)}</span>
+                          <span className="font-medium">{formatCurrency((resultado as any).detalhes.precoAquisicao)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Obra:</span>
-                          <span className="font-medium">{formatCurrency(resultado.detalhes.custoObra)}</span>
+                          <span className="font-medium">{formatCurrency((resultado as any).detalhes.custoObra)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>ITBI + Registro:</span>
-                          <span className="font-medium">{formatCurrency(resultado.detalhes.itbiRegistro)}</span>
+                          <span className="font-medium">{formatCurrency((resultado as any).detalhes.itbiRegistro)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Custos Holding:</span>
-                          <span className="font-medium">{formatCurrency(resultado.detalhes.custosHolding)}</span>
+                          <span className="font-medium">{formatCurrency((resultado as any).detalhes.custosHolding)}</span>
                         </div>
                         <hr className="my-2" />
                         <div className="flex justify-between font-semibold">
                           <span>Total Investido:</span>
-                          <span>{formatCurrency(resultado.detalhes.investimentoTotal)}</span>
+                          <span>{formatCurrency((resultado as any).detalhes.investimentoTotal)}</span>
                         </div>
                       </div>
                     </div>
@@ -775,25 +775,25 @@ export default function SimuladorRoiFlipping() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span>Receita Bruta:</span>
-                          <span className="font-medium">{formatCurrency(resultado.detalhes.receitaLiquidaVenda + resultado.detalhes.corretagem)}</span>
+                          <span className="font-medium">{formatCurrency((resultado as any).detalhes.receitaLiquidaVenda + (resultado as any).detalhes.corretagem)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Corretagem:</span>
-                          <span className="font-medium text-red-600">-{formatCurrency(resultado.detalhes.corretagem)}</span>
+                          <span className="font-medium text-red-600">-{formatCurrency((resultado as any).detalhes.corretagem)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>IR Ganho Capital:</span>
-                          <span className="font-medium text-red-600">-{formatCurrency(resultado.detalhes.impostoGanhoCapital)}</span>
+                          <span className="font-medium text-red-600">-{formatCurrency((resultado as any).detalhes.impostoGanhoCapital)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Receita Líquida:</span>
-                          <span className="font-medium">{formatCurrency(resultado.detalhes.receitaLiquidaVenda - resultado.detalhes.impostoGanhoCapital)}</span>
+                          <span className="font-medium">{formatCurrency((resultado as any).detalhes.receitaLiquidaVenda - (resultado as any).detalhes.impostoGanhoCapital)}</span>
                         </div>
                         <hr className="my-2" />
                         <div className="flex justify-between font-semibold">
                           <span>Lucro Líquido:</span>
-                          <span className={resultado.detalhes.lucroLiquido > 0 ? 'text-green-600' : 'text-red-600'}>
-                            {formatCurrency(resultado.detalhes.lucroLiquido)}
+                          <span className={(resultado as any).detalhes.lucroLiquido > 0 ? 'text-green-600' : 'text-red-600'}>
+                            {formatCurrency((resultado as any).detalhes.lucroLiquido)}
                           </span>
                         </div>
                       </div>
@@ -807,7 +807,7 @@ export default function SimuladorRoiFlipping() {
                       Análise de Sensibilidade - Preço de Revenda
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {resultado.sensibilidade.map((cenario, index) => (
+                      {(resultado as any).sensibilidade.map((cenario: any, index: any) => (
                         <div 
                           key={index} 
                           className={`p-4 rounded-lg border-2 ${
@@ -851,14 +851,14 @@ export default function SimuladorRoiFlipping() {
 
                   {/* Recomendação */}
                   <div className={`rounded-lg p-6 ${
-                    resultado.roi > 0.2 ? 'bg-green-100 border-l-4 border-green-500' : 
-                    resultado.roi > 0.1 ? 'bg-yellow-100 border-l-4 border-yellow-500' : 
+                    (resultado as any).roi > 0.2 ? 'bg-green-100 border-l-4 border-green-500' : 
+                    (resultado as any).roi > 0.1 ? 'bg-yellow-100 border-l-4 border-yellow-500' : 
                     'bg-red-100 border-l-4 border-red-500'
                   }`}>
                     <h3 className="text-lg font-semibold mb-2 flex items-center">
-                      {resultado.roi > 0.2 ? (
+                      {(resultado as any).roi > 0.2 ? (
                         <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
-                      ) : resultado.roi > 0.1 ? (
+                      ) : (resultado as any).roi > 0.1 ? (
                         <TrendingUp className="h-5 w-5 mr-2 text-yellow-600" />
                       ) : (
                         <TrendingDown className="h-5 w-5 mr-2 text-red-600" />
@@ -867,15 +867,15 @@ export default function SimuladorRoiFlipping() {
                     </h3>
                     <p className="text-lg">
                       <strong>
-                        {resultado.roi > 0.2 ? 'PROJETO ALTAMENTE VIÁVEL' : 
-                         resultado.roi > 0.1 ? 'PROJETO MODERADAMENTE VIÁVEL' : 
-                         resultado.roi > 0 ? 'PROJETO DE BAIXA RENTABILIDADE' : 'PROJETO INVIÁVEL'}
+                        {(resultado as any).roi > 0.2 ? 'PROJETO ALTAMENTE VIÁVEL' : 
+                         (resultado as any).roi > 0.1 ? 'PROJETO MODERADAMENTE VIÁVEL' : 
+                         (resultado as any).roi > 0 ? 'PROJETO DE BAIXA RENTABILIDADE' : 'PROJETO INVIÁVEL'}
                       </strong>
                     </p>
                     <p className="text-sm mt-2">
-                      {resultado.roi > 0.2 ? 'ROI superior a 20% indica excelente oportunidade de investimento.' : 
-                       resultado.roi > 0.1 ? 'ROI entre 10-20% sugere projeto viável com retorno moderado.' : 
-                       resultado.roi > 0 ? 'ROI baixo. Considere renegociar condições ou buscar outras oportunidades.' : 
+                      {(resultado as any).roi > 0.2 ? 'ROI superior a 20% indica excelente oportunidade de investimento.' : 
+                       (resultado as any).roi > 0.1 ? 'ROI entre 10-20% sugere projeto viável com retorno moderado.' : 
+                       (resultado as any).roi > 0 ? 'ROI baixo. Considere renegociar condições ou buscar outras oportunidades.' : 
                        'Projeto apresenta prejuízo. Revise parâmetros ou abandone o investimento.'}
                     </p>
                   </div>

@@ -11,7 +11,7 @@ import logoVentusHub from '@/assets/logo.png';
 
 
 // Função para converter imagem em base64 e obter dimensões
-const imageToBase64 = (url) => {
+const imageToBase64 = (url: any) => {
   return new Promise((resolve) => { // Removido reject para não quebrar a promise chain
     try {
       const img = new Image();
@@ -40,7 +40,7 @@ const imageToBase64 = (url) => {
         resolve(null);
       };
       img.src = url;
-    } catch (error) {
+    } catch (error: any) {
       // Captura qualquer erro síncrono
       console.error('Error in imageToBase64 function:', error);
       resolve(null);
@@ -49,7 +49,7 @@ const imageToBase64 = (url) => {
 };
 
 // Função para converter hex para RGB
-const hexToRgb = (hex) => {
+const hexToRgb = (hex: any) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
     r: parseInt(result[1], 16),
@@ -103,9 +103,9 @@ const SimuladorCreditoPJ = () => {
   const [prazoDesejado, setPrazoDesejado] = useState('');
 
   // Estados de controle
-  const [resultado, setResultado] = useState(null);
+  const [resultado, setResultado] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [erros, setErros] = useState({});
+  const [erros, setErros] = useState<any>({});
 
   // Usar indicadores estáticos (os indicadores já estão atualizados no arquivo)
   // Os indicadores são atualizados manualmente conforme documentação do arquivo indicadores-mercado.ts
@@ -133,7 +133,7 @@ const SimuladorCreditoPJ = () => {
   }, []);
 
   // Função para formatar valor monetário
-  const formatCurrency = (value) => {
+  const formatCurrency = (value: any) => {
     const numValue = parseFloat(value.toString().replace(/[^\d]/g, '')) / 100;
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -142,7 +142,7 @@ const SimuladorCreditoPJ = () => {
   };
 
   // Função para processar mudanças no valor
-  const handleValorChange = (e) => {
+  const handleValorChange = (e: any) => {
     let value = e.target.value.replace(/[^\d]/g, '');
     if (value.length > 0) {
       value = (parseInt(value) / 100).toFixed(2).replace('.', '');
@@ -164,7 +164,7 @@ const SimuladorCreditoPJ = () => {
 
   // Função para validar formulário
   const validarFormulario = () => {
-    const novosErros = {};
+    const novosErros: any = {};
 
     if (!produto) {
       novosErros.produto = 'Selecione um produto';
@@ -205,7 +205,7 @@ const SimuladorCreditoPJ = () => {
 
     const valorNumerico = parseFloat(valorCredito.replace(/[^\d,]/g, '').replace(',', '.'));
     const produtosConfig = getProdutosConfig();
-    const produtoConfig = produtosConfig[produto];
+    const produtoConfig = (produtosConfig as any)[produto];
     const prazo = parseInt(prazoDesejado);
 
     // Cálculo das taxas baseado no produto
@@ -284,11 +284,11 @@ const SimuladorCreditoPJ = () => {
 
     try {
       // Adicionar logo
-      const logoBase64 = await imageToBase64(logoVentusHub);
+      const logoBase64: any = await imageToBase64(logoVentusHub);
       if (logoBase64 && logoBase64.dataUrl) {
         doc.addImage(logoBase64.dataUrl, 'PNG', 160, 10, 30, 30);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log('Erro ao carregar logo:', error);
     }
 
@@ -299,17 +299,17 @@ const SimuladorCreditoPJ = () => {
 
     doc.setFontSize(12);
     doc.setTextColor(100, 100, 100);
-    doc.text(`Gerado em: ${resultado.dataSimulacao}`, 20, 40);
+    doc.text(`Gerado em: ${(resultado as any).dataSimulacao}`, 20, 40);
 
     // Dados da simulação
     const dados = [
-      ['Produto:', resultado.produto.nome],
-      ['Valor Solicitado:', `R$ ${resultado.valorSolicitado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
-      ['Prazo:', `${resultado.prazo} meses`],
-      ['Taxa de Juros:', resultado.descricaoTaxa],
-      ['Parcela Mensal:', `R$ ${resultado.parcela.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
-      ['Valor Total:', `R$ ${resultado.valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
-      ['Total de Juros:', `R$ ${resultado.jurosTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`]
+      ['Produto:', (resultado as any).produto.nome],
+      ['Valor Solicitado:', `R$ ${(resultado as any).valorSolicitado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
+      ['Prazo:', `${(resultado as any).prazo} meses`],
+      ['Taxa de Juros:', (resultado as any).descricaoTaxa],
+      ['Parcela Mensal:', `R$ ${(resultado as any).parcela.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
+      ['Valor Total:', `R$ ${(resultado as any).valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`],
+      ['Total de Juros:', `R$ ${(resultado as any).jurosTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`]
     ];
 
     autoTable(doc, {
@@ -330,7 +330,11 @@ const SimuladorCreditoPJ = () => {
 
   return (
     <div className="simulador-container p-6 space-y-6 bg-background min-h-screen">
-      <LoadingModal isOpen={isLoading} title="Processando simulação..." />
+      <LoadingModal 
+        isOpen={isLoading} 
+        message="Processando simulação..." 
+        onClose={() => setIsLoading(false)} 
+      />
 
       <div className="space-y-6">
 
@@ -424,7 +428,7 @@ const SimuladorCreditoPJ = () => {
                   <div className="flex items-center justify-between mb-8">
                     <div>
                       <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Resultado da Simulação</h2>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">{resultado.produto.nome} • {resultado.dataSimulacao}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{(resultado as any).produto.nome} • {(resultado as any).dataSimulacao}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <motion.button onClick={limparSimulacao} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}><RefreshCcw className="h-5 w-5 text-gray-600" /></motion.button>
@@ -433,10 +437,10 @@ const SimuladorCreditoPJ = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><DollarSign className="h-6 w-6 text-blue-600 dark:text-blue-400" /><span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-200 dark:bg-blue-800 px-2 py-1 rounded-full">SOLICITADO</span></div><p className="text-lg font-bold text-gray-900 dark:text-white">R$ {resultado.valorSolicitado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p><p className="text-xs text-gray-600 dark:text-gray-400">Valor do crédito</p></div>
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><Calendar className="h-6 w-6 text-green-600 dark:text-green-400" /><span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-200 dark:bg-green-800 px-2 py-1 rounded-full">PRAZO</span></div><p className="text-lg font-bold text-gray-900 dark:text-white">{resultado.prazo}</p><p className="text-xs text-gray-600 dark:text-gray-400">meses</p></div>
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><CreditCard className="h-6 w-6 text-purple-600 dark:text-purple-400" /><span className="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-200 dark:bg-purple-800 px-2 py-1 rounded-full">PARCELA</span></div><p className="text-lg font-bold text-gray-900 dark:text-white">R$ {resultado.parcela.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p><p className="text-xs text-gray-600 dark:text-gray-400">mensal</p></div>
-                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" /><span className="text-xs font-medium text-orange-600 dark:text-orange-400 bg-orange-200 dark:bg-orange-800 px-2 py-1 rounded-full">TAXA</span></div><p className="text-base font-bold text-gray-900 dark:text-white">{resultado.taxaJuros.toFixed(2)}%</p><p className="text-xs text-gray-600 dark:text-gray-400">{resultado.descricaoTaxa}</p></div>
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><DollarSign className="h-6 w-6 text-blue-600 dark:text-blue-400" /><span className="text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-200 dark:bg-blue-800 px-2 py-1 rounded-full">SOLICITADO</span></div><p className="text-lg font-bold text-gray-900 dark:text-white">R$ {(resultado as any).valorSolicitado.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p><p className="text-xs text-gray-600 dark:text-gray-400">Valor do crédito</p></div>
+                    <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><Calendar className="h-6 w-6 text-green-600 dark:text-green-400" /><span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-200 dark:bg-green-800 px-2 py-1 rounded-full">PRAZO</span></div><p className="text-lg font-bold text-gray-900 dark:text-white">{(resultado as any).prazo}</p><p className="text-xs text-gray-600 dark:text-gray-400">meses</p></div>
+                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><CreditCard className="h-6 w-6 text-purple-600 dark:text-purple-400" /><span className="text-xs font-medium text-purple-600 dark:text-purple-400 bg-purple-200 dark:bg-purple-800 px-2 py-1 rounded-full">PARCELA</span></div><p className="text-lg font-bold text-gray-900 dark:text-white">R$ {(resultado as any).parcela.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p><p className="text-xs text-gray-600 dark:text-gray-400">mensal</p></div>
+                    <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6"><div className="flex items-center justify-between mb-4"><TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" /><span className="text-xs font-medium text-orange-600 dark:text-orange-400 bg-orange-200 dark:bg-orange-800 px-2 py-1 rounded-full">TAXA</span></div><p className="text-base font-bold text-gray-900 dark:text-white">{(resultado as any).taxaJuros.toFixed(2)}%</p><p className="text-xs text-gray-600 dark:text-gray-400">{(resultado as any).descricaoTaxa}</p></div>
                   </div>
                 </motion.div>
               </Element>

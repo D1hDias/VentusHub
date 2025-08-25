@@ -46,10 +46,10 @@ function CardList<T extends Record<string, any>>({
   const { prefersReducedMotion } = useResponsive();
   const shouldAnimate = animateItems && !prefersReducedMotion;
 
-  const primaryFields = fields.filter(f => f.type === 'primary' || !f.type);
-  const secondaryFields = fields.filter(f => f.type === 'secondary');
-  const metadataFields = fields.filter(f => f.type === 'metadata');
-  const badgeFields = fields.filter(f => f.type === 'badge');
+  const primaryFields = fields.filter((f: any) => f.type === 'primary' || !f.type);
+  const secondaryFields = fields.filter((f: any) => f.type === 'secondary');
+  const metadataFields = fields.filter((f: any) => f.type === 'metadata');
+  const badgeFields = fields.filter((f: any) => f.type === 'badge');
 
   const CardItem = ({ item, index }: { item: T; index: number }) => (
     <Card

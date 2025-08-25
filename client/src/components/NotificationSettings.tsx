@@ -164,7 +164,7 @@ const CategoryPreference: React.FC<CategoryPreferenceProps> = ({
                 <Label className="text-xs font-medium">Prioridade Mínima</Label>
                 <Select
                   value={categoryPrefs.minSeverity || 'low'}
-                  onValueChange={(value) => 
+                  onValueChange={(value: any) => 
                     onPreferenceChange(category.key, 'minSeverity', value)
                   }
                 >
@@ -213,7 +213,7 @@ const CategoryPreference: React.FC<CategoryPreferenceProps> = ({
               <Label className="text-xs font-medium">Frequência</Label>
               <Select
                 value={categoryPrefs.frequency || 'instant'}
-                onValueChange={(value) => 
+                onValueChange={(value: any) => 
                   onPreferenceChange(category.key, 'frequency', value)
                 }
               >
@@ -276,7 +276,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
     try {
       await updatePreferences(localPreferences);
       setHasChanges(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving preferences:', error);
     }
   };
@@ -394,7 +394,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                 <Label className="font-medium">Fuso Horário</Label>
                 <Select
                   value={localPreferences.timezone || 'America/Sao_Paulo'}
-                  onValueChange={(value) => handlePreferenceChange('timezone', value)}
+                  onValueChange={(value: any) => handlePreferenceChange('timezone', value)}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -416,7 +416,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
                 <Label className="font-medium">Frequência de Resumo</Label>
                 <Select
                   value={localPreferences.digestFrequency || 'instant'}
-                  onValueChange={(value) => handlePreferenceChange('digestFrequency', value)}
+                  onValueChange={(value: any) => handlePreferenceChange('digestFrequency', value)}
                 >
                   <SelectTrigger>
                     <SelectValue />

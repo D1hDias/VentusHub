@@ -63,13 +63,13 @@ export const DEFAULT_STAGE_REQUIREMENTS: StageRequirementDefinition[] = [
       
       const p = property[0];
       const requiredFields = ['type', 'street', 'number', 'neighborhood', 'city', 'state', 'cep', 'value'];
-      const completedFields = requiredFields.filter(field => p[field as keyof typeof p] != null);
+      const completedFields = requiredFields.filter((field: any) => p[field as keyof typeof p] != null);
       const completionPercentage = Math.round((completedFields.length / requiredFields.length) * 100);
       
       return {
         status: completionPercentage === 100 ? 'COMPLETED' : 'PENDING',
         completionPercentage,
-        validationData: { completedFields, missingFields: requiredFields.filter(f => !completedFields.includes(f)) }
+        validationData: { completedFields, missingFields: requiredFields.filter((f: any) => !completedFields.includes(f)) }
       };
     }
   },
@@ -96,8 +96,8 @@ export const DEFAULT_STAGE_REQUIREMENTS: StageRequirementDefinition[] = [
       let totalFields = 0;
       let completedFields = 0;
       
-      owners.forEach(owner => {
-        requiredFields.forEach(field => {
+      owners.forEach((owner: any) => {
+        requiredFields.forEach((field: any) => {
           totalFields++;
           if (owner[field as keyof typeof owner]) completedFields++;
         });
@@ -157,8 +157,8 @@ export const DEFAULT_STAGE_REQUIREMENTS: StageRequirementDefinition[] = [
       const docs = await db.select().from(documents).where(eq(documents.propertyId, propertyId));
       
       const requiredTypes = ['MATRICULA', 'IPTU', 'CERTIDAO_NEGATIVA'];
-      const availableTypes = [...new Set(docs.map(d => d.type?.toUpperCase() || 'OUTROS'))];
-      const hasRequiredDocs = requiredTypes.filter(type => availableTypes.includes(type));
+      const availableTypes = [...new Set(docs.map((d: any) => d.type?.toUpperCase() || 'OUTROS'))];
+      const hasRequiredDocs = requiredTypes.filter((type: any) => availableTypes.includes(type));
       const completionPercentage = Math.round((hasRequiredDocs.length / requiredTypes.length) * 100);
       
       return {
@@ -167,7 +167,7 @@ export const DEFAULT_STAGE_REQUIREMENTS: StageRequirementDefinition[] = [
         validationData: { 
           totalDocs: docs.length, 
           hasRequiredDocs, 
-          missingDocs: requiredTypes.filter(t => !hasRequiredDocs.includes(t))
+          missingDocs: requiredTypes.filter((t: any) => !hasRequiredDocs.includes(t))
         }
       };
     }
@@ -381,7 +381,7 @@ export class PendencyValidationEngine {
       const applicableRequirements = await this.getApplicableRequirements(propertyType);
       
       // Create property requirements entries
-      const requirementEntries = applicableRequirements.map(req => ({
+      const requirementEntries = applicableRequirements.map((req: any) => ({
         propertyId,
         requirementId: req.id,
         stageId: req.stageId,
@@ -397,7 +397,7 @@ export class PendencyValidationEngine {
       // Initialize completion metrics for all stages
       await this.updateStageCompletionMetrics(propertyId);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error initializing property requirements:', error);
       throw error;
     }
@@ -453,11 +453,11 @@ export class PendencyValidationEngine {
 
       // Calculate completion metrics
       const totalRequirements = requirements.length;
-      const completedRequirements = requirements.filter(r => 
+      const completedRequirements = requirements.filter((r: any) => 
         r.propertyRequirement?.status === 'COMPLETED'
       ).length;
-      const criticalRequirements = requirements.filter(r => r.requirement.isCritical).length;
-      const completedCritical = requirements.filter(r => 
+      const criticalRequirements = requirements.filter((r: any) => r.requirement.isCritical).length;
+      const completedCritical = requirements.filter((r: any) => 
         r.requirement.isCritical && r.propertyRequirement?.status === 'COMPLETED'
       ).length;
       
@@ -470,11 +470,11 @@ export class PendencyValidationEngine {
 
       // Identify blocking requirements
       const blockingRequirements = requirements
-        .filter(r => 
+        .filter((r: any) => 
           r.requirement.isCritical && 
           (!r.propertyRequirement || r.propertyRequirement.status !== 'COMPLETED')
         )
-        .map(r => ({
+        .map((r: any) => ({
           id: r.requirement.id,
           requirementKey: r.requirement.requirementKey,
           requirementName: r.requirement.requirementName,
@@ -511,7 +511,7 @@ export class PendencyValidationEngine {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error validating stage requirements:', error);
       throw error;
     }
@@ -561,7 +561,7 @@ export class PendencyValidationEngine {
               lastCheckedAt: new Date()
             });
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error(`Error in auto-validation for ${requirement.requirementKey}:`, error);
         }
       }
@@ -627,7 +627,7 @@ export class PendencyValidationEngine {
           });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating stage completion metrics:', error);
     }
   }
@@ -723,7 +723,7 @@ export class PendencyValidationEngine {
         message
       };
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error advancing property stage:', error);
       throw error;
     }
@@ -765,7 +765,7 @@ export class PendencyValidationEngine {
         'Contratos', 'Financiamento', 'Instrumento', 'Concluído'
       ];
 
-      const stageMetrics = metrics.map(metric => ({
+      const stageMetrics = metrics.map((metric: any) => ({
         stageId: metric.stageId,
         stageName: stageNames[metric.stageId] || `Stage ${metric.stageId}`,
         totalRequirements: metric.totalRequirements,
@@ -806,7 +806,7 @@ export class PendencyValidationEngine {
         currentStage,
         stageMetrics,
         recentActivity,
-        criticalPendencies: criticalPendencies.map(cp => ({
+        criticalPendencies: criticalPendencies.map((cp: any) => ({
           stageId: cp.requirement.stageId,
           requirementName: cp.requirement.requirementName,
           category: cp.requirement.category,
@@ -815,7 +815,7 @@ export class PendencyValidationEngine {
         }))
       };
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting property pendency summary:', error);
       throw error;
     }
@@ -847,7 +847,7 @@ export async function seedStageRequirements(): Promise<void> {
     }
     
     console.log(`Seeded ${DEFAULT_STAGE_REQUIREMENTS.length} stage requirements`);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error seeding stage requirements:', error);
     throw error;
   }
@@ -885,7 +885,7 @@ export async function initializeExistingProperties(): Promise<void> {
     }
     
     console.log('Finished initializing existing properties');
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error initializing existing properties:', error);
     throw error;
   }

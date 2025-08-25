@@ -171,7 +171,7 @@ export default function SimuladorRendaPassiva() {
     
     try {
       // Validações básicas
-      const imoveisValidos = formData.imoveis.filter(imovel => 
+      const imoveisValidos = formData.imoveis.filter((imovel: any) => 
         parseMonetaryValue(imovel.valor_imovel) > 0 && 
         parseMonetaryValue(imovel.aluguel_mensal_inicial) > 0
       );
@@ -249,7 +249,7 @@ export default function SimuladorRendaPassiva() {
       const yieldLiquidoAnual = fluxoCaixaAnual / valorTotalCarteira;
 
       // Calcular yields por imóvel
-      const resultadosImoveis: ResultadoImovel[] = imoveisValidos.map(imovel => {
+      const resultadosImoveis: ResultadoImovel[] = imoveisValidos.map((imovel: any) => {
         const valorImovel = parseMonetaryValue(imovel.valor_imovel);
         const aluguelAnual = parseMonetaryValue(imovel.aluguel_mensal_inicial) * 12;
         const yieldBruto = aluguelAnual / valorImovel;
@@ -274,7 +274,7 @@ export default function SimuladorRendaPassiva() {
         fluxo_caixa_mensal: fluxoCaixaMensal
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro no cálculo:", error);
       alert("Erro ao calcular simulação. Verifique os dados inseridos.");
     } finally {
@@ -285,10 +285,10 @@ export default function SimuladorRendaPassiva() {
   const prepararDadosGrafico = () => {
     if (!resultado) return [];
     
-    return resultado.fluxo_caixa_mensal.map((valor, index) => ({
+    return (resultado as any).fluxo_caixa_mensal.map((valor: any, index: any) => ({
       mes: index + 1,
       fluxo_caixa: valor,
-      acumulado: resultado.fluxo_caixa_mensal.slice(0, index + 1).reduce((a, b) => a + b, 0)
+      acumulado: (resultado as any).fluxo_caixa_mensal.slice(0, index + 1).reduce((a: any, b: any) => a + b, 0)
     }));
   };
 
@@ -337,7 +337,7 @@ export default function SimuladorRendaPassiva() {
                     </label>
                     <Select 
                       value={formData.indice_reajuste} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, indice_reajuste: value }))}
+                      onValueChange={(value: any) => setFormData(prev => ({ ...prev, indice_reajuste: value }))}
                     >
                       <SelectTrigger className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600">
                         <SelectValue />
@@ -371,7 +371,7 @@ export default function SimuladorRendaPassiva() {
                     </label>
                     <Select 
                       value={String(formData.intervalo_reajuste_meses)} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, intervalo_reajuste_meses: Number(value) }))}
+                      onValueChange={(value: any) => setFormData(prev => ({ ...prev, intervalo_reajuste_meses: Number(value) }))}
                     >
                       <SelectTrigger className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-purple-200 focus:border-purple-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600">
                         <SelectValue />
@@ -451,7 +451,7 @@ export default function SimuladorRendaPassiva() {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Yield Bruto</p>
                         <p className="text-2xl font-bold text-blue-600">
-                          {formatPercent(resultado.metricas_portfolio.yield_bruto_anual)}
+                          {formatPercent((resultado as any).metricas_portfolio.yield_bruto_anual)}
                         </p>
                         <p className="text-xs text-muted-foreground">Anual</p>
                       </div>
@@ -466,7 +466,7 @@ export default function SimuladorRendaPassiva() {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Yield Líquido</p>
                         <p className="text-2xl font-bold text-green-600">
-                          {formatPercent(resultado.metricas_portfolio.yield_liquido_anual)}
+                          {formatPercent((resultado as any).metricas_portfolio.yield_liquido_anual)}
                         </p>
                         <p className="text-xs text-muted-foreground">Após custos e IR</p>
                       </div>
@@ -481,7 +481,7 @@ export default function SimuladorRendaPassiva() {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">IR Anual</p>
                         <p className="text-2xl font-bold text-red-600">
-                          {formatCurrency(resultado.metricas_portfolio.ir_total_anual)}
+                          {formatCurrency((resultado as any).metricas_portfolio.ir_total_anual)}
                         </p>
                         <p className="text-xs text-muted-foreground">Estimado</p>
                       </div>
@@ -507,7 +507,7 @@ export default function SimuladorRendaPassiva() {
                         </tr>
                       </thead>
                       <tbody>
-                        {resultado.imoveis.map((imovel, index) => (
+                        {(resultado as any).imoveis.map((imovel: any, index: any) => (
                           <tr key={index} className="border-b border-border">
                             <td className="p-3 font-medium text-foreground">Imóvel {imovel.id}</td>
                             <td className="text-right p-3 text-blue-600">{formatPercent(imovel.yield_bruto)}</td>
@@ -541,7 +541,7 @@ export default function SimuladorRendaPassiva() {
                           className="text-muted-foreground"
                         />
                         <Tooltip 
-                          formatter={(value) => formatCurrency(Number(value))}
+                          formatter={(value: any) => formatCurrency(Number(value))}
                           labelFormatter={(label) => `Mês ${label}`}
                           contentStyle={{
                             backgroundColor: 'hsl(var(--background))',

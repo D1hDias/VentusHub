@@ -216,7 +216,7 @@ export const NotificationCenter = ({ trigger, className }: NotificationCenterPro
   } = useNotifications();
 
   // Filter notifications based on active tab
-  const filteredNotifications = notifications.filter(notification => {
+  const filteredNotifications = notifications.filter((notification: any) => {
     switch (activeTab) {
       case 'unread':
         return !notification.isRead;
@@ -362,7 +362,7 @@ export const NotificationCenter = ({ trigger, className }: NotificationCenterPro
                     </div>
                   ) : (
                     <div className="divide-y divide-gray-100">
-                      {filteredNotifications.map((notification) => (
+                      {filteredNotifications.map((notification: any) => (
                         <NotificationItem
                           key={notification.id}
                           notification={notification}

@@ -112,7 +112,7 @@ function ResponsiveTable<T extends Record<string, any>>({
             {mobilePrimaryFields.length > 0 && (
               <div className="grid grid-cols-2 gap-3">
                 {mobilePrimaryFields.map((field) => {
-                  const column = columns.find(col => col.key === field);
+                  const column = columns.find((col: any) => col.key === field);
                   if (!column) return null;
                   
                   return (
@@ -133,7 +133,7 @@ function ResponsiveTable<T extends Record<string, any>>({
             {mobileSecondaryFields.length > 0 && (
               <div className="space-y-2 pt-2 border-t border-border/50">
                 {mobileSecondaryFields.map((field) => {
-                  const column = columns.find(col => col.key === field);
+                  const column = columns.find((col: any) => col.key === field);
                   if (!column) return null;
                   
                   return (

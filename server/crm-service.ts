@@ -48,7 +48,7 @@ export class AuditService {
         createdAt: new Date()
       });
       console.log(`Audit log created for note ${data.noteId}: ${data.action}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating audit log:", error);
       throw error;
     }
@@ -126,7 +126,7 @@ export class NotificationService {
 
       console.log(`Notification scheduled for ${data.scheduledFor}: ${data.title}`);
       return notification[0].id;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error scheduling notification:", error);
       throw error;
     }
@@ -174,7 +174,7 @@ export class NotificationService {
             .where(eq(scheduledNotifications.id, notification.id));
 
           console.log(`Notification sent: ${notification.title}`);
-        } catch (error) {
+        } catch (error: any) {
           // Marcar como falha e incrementar retry count
           await db.update(scheduledNotifications)
             .set({
@@ -188,7 +188,7 @@ export class NotificationService {
           console.error(`Failed to send notification ${notification.id}:`, error);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error processing pending notifications:", error);
     }
   }
@@ -209,7 +209,7 @@ export class NotificationService {
         ));
 
       console.log(`Notification ${notificationId} cancelled`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error cancelling notification:", error);
       throw error;
     }
@@ -269,7 +269,7 @@ export class CRMService {
       }
 
       return note[0];
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating note with audit:", error);
       throw error;
     }
@@ -314,7 +314,7 @@ export class CRMService {
       );
 
       return updatedNote[0];
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating note with audit:", error);
       throw error;
     }
@@ -336,36 +336,36 @@ export class CRMService {
 
       return {
         total: notes.length,
-        pending: notes.filter(n => !n.isCompleted && n.status === 'pending').length,
-        inProgress: notes.filter(n => !n.isCompleted && n.status === 'in_progress').length,
-        completed: notes.filter(n => n.isCompleted).length,
-        cancelled: notes.filter(n => n.status === 'cancelled').length,
+        pending: notes.filter((n: any) => !n.isCompleted && n.status === 'pending').length,
+        inProgress: notes.filter((n: any) => !n.isCompleted && n.status === 'in_progress').length,
+        completed: notes.filter((n: any) => n.isCompleted).length,
+        cancelled: notes.filter((n: any) => n.status === 'cancelled').length,
         
         // Por tipo
         byType: {
-          notes: notes.filter(n => n.type === 'note').length,
-          reminders: notes.filter(n => n.type === 'reminder').length,
-          meetings: notes.filter(n => n.type === 'meeting').length,
-          calls: notes.filter(n => n.type === 'call').length,
-          followUps: notes.filter(n => n.type === 'follow_up').length
+          notes: notes.filter((n: any) => n.type === 'note').length,
+          reminders: notes.filter((n: any) => n.type === 'reminder').length,
+          meetings: notes.filter((n: any) => n.type === 'meeting').length,
+          calls: notes.filter((n: any) => n.type === 'call').length,
+          followUps: notes.filter((n: any) => n.type === 'follow_up').length
         },
         
         // Por prioridade
         byPriority: {
-          low: notes.filter(n => n.priority === 'low').length,
-          normal: notes.filter(n => n.priority === 'normal').length,
-          high: notes.filter(n => n.priority === 'high').length,
-          urgent: notes.filter(n => n.priority === 'urgent').length
+          low: notes.filter((n: any) => n.priority === 'low').length,
+          normal: notes.filter((n: any) => n.priority === 'normal').length,
+          high: notes.filter((n: any) => n.priority === 'high').length,
+          urgent: notes.filter((n: any) => n.priority === 'urgent').length
         },
         
         // Atividade recente
         recentActivity: {
-          lastWeek: notes.filter(n => new Date(n.createdAt) >= lastWeek).length,
-          lastMonth: notes.filter(n => new Date(n.createdAt) >= lastMonth).length
+          lastWeek: notes.filter((n: any) => new Date(n.createdAt) >= lastWeek).length,
+          lastMonth: notes.filter((n: any) => new Date(n.createdAt) >= lastMonth).length
         },
         
         // Lembretes próximos
-        upcomingReminders: notes.filter(n => 
+        upcomingReminders: notes.filter((n: any) => 
           !n.isCompleted && 
           n.reminderDate && 
           new Date(n.reminderDate) > now
@@ -373,12 +373,12 @@ export class CRMService {
         
         // Ligações
         callMetrics: {
-          totalCalls: notes.filter(n => n.type === 'call').length,
-          successfulCalls: notes.filter(n => n.type === 'call' && n.callResult === 'success').length,
-          averageDuration: this.calculateAverageCallDuration(notes.filter(n => n.type === 'call'))
+          totalCalls: notes.filter((n: any) => n.type === 'call').length,
+          successfulCalls: notes.filter((n: any) => n.type === 'call' && n.callResult === 'success').length,
+          averageDuration: this.calculateAverageCallDuration(notes.filter((n: any) => n.type === 'call'))
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error getting client CRM stats:", error);
       throw error;
     }
@@ -388,7 +388,7 @@ export class CRMService {
    * Calcular duração média das ligações
    */
   private static calculateAverageCallDuration(calls: any[]): number {
-    const callsWithDuration = calls.filter(c => c.duration && c.duration > 0);
+    const callsWithDuration = calls.filter((c: any) => c.duration && c.duration > 0);
     if (callsWithDuration.length === 0) return 0;
     
     const totalDuration = callsWithDuration.reduce((sum, call) => sum + call.duration, 0);

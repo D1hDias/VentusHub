@@ -8,7 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 // Função para converter hex para RGB
-const hexToRgb = (hex) => {
+const hexToRgb = (hex: any) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
     r: parseInt(result[1], 16),
@@ -18,7 +18,7 @@ const hexToRgb = (hex) => {
 };
 
 // Função para converter imagem em base64
-const imageToBase64 = (url) => {
+const imageToBase64 = (url: any) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -41,14 +41,14 @@ const imageToBase64 = (url) => {
 };
 
 // Função para calcular parcela Price
-const calcularParcelaPrice = (valorFinanciado, taxaJurosAnual, prazoMeses) => {
+const calcularParcelaPrice = (valorFinanciado: any, taxaJurosAnual: any, prazoMeses: any) => {
   const taxaMensal = taxaJurosAnual / 100 / 12;
   const fatorPagamento = Math.pow(1 + taxaMensal, prazoMeses);
   return valorFinanciado * (taxaMensal * fatorPagamento) / (fatorPagamento - 1);
 };
 
 // Função para calcular parcela SAC
-const calcularParcelaSAC = (valorFinanciado, taxaJurosAnual, prazoMeses) => {
+const calcularParcelaSAC = (valorFinanciado: any, taxaJurosAnual: any, prazoMeses: any) => {
   const taxaMensal = taxaJurosAnual / 100 / 12;
   const amortizacaoMensal = valorFinanciado / prazoMeses;
   
@@ -88,7 +88,7 @@ const INDICADORES_MERCADO = {
 };
 
 // Função para calcular TIR (Taxa Interna de Retorno)
-const calcularTIR = (fluxosCaixa) => {
+const calcularTIR = (fluxosCaixa: any) => {
   const maxIteracoes = 100;
   const tolerancia = 0.0001;
   let taxa = 0.1; // Estimativa inicial de 10%
@@ -128,7 +128,7 @@ export default function SimuladorAluguelXCompra() {
     modeloFinanciamento: 'price'
   });
 
-  const [resultado, setResultado] = useState(null);
+  const [resultado, setResultado] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   // Função para controlar a sidebar secundária - desabilitar quando acessado diretamente
@@ -153,18 +153,18 @@ export default function SimuladorAluguelXCompra() {
     };
   }, []);
 
-  const formatCurrency = (value) => {
+  const formatCurrency = (value: any) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(value || 0);
   };
 
-  const formatPercent = (value) => {
+  const formatPercent = (value: any) => {
     return `${value.toFixed(2)}%`;
   };
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: any, value: any) => {
     if (field === 'precoCompra' || field === 'aluguelMensal' || field === 'iptuAnual' || field === 'condominioMensal') {
       const numericValue = value.replace(/[^\d]/g, '');
       const formattedValue = new Intl.NumberFormat('pt-BR', {
@@ -391,7 +391,7 @@ export default function SimuladorAluguelXCompra() {
       let logoVentusHub = null;
       try {
         logoVentusHub = await imageToBase64('/src/assets/logo.png');
-      } catch (error) {
+      } catch (error: any) {
         console.warn('Erro ao carregar logo VentusHub:', error);
       }
       
@@ -401,9 +401,9 @@ export default function SimuladorAluguelXCompra() {
       
       if (logoVentusHub) {
         const logoWidth = 25;
-        const logoHeight = logoWidth / logoVentusHub.aspectRatio;
+        const logoHeight = logoWidth / (logoVentusHub as any).aspectRatio;
         const logoY = 12.5 - (logoHeight / 2);
-        doc.addImage(logoVentusHub.dataUrl, 'PNG', 15, logoY, logoWidth, logoHeight);
+        doc.addImage((logoVentusHub as any).dataUrl, 'PNG', 15, logoY, logoWidth, logoHeight);
       }
       
       doc.setTextColor(255, 255, 255);
@@ -459,10 +459,10 @@ export default function SimuladorAluguelXCompra() {
       
       // Tabela de resultados
       const dadosTabela = [
-        ['Patrimônio Líquido Final', formatCurrency(resultado.patrimonioLiquidoComprar), formatCurrency(resultado.patrimonioLiquidoAlugar)],
-        ['Taxa Interna de Retorno (TIR)', formatPercent(resultado.tirComprar), formatPercent(resultado.tirAlugar)],
-        ['Payback (anos)', resultado.paybackAnos || 'N/A', 'N/A'],
-        ['Break-even (ano)', resultado.breakEvenAno || 'N/A', resultado.breakEvenAno || 'N/A']
+        ['Patrimônio Líquido Final', formatCurrency((resultado as any).patrimonioLiquidoComprar), formatCurrency((resultado as any).patrimonioLiquidoAlugar)],
+        ['Taxa Interna de Retorno (TIR)', formatPercent((resultado as any).tirComprar), formatPercent((resultado as any).tirAlugar)],
+        ['Payback (anos)', (resultado as any).paybackAnos || 'N/A', 'N/A'],
+        ['Break-even (ano)', (resultado as any).breakEvenAno || 'N/A', (resultado as any).breakEvenAno || 'N/A']
       ];
       
       autoTable(doc, {
@@ -490,7 +490,7 @@ export default function SimuladorAluguelXCompra() {
       // Recomendação
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
-      const melhorOpcao = resultado.patrimonioLiquidoComprar > resultado.patrimonioLiquidoAlugar ? 'COMPRAR' : 'ALUGAR';
+      const melhorOpcao = (resultado as any).patrimonioLiquidoComprar > (resultado as any).patrimonioLiquidoAlugar ? 'COMPRAR' : 'ALUGAR';
       doc.setTextColor(melhorOpcao === 'COMPRAR' ? 0 : 255, melhorOpcao === 'COMPRAR' ? 100 : 0, 0);
       doc.text(`Recomendação: ${melhorOpcao}`, 15, currentY);
       
@@ -515,7 +515,7 @@ export default function SimuladorAluguelXCompra() {
       const fileName = `Simulacao_Alugar_vs_Comprar_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
       doc.save(fileName);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
       alert('Erro ao gerar PDF: ' + error.message);
     }
@@ -807,19 +807,19 @@ export default function SimuladorAluguelXCompra() {
                       <div className="space-y-3">
                         <div className="flex justify-between">
                           <span className="text-blue-700 dark:text-blue-300">Patrimônio Líquido Final:</span>
-                          <span className="font-semibold text-blue-900 dark:text-blue-100">{formatCurrency(resultado.patrimonioLiquidoComprar)}</span>
+                          <span className="font-semibold text-blue-900 dark:text-blue-100">{formatCurrency((resultado as any).patrimonioLiquidoComprar)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-blue-700 dark:text-blue-300">TIR:</span>
-                          <span className="font-semibold text-blue-900 dark:text-blue-100">{formatPercent(resultado.tirComprar)}</span>
+                          <span className="font-semibold text-blue-900 dark:text-blue-100">{formatPercent((resultado as any).tirComprar)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-blue-700 dark:text-blue-300">Desembolso Inicial:</span>
-                          <span className="font-semibold text-blue-900 dark:text-blue-100">{formatCurrency(resultado.detalhesComprar.desembolsoInicial)}</span>
+                          <span className="font-semibold text-blue-900 dark:text-blue-100">{formatCurrency((resultado as any).detalhesComprar.desembolsoInicial)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-blue-700 dark:text-blue-300">Custos Fixos Mensais:</span>
-                          <span className="font-semibold text-blue-900 dark:text-blue-100">{formatCurrency(resultado.detalhesComprar.custosFixosMensais)}</span>
+                          <span className="font-semibold text-blue-900 dark:text-blue-100">{formatCurrency((resultado as any).detalhesComprar.custosFixosMensais)}</span>
                         </div>
                       </div>
                     </div>
@@ -833,28 +833,28 @@ export default function SimuladorAluguelXCompra() {
                       <div className="space-y-3">
                         <div className="flex justify-between">
                           <span className="text-green-700 dark:text-green-300">Patrimônio Líquido Final:</span>
-                          <span className="font-semibold text-green-900 dark:text-green-100">{formatCurrency(resultado.patrimonioLiquidoAlugar)}</span>
+                          <span className="font-semibold text-green-900 dark:text-green-100">{formatCurrency((resultado as any).patrimonioLiquidoAlugar)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-green-700 dark:text-green-300">TIR:</span>
-                          <span className="font-semibold text-green-900 dark:text-green-100">{formatPercent(resultado.tirAlugar)}</span>
+                          <span className="font-semibold text-green-900 dark:text-green-100">{formatPercent((resultado as any).tirAlugar)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-green-700 dark:text-green-300">Aluguel Inicial:</span>
-                          <span className="font-semibold text-green-900 dark:text-green-100">{formatCurrency(resultado.detalhesAlugar.aluguelInicial)}</span>
+                          <span className="font-semibold text-green-900 dark:text-green-100">{formatCurrency((resultado as any).detalhesAlugar.aluguelInicial)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-green-700 dark:text-green-300">Aluguel Final:</span>
-                          <span className="font-semibold text-green-900 dark:text-green-100">{formatCurrency(resultado.detalhesAlugar.aluguelFinal)}</span>
+                          <span className="font-semibold text-green-900 dark:text-green-100">{formatCurrency((resultado as any).detalhesAlugar.aluguelFinal)}</span>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Recomendação */}
-                  <div className={`rounded-lg p-6 mb-8 ${resultado.patrimonioLiquidoComprar > resultado.patrimonioLiquidoAlugar ? 'bg-blue-100 dark:bg-blue-950/50 border-l-4 border-blue-500' : 'bg-green-100 dark:bg-green-950/50 border-l-4 border-green-500'}`}>
+                  <div className={`rounded-lg p-6 mb-8 ${(resultado as any).patrimonioLiquidoComprar > (resultado as any).patrimonioLiquidoAlugar ? 'bg-blue-100 dark:bg-blue-950/50 border-l-4 border-blue-500' : 'bg-green-100 dark:bg-green-950/50 border-l-4 border-green-500'}`}>
                     <h3 className="text-lg font-semibold mb-2 flex items-center">
-                      {resultado.patrimonioLiquidoComprar > resultado.patrimonioLiquidoAlugar ? (
+                      {(resultado as any).patrimonioLiquidoComprar > (resultado as any).patrimonioLiquidoAlugar ? (
                         <TrendingUp className="h-5 w-5 mr-2 text-blue-600" />
                       ) : (
                         <TrendingDown className="h-5 w-5 mr-2 text-green-600" />
@@ -863,11 +863,11 @@ export default function SimuladorAluguelXCompra() {
                     </h3>
                     <p className="text-lg">
                       <strong>
-                        {resultado.patrimonioLiquidoComprar > resultado.patrimonioLiquidoAlugar ? 'COMPRAR' : 'ALUGAR'}
+                        {(resultado as any).patrimonioLiquidoComprar > (resultado as any).patrimonioLiquidoAlugar ? 'COMPRAR' : 'ALUGAR'}
                       </strong>{' '}
                       é a melhor opção para o seu perfil, resultando em{' '}
                       <strong>
-                        {formatCurrency(Math.abs(resultado.patrimonioLiquidoComprar - resultado.patrimonioLiquidoAlugar))}
+                        {formatCurrency(Math.abs((resultado as any).patrimonioLiquidoComprar - (resultado as any).patrimonioLiquidoAlugar))}
                       </strong>{' '}
                       a mais em patrimônio líquido.
                     </p>
@@ -877,13 +877,13 @@ export default function SimuladorAluguelXCompra() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
                       <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                        {resultado.paybackAnos || 'N/A'}
+                        {(resultado as any).paybackAnos || 'N/A'}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">Payback (anos)</div>
                     </div>
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-center">
                       <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                        {resultado.breakEvenAno || 'N/A'}
+                        {(resultado as any).breakEvenAno || 'N/A'}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">Break-even (ano)</div>
                     </div>
@@ -902,7 +902,7 @@ export default function SimuladorAluguelXCompra() {
                       Evolução do Patrimônio
                     </h3>
                     <div className="space-y-2">
-                      {resultado.serieTemporalAnos.map((ano, index) => (
+                      {(resultado as any).serieTemporalAnos.map((ano: any, index: any) => (
                         <div key={ano} className="flex items-center space-x-4">
                           <div className="w-16 text-sm font-medium text-gray-700 dark:text-gray-300">
                             Ano {ano}
@@ -911,18 +911,18 @@ export default function SimuladorAluguelXCompra() {
                             <div
                               className="bg-blue-500 h-4 rounded-full"
                               style={{
-                                width: `${Math.min(100, (resultado.seriePatrimonioComprar[index] / Math.max(...resultado.seriePatrimonioComprar, ...resultado.seriePatrimonioAlugar)) * 100)}%`
+                                width: `${Math.min(100, ((resultado as any).seriePatrimonioComprar[index] / Math.max(...(resultado as any).seriePatrimonioComprar, ...(resultado as any).seriePatrimonioAlugar)) * 100)}%`
                               }}
                             ></div>
                             <div
                               className="bg-green-500 h-4 rounded-full absolute top-0 opacity-70"
                               style={{
-                                width: `${Math.min(100, (resultado.seriePatrimonioAlugar[index] / Math.max(...resultado.seriePatrimonioComprar, ...resultado.seriePatrimonioAlugar)) * 100)}%`
+                                width: `${Math.min(100, ((resultado as any).seriePatrimonioAlugar[index] / Math.max(...(resultado as any).seriePatrimonioComprar, ...(resultado as any).seriePatrimonioAlugar)) * 100)}%`
                               }}
                             ></div>
                           </div>
                           <div className="w-32 text-sm text-gray-600 dark:text-gray-400">
-                            {formatCurrency(resultado.seriePatrimonioComprar[index] > resultado.seriePatrimonioAlugar[index] ? resultado.seriePatrimonioComprar[index] : resultado.seriePatrimonioAlugar[index])}
+                            {formatCurrency((resultado as any).seriePatrimonioComprar[index] > (resultado as any).seriePatrimonioAlugar[index] ? (resultado as any).seriePatrimonioComprar[index] : (resultado as any).seriePatrimonioAlugar[index])}
                           </div>
                         </div>
                       ))}

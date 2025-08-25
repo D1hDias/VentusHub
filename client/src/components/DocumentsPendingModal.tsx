@@ -16,7 +16,7 @@ import { apiRequestLegacy as apiRequest } from "@/lib/queryClient";
 // INTERFACES GENÉRICAS
 // ======================================
 
-interface Entity {
+export interface Entity {
   id?: string | number;
   sequenceNumber?: string;
   stage?: number;
@@ -24,7 +24,7 @@ interface Entity {
   [key: string]: any;
 }
 
-interface DocumentDefinition {
+export interface DocumentDefinition {
   key: string;
   name: string;
   icon: string;
@@ -37,7 +37,7 @@ interface DocumentDefinition {
   maxSize?: number; // em MB
 }
 
-interface FieldDefinition {
+export interface FieldDefinition {
   key: string;
   name: string;
   required?: boolean;
@@ -187,7 +187,7 @@ export function DocumentsPendingModal({
       
       const uploadedTypes = documents.map((doc: any) => doc.fileType || doc.category);
       setUploadedDocsState(uploadedTypes);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading uploaded documents:', error);
     }
   };
@@ -204,14 +204,14 @@ export function DocumentsPendingModal({
     }
     
     if (config.documents) {
-      return config.documents.filter(doc => 
+      return config.documents.filter((doc: any) => 
         !config.stage || !doc.stages || doc.stages.includes(config.stage)
       );
     }
     
     // Fallback para configuração padrão de propriedades
     if (config.entityType === 'property') {
-      return DEFAULT_PROPERTY_DOCUMENTS.filter(doc => 
+      return DEFAULT_PROPERTY_DOCUMENTS.filter((doc: any) => 
         !config.stage || !doc.stages || doc.stages.includes(config.stage)
       );
     }
@@ -230,14 +230,14 @@ export function DocumentsPendingModal({
     }
     
     if (config.fields) {
-      return config.fields.filter(field => 
+      return config.fields.filter((field: any) => 
         !config.stage || !field.stages || field.stages.includes(config.stage)
       );
     }
     
     // Fallback para configuração padrão de propriedades
     if (config.entityType === 'property') {
-      return DEFAULT_PROPERTY_FIELDS.filter(field => 
+      return DEFAULT_PROPERTY_FIELDS.filter((field: any) => 
         !config.stage || !field.stages || field.stages.includes(config.stage)
       );
     }
@@ -268,8 +268,8 @@ export function DocumentsPendingModal({
 
   const requiredDocuments = getRequiredDocuments();
   const requiredFields = getRequiredFields();
-  const pendingDocs = requiredDocuments.filter(doc => !getDocumentStatus(doc.key));
-  const pendingFields = requiredFields.filter(field => !getFieldStatus(field));
+  const pendingDocs = requiredDocuments.filter((doc: any) => !getDocumentStatus(doc.key));
+  const pendingFields = requiredFields.filter((field: any) => !getFieldStatus(field));
 
   // Função para selecionar arquivo
   const handleFileSelect = (docKey: string, file: File) => {
@@ -338,7 +338,7 @@ export function DocumentsPendingModal({
 
       toast({
         title: "Documento enviado!",
-        description: `${requiredDocuments.find(d => d.key === docKey)?.name} foi enviado com sucesso.`,
+        description: `${requiredDocuments.find((d: any) => d.key === docKey)?.name} foi enviado com sucesso.`,
       });
 
       // Remover arquivo selecionado
@@ -365,9 +365,9 @@ export function DocumentsPendingModal({
 
   // Calcular estatísticas de completude
   const totalRequiredDocs = requiredDocuments.length;
-  const uploadedDocsCount = requiredDocuments.filter(doc => getDocumentStatus(doc.key)).length;
+  const uploadedDocsCount = requiredDocuments.filter((doc: any) => getDocumentStatus(doc.key)).length;
   const totalRequiredFields = requiredFields.length;
-  const filledFieldsCount = requiredFields.filter(field => getFieldStatus(field)).length;
+  const filledFieldsCount = requiredFields.filter((field: any) => getFieldStatus(field)).length;
 
   // Gerar título dinâmico baseado no tipo de entidade e configuração
   const getEntityDisplayName = (): string => {

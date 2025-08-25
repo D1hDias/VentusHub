@@ -9,7 +9,7 @@ import IndicadoresMercado from '@/components/IndicadoresMercado';
 import { Switch } from "@/components/ui/switch";
 
 // Função para converter hex para RGB
-const hexToRgb = (hex) => {
+const hexToRgb = (hex: any) => {
   const result = /^#?([a-f\\d]{2})([a-f\\d]{2})([a-f\\d]{2})$/i.exec(hex);
   return result ? {
     r: parseInt(result[1], 16),
@@ -19,7 +19,7 @@ const hexToRgb = (hex) => {
 };
 
 // Função para converter imagem em base64
-const imageToBase64 = (url) => {
+const imageToBase64 = (url: any) => {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -42,12 +42,12 @@ const imageToBase64 = (url) => {
 };
 
 // Função sigmoid para probabilidade de contemplação
-const sigmoid = (x) => {
+const sigmoid = (x: any) => {
   return 1 / (1 + Math.exp(-x));
 };
 
 // Modelo logístico de contemplação: P(t) = σ(α + β·lance% + γ·t)
-const calcularProbabilidadeContemplacao = (lancePercent, mes) => {
+const calcularProbabilidadeContemplacao = (lancePercent: any, mes: any) => {
   const alpha = -3;     // Intercepto
   const beta = 0.12;    // Coeficiente do lance (por ponto percentual)
   const gamma = 0.08;   // Coeficiente temporal (por mês)
@@ -57,7 +57,7 @@ const calcularProbabilidadeContemplacao = (lancePercent, mes) => {
 };
 
 // Função para calcular TIR (Taxa Interna de Retorno)
-const calcularTIR = (fluxosCaixa) => {
+const calcularTIR = (fluxosCaixa: any) => {
   const maxIteracoes = 100;
   const tolerancia = 0.0001;
   let taxa = 0.01; // Estimativa inicial de 1% ao mês
@@ -85,7 +85,7 @@ const calcularTIR = (fluxosCaixa) => {
 };
 
 // Função para calcular parcela Price
-const calcularParcelaPrice = (valorFinanciado, taxaAnual, prazoMeses) => {
+const calcularParcelaPrice = (valorFinanciado: any, taxaAnual: any, prazoMeses: any) => {
   const taxaMensal = taxaAnual / 100 / 12;
   if (taxaMensal === 0) return valorFinanciado / prazoMeses;
   
@@ -94,7 +94,7 @@ const calcularParcelaPrice = (valorFinanciado, taxaAnual, prazoMeses) => {
 };
 
 // Formatação de valores
-const formatCurrency = (value) => {
+const formatCurrency = (value: any) => {
   if (value === null || value === undefined || isNaN(value)) return 'R$ 0,00';
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -102,7 +102,7 @@ const formatCurrency = (value) => {
   }).format(value);
 };
 
-const formatPercent = (value) => {
+const formatPercent = (value: any) => {
   if (value === null || value === undefined || isNaN(value)) return '0,00%';
   return new Intl.NumberFormat('pt-BR', {
     style: 'percent',
@@ -137,7 +137,7 @@ export default function SimuladorConsorcioXFinanciamento() {
     horizonteAnaliseMeses: ''
   });
 
-  const [resultado, setResultado] = useState(null);
+  const [resultado, setResultado] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
   // Função para controlar a sidebar secundária - desabilitar quando acessado diretamente
@@ -186,7 +186,7 @@ export default function SimuladorConsorcioXFinanciamento() {
     }
   }, [formData.prazoConsorcioMeses, formData.prazoFinanciamentoMeses]);
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: any, value: any) => {
     if (field === 'valorCarta' || field === 'valorFinanciamento') {
       const numericValue = value.replace(/[^\d]/g, '');
       const formattedValue = new Intl.NumberFormat('pt-BR', {
@@ -369,7 +369,7 @@ export default function SimuladorConsorcioXFinanciamento() {
         });
       }, 100);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro no cálculo:', error);
       alert('Erro no cálculo. Verifique os dados informados.');
     } finally {
@@ -392,7 +392,7 @@ export default function SimuladorConsorcioXFinanciamento() {
       let logoVentusHub = null;
       try {
         logoVentusHub = await imageToBase64('/src/assets/logo.png');
-      } catch (error) {
+      } catch (error: any) {
         console.warn('Logo não encontrada:', error);
       }
       
@@ -402,9 +402,9 @@ export default function SimuladorConsorcioXFinanciamento() {
       
       if (logoVentusHub) {
         const logoWidth = 25;
-        const logoHeight = logoWidth / logoVentusHub.aspectRatio;
+        const logoHeight = logoWidth / (logoVentusHub as any).aspectRatio;
         const logoY = 12.5 - (logoHeight / 2);
-        doc.addImage(logoVentusHub.dataUrl, 'PNG', 15, logoY, logoWidth, logoHeight);
+        doc.addImage((logoVentusHub as any).dataUrl, 'PNG', 15, logoY, logoWidth, logoHeight);
       }
       
       doc.setTextColor(255, 255, 255);
@@ -424,9 +424,9 @@ export default function SimuladorConsorcioXFinanciamento() {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       
-      doc.text(`Valor da carta/financiamento: ${formatCurrency(resultado.parametros.valorCarta)}`, 15, currentY);
-      doc.text(`Horizonte de análise: ${resultado.parametros.horizonteAnaliseMeses} meses`, 15, currentY + 5);
-      doc.text(`Custo de oportunidade: ${resultado.parametros.custoOportunidadeAA.toFixed(2)}% a.a.`, 15, currentY + 10);
+      doc.text(`Valor da carta/financiamento: ${formatCurrency((resultado as any).parametros.valorCarta)}`, 15, currentY);
+      doc.text(`Horizonte de análise: ${(resultado as any).parametros.horizonteAnaliseMeses} meses`, 15, currentY + 5);
+      doc.text(`Custo de oportunidade: ${(resultado as any).parametros.custoOportunidadeAA.toFixed(2)}% a.a.`, 15, currentY + 10);
       
       currentY += 25;
       
@@ -440,10 +440,10 @@ export default function SimuladorConsorcioXFinanciamento() {
       // Tabela de resultados
       const dadosTabela = [
         ['Indicador', 'Consórcio', 'Financiamento'],
-        ['TIR Anual', formatPercent(resultado.consorcio.tirAnual * 100), formatPercent(resultado.financiamento.tirAnual * 100)],
-        ['Parcela Base', formatCurrency(resultado.consorcio.parcelaBase), formatCurrency(resultado.financiamento.parcelaMensal)],
-        ['NPV', formatCurrency(resultado.consorcio.npv), formatCurrency(resultado.financiamento.npv)],
-        ['Prob. Contemplação', formatPercent(resultado.consorcio.probContAteHoriz * 100), 'N/A']
+        ['TIR Anual', formatPercent((resultado as any).consorcio.tirAnual * 100), formatPercent((resultado as any).financiamento.tirAnual * 100)],
+        ['Parcela Base', formatCurrency((resultado as any).consorcio.parcelaBase), formatCurrency((resultado as any).financiamento.parcelaMensal)],
+        ['NPV', formatCurrency((resultado as any).consorcio.npv), formatCurrency((resultado as any).financiamento.npv)],
+        ['Prob. Contemplação', formatPercent((resultado as any).consorcio.probContAteHoriz * 100), 'N/A']
       ];
       
       autoTable(doc, {
@@ -471,8 +471,8 @@ export default function SimuladorConsorcioXFinanciamento() {
       // Recomendação
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
-      const recomendacao = `RECOMENDAÇÃO: ${resultado.comparativo.vencedor.toUpperCase()}`;
-      const corRecomendacao = resultado.comparativo.vencedor === 'Consórcio' ? [0, 100, 0] : [0, 100, 200];
+      const recomendacao = `RECOMENDAÇÃO: ${(resultado as any).comparativo.vencedor.toUpperCase()}`;
+      const corRecomendacao = (resultado as any).comparativo.vencedor === 'Consórcio' ? [0, 100, 0] : [0, 100, 200];
       doc.setTextColor(corRecomendacao[0], corRecomendacao[1], corRecomendacao[2]);
       doc.text(recomendacao, 15, currentY);
       
@@ -480,8 +480,8 @@ export default function SimuladorConsorcioXFinanciamento() {
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Vantagem financeira: ${formatCurrency(resultado.comparativo.vantagem)}`, 15, currentY);
-      doc.text(`Economia percentual: ${resultado.comparativo.economiaPercent.toFixed(2)}%`, 15, currentY + 5);
+      doc.text(`Vantagem financeira: ${formatCurrency((resultado as any).comparativo.vantagem)}`, 15, currentY);
+      doc.text(`Economia percentual: ${(resultado as any).comparativo.economiaPercent.toFixed(2)}%`, 15, currentY + 5);
       
       // Rodapé
       doc.setTextColor(255, 255, 255);
@@ -492,10 +492,10 @@ export default function SimuladorConsorcioXFinanciamento() {
       doc.text(`Gerado em ${new Date().toLocaleDateString('pt-BR')}`, pageWidth/2, pageHeight - 4, { align: 'center' });
       
       // Salvar
-      const fileName = `Simulacao_Consorcio_vs_Financiamento_${new Date().toLocaleDateString('pt-BR').replace(/\\//g, '-')}.pdf`;
+      const fileName = `Simulacao_Consorcio_vs_Financiamento_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
       doc.save(fileName);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
       alert('Erro ao gerar PDF: ' + error.message);
     }
@@ -802,17 +802,17 @@ export default function SimuladorConsorcioXFinanciamento() {
 
                   {/* Resumo Executivo */}
                   <div className={`rounded-lg p-6 mb-8 ${
-                    resultado.comparativo.vencedor === 'Consórcio' ? 'bg-green-100 border-l-4 border-green-500' : 'bg-blue-100 border-l-4 border-blue-500'
+                    (resultado as any).comparativo.vencedor === 'Consórcio' ? 'bg-green-100 border-l-4 border-green-500' : 'bg-blue-100 border-l-4 border-blue-500'
                   }`}>
                     <h3 className="text-lg font-semibold mb-2 flex items-center">
                       <Target className="h-5 w-5 mr-2" />
-                      📊 Recomendação: {resultado.comparativo.vencedor}
+                      📊 Recomendação: {(resultado as any).comparativo.vencedor}
                     </h3>
                     <p className="text-gray-700 dark:text-gray-300 mb-2">
-                      <strong>Vantagem financeira:</strong> {formatCurrency(resultado.comparativo.vantagem)}
+                      <strong>Vantagem financeira:</strong> {formatCurrency((resultado as any).comparativo.vantagem)}
                     </p>
                     <p className="text-gray-700 dark:text-gray-300">
-                      <strong>Economia:</strong> {resultado.comparativo.economiaPercent.toFixed(2)}% em valor presente
+                      <strong>Economia:</strong> {(resultado as any).comparativo.economiaPercent.toFixed(2)}% em valor presente
                     </p>
                   </div>
 
@@ -828,19 +828,19 @@ export default function SimuladorConsorcioXFinanciamento() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span>TIR Anual:</span>
-                          <span className="font-semibold">{formatPercent(resultado.consorcio.tirAnual)}</span>
+                          <span className="font-semibold">{formatPercent((resultado as any).consorcio.tirAnual)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>NPV:</span>
-                          <span className="font-semibold">{formatCurrency(resultado.consorcio.npv)}</span>
+                          <span className="font-semibold">{formatCurrency((resultado as any).consorcio.npv)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Custo Total:</span>
-                          <span className="font-semibold">{formatCurrency(resultado.consorcio.custoTotal)}</span>
+                          <span className="font-semibold">{formatCurrency((resultado as any).consorcio.custoTotal)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Prob. Contemplação:</span>
-                          <span className="font-semibold">{resultado.consorcio.probabilidadeContemplacao.toFixed(2)}%</span>
+                          <span className="font-semibold">{(resultado as any).consorcio.probabilidadeContemplacao.toFixed(2)}%</span>
                         </div>
                       </div>
                     </div>
@@ -854,19 +854,19 @@ export default function SimuladorConsorcioXFinanciamento() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span>TIR Anual:</span>
-                          <span className="font-semibold">{formatPercent(resultado.financiamento.tirAnual)}</span>
+                          <span className="font-semibold">{formatPercent((resultado as any).financiamento.tirAnual)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>NPV:</span>
-                          <span className="font-semibold">{formatCurrency(resultado.financiamento.npv)}</span>
+                          <span className="font-semibold">{formatCurrency((resultado as any).financiamento.npv)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Custo Total:</span>
-                          <span className="font-semibold">{formatCurrency(resultado.financiamento.custoTotal)}</span>
+                          <span className="font-semibold">{formatCurrency((resultado as any).financiamento.custoTotal)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Parcela Inicial:</span>
-                          <span className="font-semibold">{formatCurrency(resultado.financiamento.parcelaInicial)}</span>
+                          <span className="font-semibold">{formatCurrency((resultado as any).financiamento.parcelaInicial)}</span>
                         </div>
                       </div>
                     </div>
@@ -881,10 +881,10 @@ export default function SimuladorConsorcioXFinanciamento() {
                       <div>
                         <h4 className="font-medium text-green-800 dark:text-green-200 mb-3">Detalhes do Consórcio:</h4>
                         <div className="space-y-1 text-sm">
-                          <p><strong>Parcela Mensal:</strong> {formatCurrency(resultado.consorcio.parcelaMensal)}</p>
-                          <p><strong>Taxa Administrativa:</strong> {resultado.consorcio.taxaAdm}%</p>
-                          <p><strong>Valor Total Pago:</strong> {formatCurrency(resultado.consorcio.valorTotalPago)}</p>
-                          <p><strong>Tempo Médio Contemplação:</strong> {resultado.consorcio.tempoMedioContemplacao} meses</p>
+                          <p><strong>Parcela Mensal:</strong> {formatCurrency((resultado as any).consorcio.parcelaMensal)}</p>
+                          <p><strong>Taxa Administrativa:</strong> {(resultado as any).consorcio.taxaAdm}%</p>
+                          <p><strong>Valor Total Pago:</strong> {formatCurrency((resultado as any).consorcio.valorTotalPago)}</p>
+                          <p><strong>Tempo Médio Contemplação:</strong> {(resultado as any).consorcio.tempoMedioContemplacao} meses</p>
                         </div>
                       </div>
 
@@ -892,10 +892,10 @@ export default function SimuladorConsorcioXFinanciamento() {
                       <div>
                         <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-3">Detalhes do Financiamento:</h4>
                         <div className="space-y-1 text-sm">
-                          <p><strong>Entrada:</strong> {formatCurrency(resultado.financiamento.entrada)}</p>
-                          <p><strong>Valor Financiado:</strong> {formatCurrency(resultado.financiamento.valorFinanciado)}</p>
-                          <p><strong>Taxa de Juros:</strong> {resultado.financiamento.taxaJuros}% a.a.</p>
-                          <p><strong>Valor Total Pago:</strong> {formatCurrency(resultado.financiamento.valorTotalPago)}</p>
+                          <p><strong>Entrada:</strong> {formatCurrency((resultado as any).financiamento.entrada)}</p>
+                          <p><strong>Valor Financiado:</strong> {formatCurrency((resultado as any).financiamento.valorFinanciado)}</p>
+                          <p><strong>Taxa de Juros:</strong> {(resultado as any).financiamento.taxaJuros}% a.a.</p>
+                          <p><strong>Valor Total Pago:</strong> {formatCurrency((resultado as any).financiamento.valorTotalPago)}</p>
                         </div>
                       </div>
                     </div>

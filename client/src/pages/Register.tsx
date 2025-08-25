@@ -1,352 +1,298 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequestLegacy as apiRequest } from "@/lib/queryClient";
-import { Eye, EyeOff } from "lucide-react";
-
-const registerSchema = z.object({
-  firstName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-  lastName: z.string().min(2, "Sobrenome deve ter pelo menos 2 caracteres"),
-  email: z.string().email("E-mail inválido"),
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-  confirmPassword: z.string(),
-  cpf: z.string().min(11, "CPF deve ter 11 dígitos"),
-  userType: z.enum(["corretor", "cliente"], {
-    required_error: "Selecione o tipo de usuário",
-  }),
-  creci: z.string().optional(),
-  phone: z.string().min(10, "Telefone é obrigatório"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Senhas não coincidem",
-  path: ["confirmPassword"],
-}).refine((data) => {
-  if (data.userType === "corretor" && (!data.creci || data.creci.length < 1)) {
-    return false;
-  }
-  return true;
-}, {
-  message: "CRECI é obrigatório para corretores",
-  path: ["creci"],
-});
-
-type RegisterFormData = z.infer<typeof registerSchema>;
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'wouter';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Building2, Eye, EyeOff, Loader2, Mail, Lock, User, Check, Crown, Shield } from 'lucide-react';
 
 export default function Register() {
+  const [, setLocation] = useLocation();
+  const { register } = useAuth();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isCorretor, setIsCorretor] = useState(true);
-  const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFirstUser, setIsFirstUser] = useState(false);
+  const [checkingFirstUser, setCheckingFirstUser] = useState(true);
 
-  const form = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      cpf: "",
-      userType: "corretor" as const,
-      creci: "",
-      phone: "",
-    },
-  });
+  // Verificar se é o primeiro usuário
+  useEffect(() => {
+    const checkFirstUser = async () => {
+      try {
+        const response = await fetch('/api/setup/is-first-user');
+        if (response.ok) {
+          const data = await response.json();
+          setIsFirstUser(data.isFirstUser);
+        }
+      } catch (error) {
+        console.error('Erro ao verificar primeiro usuário:', error);
+      } finally {
+        setCheckingFirstUser(false);
+      }
+    };
 
-  const registerMutation = useMutation({
-    mutationFn: async (data: RegisterFormData) => {
-      const { confirmPassword, ...registerData } = data;
-      const response = await apiRequest("POST", "/api/auth/register", registerData);
-      return await response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Conta criada com sucesso!",
-        description: "Você já pode fazer login.",
-      });
-      setLocation("/login");
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro no cadastro",
-        description: error.message || "Erro ao criar conta",
-        variant: "destructive",
-      });
-    },
-  });
+    checkFirstUser();
+  }, []);
 
-  const onSubmit = (data: RegisterFormData) => {
-    registerMutation.mutate(data);
+  const passwordRequirements = [
+    { met: formData.password.length >= 8, text: 'Mínimo 8 caracteres' },
+    { met: /[A-Z]/.test(formData.password), text: 'Uma letra maiúscula' },
+    { met: /[a-z]/.test(formData.password), text: 'Uma letra minúscula' },
+    { met: /[0-9]/.test(formData.password), text: 'Um número' },
+  ];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError('As senhas não coincidem');
+      return;
+    }
+
+    // Validate password requirements
+    if (!passwordRequirements.every(req => req.met)) {
+      setError('A senha não atende aos requisitos mínimos');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await register(formData.email, formData.password, formData.name);
+      // Redirect to login with success message
+      setLocation('/login?registered=true');
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      setError(err.message || 'Erro ao criar conta. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat relative"
-      style={{
-        backgroundImage: `url('https://i.ibb.co/MDH82jQG/the-deal-was-successfully-done-hose-agent-and-cus-2025-01-10-05-36-33-utc.jpg')`
-      }}
-    >
-      {/* Overlay para melhorar legibilidade */}
-      <div className="absolute inset-0 bg-black/20"></div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center p-3 bg-blue-600 rounded-xl shadow-lg mb-4">
+            <Building2 className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900">VentusHub</h1>
+          <p className="text-gray-600 mt-2">Sistema Imobiliário Integrado</p>
+        </div>
 
-      {/* Card do registro com z-index maior */}
-      <div className="relative z-10 w-full max-w-lg">
-        <Card className="w-full">
-          <CardHeader className="space-y-1 text-center">
-            <div className="flex items-center justify-center mb-4">
-              <img
-                src="https://i.ibb.co/GQgj134N/logo2.png"
-                alt="Ventus Hub"
-                className="w-[120px] h-auto"
-              />
-            </div>
-            <CardTitle className="text-2xl font-bold">Ventus Hub</CardTitle>
-            <p className="text-muted-foreground">Crie sua conta</p>
+        {/* Register Card */}
+        <Card className="shadow-xl border-0">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
+              {isFirstUser && <Crown className="h-6 w-6 text-yellow-600" />}
+              Criar Conta
+              {isFirstUser && <Crown className="h-6 w-6 text-yellow-600" />}
+            </CardTitle>
+            <CardDescription className="text-center">
+              {isFirstUser ? (
+                <span className="text-amber-700 font-medium">
+                  🎉 Primeiro usuário - Será criado como MASTER ADMIN
+                </span>
+              ) : (
+                'Preencha os dados abaixo para criar sua conta'
+              )}
+            </CardDescription>
           </CardHeader>
+
           <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="firstName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome</FormLabel>
-                        <FormControl>
-                          <Input placeholder="João" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* First User Alert */}
+              {isFirstUser && (
+                <Alert className="border-amber-200 bg-amber-50">
+                  <Shield className="h-4 w-4 text-amber-600" />
+                  <AlertDescription className="text-amber-800">
+                    <strong>Primeiro Usuário Detectado!</strong><br />
+                    Esta conta será criada como <strong>MASTER ADMIN</strong> com acesso completo ao sistema multi-tenant.
+                  </AlertDescription>
+                </Alert>
+              )}
 
-                  <FormField
-                    control={form.control}
-                    name="lastName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sobrenome</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Silva" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+              {/* Error Alert */}
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
 
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>E-mail</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="seu@email.com"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="cpf"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>CPF</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="000.000.000-00"
-                            {...field}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, '');
-                              const formattedCPF = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-                              field.onChange(formattedCPF);
-                            }}
-                            maxLength={14}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="userType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipo de Usuário</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            value={field.value}
-                            onValueChange={(value) => {
-                              field.onChange(value);
-                              setIsCorretor(value === "corretor");
-                              if (value === "cliente") {
-                                form.setValue("creci", "");
-                              }
-                            }}
-                            className="flex gap-6"
-                          >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="corretor" id="corretor" />
-                              <Label htmlFor="corretor">Corretor de Imóveis</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="cliente" id="cliente" />
-                              <Label htmlFor="cliente">Cliente</Label>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+              {/* Name Field */}
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome Completo</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Digite seu nome..."
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    className="pl-10"
+                    required
+                    disabled={isLoading}
                   />
                 </div>
+              </div>
 
-                {isCorretor && (
-                  <FormField
-                    control={form.control}
-                    name="creci"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>CRECI</FormLabel>
-                        <FormControl>
-                          <Input placeholder="123456" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+              {/* Email Field */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="seu@email.com"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className="pl-10"
+                    required
+                    disabled={isLoading}
                   />
+                </div>
+              </div>
+
+              {/* Password Field */}
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    className="pl-10 pr-10"
+                    required
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Password Requirements */}
+              {formData.password && (
+                <div className="space-y-1 bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs font-medium text-gray-700 mb-2">Requisitos da senha:</p>
+                  {passwordRequirements.map((req, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Check
+                        className={`h-3 w-3 ${req.met ? 'text-green-600' : 'text-gray-400'}`}
+                      />
+                      <span className={`text-xs ${req.met ? 'text-green-600' : 'text-gray-500'}`}>
+                        {req.text}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Confirm Password Field */}
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                    className="pl-10 pr-10"
+                    required
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                  <p className="text-xs text-red-600 mt-1">As senhas não coincidem</p>
                 )}
+              </div>
 
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telefone</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="(11) 99999-9999"
-                          {...field}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, '');
-                            const formattedPhone = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-                            field.onChange(formattedPhone);
-                          }}
-                          maxLength={15}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Senha</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder="••••••••"
-                            {...field}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirmar Senha</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showConfirmPassword ? "text" : "password"}
-                            placeholder="••••••••"
-                            {...field}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          >
-                            {showConfirmPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={registerMutation.isPending}
-                >
-                  {registerMutation.isPending ? "Criando conta..." : "Criar conta"}
-                </Button>
-              </form>
-            </Form>
-
-            <div className="mt-6 text-center text-sm">
-              <span className="text-muted-foreground">Já tem uma conta? </span>
-              <Link
-                href="/login"
-                className="text-blue-600 hover:text-blue-500 font-medium"
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700"
+                disabled={isLoading}
               >
-                Faça login
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Criando conta...
+                  </>
+                ) : (
+                  'Criar Conta'
+                )}
+              </Button>
+            </form>
+          </CardContent>
+
+          <CardFooter className="flex flex-col space-y-4">
+            <div className="relative w-full">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">Ou</span>
+              </div>
+            </div>
+
+            {/* Login Link */}
+            <div className="text-center text-sm">
+              <span className="text-gray-600">Já tem uma conta? </span>
+              <Link href="/login" className="text-blue-600 hover:text-blue-700 hover:underline font-medium">
+                Fazer Login
               </Link>
             </div>
-          </CardContent>
+          </CardFooter>
         </Card>
+
+        {/* Footer */}
+        <div className="mt-8 text-center text-sm text-gray-500">
+          <p>&copy; 2025 VentusHub. Todos os direitos reservados.</p>
+        </div>
       </div>
     </div>
   );

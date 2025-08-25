@@ -135,7 +135,7 @@ export default function ClientDetails() {
     },
     enabled: !!clientId,
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0, // formerly cacheTime
   });
 
   const formatCPF = (cpf: string): string => {
@@ -199,7 +199,7 @@ export default function ClientDetails() {
       
       // Show success message
       alert('Documento(s) enviado(s) com sucesso!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro no upload:', error);
       alert('Erro ao enviar documento. Tente novamente.');
     } finally {
@@ -224,9 +224,9 @@ export default function ClientDetails() {
         throw new Error('Falha ao deletar documento');
       }
 
-      setDocuments(prev => prev.filter(doc => doc.id !== documentId));
+      setDocuments(prev => prev.filter((doc: any) => doc.id !== documentId));
       alert('Documento deletado com sucesso!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao deletar:', error);
       alert('Erro ao deletar documento. Tente novamente.');
     }
@@ -264,7 +264,7 @@ export default function ClientDetails() {
 
   // Atualizar título do documento/header quando cliente carregar
   useEffect(() => {
-    if (clientDetails?.client) {
+    if ((clientDetails as any)?.client) {
       const pageTitle = `Cliente`;
       document.title = `${pageTitle} - VentusHub`;
 
@@ -273,7 +273,7 @@ export default function ClientDetails() {
         detail: { title: pageTitle }
       }));
     }
-  }, [clientDetails?.client]);
+  }, [(clientDetails as any)?.client]);
 
   const getMaritalStatusBadge = (status: string) => {
     const statusMap = {
@@ -397,7 +397,7 @@ export default function ClientDetails() {
     );
   }
 
-  const { client, notes, stats } = clientDetails!;
+  const { client, notes, stats } = (clientDetails as any)!;
 
   // Usar dados locais se disponível (após edição), senão usar dados da query
   const currentClient = localClientData || client;
@@ -582,7 +582,7 @@ export default function ClientDetails() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {notes.map((note) => (
+                    {notes.map((note: any) => (
                       <div
                         key={note.id}
                         className={`p-4 rounded-lg border-2 transition-all ${note.isCompleted

@@ -415,7 +415,7 @@ export async function setupDefaultTemplates(): Promise<void> {
       } else {
         console.log(`⏭️  Template already exists: ${template.templateKey}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(`❌ Error creating template ${template.templateKey}:`, error);
     }
   }
@@ -461,7 +461,7 @@ export async function setupDefaultRules(): Promise<void> {
       } else {
         console.log(`⏭️  Rule already exists: ${rule.ruleKey}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(`❌ Error creating rule ${rule.ruleKey}:`, error);
     }
   }
@@ -475,7 +475,7 @@ export async function setupDefaultNotificationSystem(): Promise<void> {
     await setupDefaultRules();
     
     console.log('✅ Default notification system setup completed');
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error setting up default notification system:', error);
     throw error;
   }

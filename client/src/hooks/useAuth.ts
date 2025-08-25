@@ -1,199 +1,291 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequestLegacy as apiRequest } from '@/lib/queryClient';
 
-interface User {
-  id: number;
+export interface User {
+  id: string;
+  name: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  cpf?: string;
-  creci?: string;
-  phone?: string;
-  bio?: string;
-  avatarUrl?: string;
-  isActive?: boolean;
-  lastLoginAt?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-interface UserSettings {
-  id: number;
-  userId: number;
-  theme: string;
-  language: string;
-  timezone: string;
-  emailNotifications: boolean;
-  pushNotifications: boolean;
-  smsNotifications: boolean;
-  marketingEmails: boolean;
-  weeklyReports: boolean;
-  reminderDeadlines: boolean;
+  emailVerified: boolean;
+  image?: string;
   createdAt: string;
   updatedAt: string;
+  // Campos adicionais para o sistema
+  role?: 'ADMIN' | 'MANAGER' | 'AGENT' | 'CLIENT';
+  organizationId?: string;
+  permissions?: string[];
 }
 
-interface AuthContextType {
+export interface Organization {
+  id: string;
+  nome: string;
+  tipo: 'IMOBILIARIA' | 'CONSTRUTORA' | 'CLIENTE';
+  ativo: boolean;
+  settings?: any;
+}
+
+export interface AuthContextType {
   user: User | null;
-  settings: UserSettings | null;
+  organization: Organization | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateProfile: (data: Partial<User>) => Promise<void>;
-  uploadAvatar: (file: File) => Promise<void>;
-  updateSettings: (data: Partial<UserSettings>) => Promise<void>;
-  refetchUser: () => void;
+  register: (email: string, password: string, name: string) => Promise<void>;
+  isAuthenticated: boolean;
+  hasPermission: (permission: string) => boolean;
+  isAdmin: boolean;
+  isManager: boolean;
 }
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [settings, setSettings] = useState<UserSettings | null>(null);
   const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Query para buscar o usuário atual
-  const { data: userData, isLoading, refetch } = useQuery({
+  // Check if we're on a Master Admin page (don't need regular auth)
+  const isMasterAdminPage = typeof window !== 'undefined' && 
+    (window.location.pathname.startsWith('/master-admin'));
+
+  // Fetch user data
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['auth', 'user'],
     queryFn: async () => {
+      // Skip auth check for Master Admin pages
+      if (isMasterAdminPage) {
+        return null;
+      }
+      
       try {
-        const response = await apiRequest('GET', '/api/auth/user');
-        return await response.json();
+        const response = await fetch('/api/auth/session-temp');
+        if (!response.ok) {
+          if (response.status === 401) return null;
+          throw new Error('Failed to fetch user');
+        }
+        const sessionData = await response.json();
+        const userData = sessionData.user;
+        
+        // Se o usuário não tem role OU tem role "USER" (não MASTER_ADMIN/ADMIN), verificar se deve promover
+        if (!userData.role || userData.role === 'USER') {
+          // Verificar se é o primeiro usuário apenas se não tem role definido
+          if (!userData.role) {
+            const isFirstUserResponse = await fetch('/api/setup/is-first-user');
+            const { isFirstUser } = await isFirstUserResponse.json();
+            
+            if (isFirstUser) {
+              const promoteResponse = await fetch('/api/setup/promote-to-master-admin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: userData.id })
+              });
+              
+              if (promoteResponse.ok) {
+                userData.role = 'MASTER_ADMIN';
+              }
+            }
+          }
+        }
+        
+        return userData;
       } catch (error) {
-        // Se der erro 401 (não autorizado), retorna null
+        // Only log non-401 errors (401 is expected when not logged in)
+        if (error instanceof Error && !error.message.includes('401')) {
+          console.log('User fetch error:', error);
+        }
         return null;
       }
     },
+    enabled: !isMasterAdminPage, // Disable query on Master Admin pages
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchOnWindowFocus: false,
   });
 
-  // Atualizar o estado do usuário quando os dados mudarem
-  useEffect(() => {
-    setUser(userData || null);
-  }, [userData]);
+  // Organização mockada já que os dados estão no banco
+  const organization = user?.organizationId ? {
+    id: user.organizationId,
+    nome: 'Dias Consultor Imobiliário',
+    tipo: 'IMOBILIARIA',
+    ativo: true,
+    settings: { theme: 'default', locale: 'pt-BR' }
+  } : null;
 
-  // Mutation para login
+  // Helper para criar organização padrão
+  const createDefaultOrganization = async () => {
+    try {
+      const response = await fetch('/api/auth/organizations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: 'Minha Imobiliária',
+          tipo: 'IMOBILIARIA',
+          settings: {
+            theme: 'default',
+            locale: 'pt-BR'
+          }
+        })
+      });
+      
+      if (response.ok) {
+        const org = await response.json();
+        // Vincular usuário à organização
+        await fetch('/api/auth/organizations/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            organizationId: org.id,
+            role: 'ADMIN'
+          })
+        });
+        
+        // Revalidar usuário
+        queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
+        return org;
+      }
+    } catch (error) {
+      console.error('Error creating organization:', error);
+    }
+    
+    return {
+      id: 'default',
+      nome: 'Minha Imobiliária',
+      tipo: 'IMOBILIARIA',
+      ativo: true
+    };
+  };
+
+  // Helper para fazer primeiro usuário admin
+  const makeFirstUserAdmin = async (userId: string) => {
+    try {
+      const response = await fetch('/api/auth/make-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId })
+      });
+      
+      if (response.ok) {
+        queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
+      }
+    } catch (error) {
+      console.error('Error making user admin:', error);
+    }
+  };
+
+  // Login mutation
   const loginMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      const response = await apiRequest('POST', '/api/auth/login', { email, password });
-      return await response.json();
+      const response = await fetch('/api/auth/sign-in/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Login failed');
+      }
+
+      return response.json();
     },
-    onSuccess: (data) => {
-      setUser(data.user);
-      queryClient.setQueryData(['auth', 'user'], data.user);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auth'] });
-      // Forçar reload para evitar loop
-      window.location.href = "/dashboard";
     },
   });
 
-  // Mutation para logout
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest('POST', '/api/auth/logout');
+  // Register mutation
+  const registerMutation = useMutation({
+    mutationFn: async ({ email, password, name }: { email: string; password: string; name: string }) => {
+      // Primeiro, verificar se é o primeiro usuário
+      const isFirstUserResponse = await fetch('/api/setup/is-first-user');
+      const { isFirstUser } = await isFirstUserResponse.json();
+      
+      
+      const response = await fetch('/api/auth/sign-up/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email, 
+          password, 
+          name,
+          callbackURL: '/'
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Registration failed');
+      }
+
+      const result = await response.json();
+      
+      // Se foi o primeiro usuário e o registro foi bem sucedido, promover a MASTER_ADMIN
+      if (isFirstUser && result.user?.id) {
+        try {
+          await fetch('/api/setup/promote-to-master-admin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: result.user.id })
+          });
+        } catch (promoteError) {
+          // Silently handle promotion error - registration was successful
+        }
+      }
+
+      return result;
     },
     onSuccess: () => {
-      setUser(null);
-      setSettings(null);
-      queryClient.setQueryData(['auth', 'user'], null);
-      queryClient.clear();
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
+    },
+  });
+
+  // Logout mutation
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
       window.location.href = '/login';
     },
   });
 
-  // Mutation para atualizar perfil
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data: Partial<User>) => {
-      const response = await apiRequest('PATCH', '/api/profile', data);
-      return await response.json();
-    },
-    onSuccess: (updatedUser) => {
-      setUser(updatedUser);
-      queryClient.setQueryData(['auth', 'user'], updatedUser);
-    },
-  });
+  // Update loading state
+  useEffect(() => {
+    setIsLoading(userLoading);
+  }, [userLoading]);
 
-  // Mutation para upload de avatar
-  const uploadAvatarMutation = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('avatar', file);
-      
-      const response = await fetch('/api/profile/avatar', {
-        method: 'POST',
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        throw new Error('Erro ao fazer upload do avatar');
-      }
-      
-      return await response.json();
-    },
-    onSuccess: (data) => {
-      if (user) {
-        const updatedUser = { ...user, avatarUrl: data.avatarUrl };
-        setUser(updatedUser);
-        queryClient.setQueryData(['auth', 'user'], updatedUser);
-      }
-    },
-  });
-
-  // Mutation para atualizar configurações
-  const updateSettingsMutation = useMutation({
-    mutationFn: async (data: Partial<UserSettings>) => {
-      const response = await apiRequest('PATCH', '/api/profile/settings', data);
-      return await response.json();
-    },
-    onSuccess: (updatedSettings) => {
-      setSettings(updatedSettings);
-      queryClient.setQueryData(['profile', 'settings'], updatedSettings);
-    },
-  });
-
-  const login = async (email: string, password: string) => {
-    await loginMutation.mutateAsync({ email, password });
+  // Helper functions
+  const hasPermission = (permission: string): boolean => {
+    if (!user) return false;
+    if (user.role === 'ADMIN') return true;
+    return user.permissions?.includes(permission) || user.permissions?.includes('*') || false;
   };
 
-  const logout = async () => {
-    await logoutMutation.mutateAsync();
-  };
+  const isAdmin = user?.role === 'ADMIN';
+  const isManager = user?.role === 'MANAGER' || isAdmin;
+  const isAuthenticated = !!user;
 
-  const updateProfile = async (data: Partial<User>) => {
-    await updateProfileMutation.mutateAsync(data);
-  };
-
-  const uploadAvatar = async (file: File) => {
-    await uploadAvatarMutation.mutateAsync(file);
-  };
-
-  const updateSettings = async (data: Partial<UserSettings>) => {
-    await updateSettingsMutation.mutateAsync(data);
-  };
-
-  const refetchUser = () => {
-    refetch();
-  };
-
-  const value: AuthContextType = {
+  const authContextValue = React.useMemo(() => ({
     user,
-    settings,
+    organization,
     isLoading,
-    login,
-    logout,
-    updateProfile,
-    uploadAvatar,
-    updateSettings,
-    refetchUser,
-  };
+    isAuthenticated,
+    isAdmin,
+    isManager,
+    hasPermission,
+    login: async (email: string, password: string) => {
+      await loginMutation.mutateAsync({ email, password });
+    },
+    register: async (email: string, password: string, name: string) => {
+      await registerMutation.mutateAsync({ email, password, name });
+    },
+    logout: async () => {
+      await logoutMutation.mutateAsync();
+    },
+  }), [user, organization, isLoading, isAuthenticated, isAdmin, isManager, hasPermission, loginMutation, registerMutation, logoutMutation]);
 
-  return React.createElement(
-    AuthContext.Provider,
-    { value },
-    children
-  );
+  return React.createElement(AuthContext.Provider, { value: authContextValue }, children);
 }
 
 export function useAuth() {

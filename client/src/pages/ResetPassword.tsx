@@ -1,258 +1,308 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequestLegacy as apiRequest } from "@/lib/queryClient";
-import { Eye, EyeOff, Lock, CheckCircle } from "lucide-react";
-
-const resetPasswordSchema = z.object({
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-  confirmPassword: z.string().min(6, "Confirmação de senha é obrigatória"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Senhas não coincidem",
-  path: ["confirmPassword"],
-});
-
-type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useSearch } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Building2, Eye, EyeOff, Loader2, Mail, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
 
 export default function ResetPassword() {
+  const [, setLocation] = useLocation();
+  const searchParams = useSearch();
+  const token = new URLSearchParams(searchParams).get('token');
+
+  const [step, setStep] = useState<'request' | 'reset'>(!token ? 'request' : 'reset');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    // Extrair token da URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const resetToken = urlParams.get('token');
-    
-    if (resetToken) {
-      setToken(resetToken);
-    } else {
-      toast({
-        title: "Token inválido",
-        description: "Link de redefinição de senha inválido ou expirado.",
-        variant: "destructive",
+  const passwordRequirements = [
+    { met: password.length >= 8, text: 'Mínimo 8 caracteres' },
+    { met: /[A-Z]/.test(password), text: 'Uma letra maiúscula' },
+    { met: /[a-z]/.test(password), text: 'Uma letra minúscula' },
+    { met: /[0-9]/.test(password), text: 'Um número' },
+  ];
+
+  const handleRequestReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
       });
-      // Redirecionar para login após 3 segundos
-      setTimeout(() => setLocation("/login"), 3000);
-    }
-  }, []);
 
-  const form = useForm<ResetPasswordFormData>({
-    resolver: zodResolver(resetPasswordSchema),
-    defaultValues: {
-      password: "",
-      confirmPassword: "",
-    },
-  });
-
-  const resetPasswordMutation = useMutation({
-    mutationFn: async (data: ResetPasswordFormData) => {
-      if (!token) {
-        throw new Error("Token não encontrado");
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Erro ao solicitar redefinição de senha');
       }
 
-      const response = await apiRequest("POST", "/api/auth/reset-password", {
-        token,
-        password: data.password,
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      setIsSuccess(true);
-      toast({
-        title: "Senha redefinida com sucesso!",
-        description: "Você será redirecionado para o login.",
-      });
-      // Redirecionar para login após 3 segundos
-      setTimeout(() => setLocation("/login"), 3000);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao redefinir senha",
-        description: error.message || "Token inválido ou expirado. Tente solicitar um novo link.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onSubmit = (data: ResetPasswordFormData) => {
-    resetPasswordMutation.mutate(data);
+      setSuccess(true);
+    } catch (err: any) {
+      console.error('Password reset request error:', err);
+      setError(err.message || 'Erro ao solicitar redefinição de senha');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center space-y-4">
-              <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-              <h2 className="text-2xl font-bold text-green-600">Senha Redefinida!</h2>
-              <p className="text-muted-foreground">
-                Sua senha foi redefinida com sucesso. Você será redirecionado para o login.
-              </p>
-              <Link href="/login">
-                <Button className="w-full">
-                  Ir para Login
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
 
-  if (!token) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center space-y-4">
-              <Lock className="h-16 w-16 text-red-500 mx-auto" />
-              <h2 className="text-2xl font-bold text-red-600">Token Inválido</h2>
-              <p className="text-muted-foreground">
-                O link de redefinição de senha é inválido ou expirou.
-              </p>
-              <Link href="/login">
-                <Button variant="outline" className="w-full">
-                  Voltar ao Login
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      setError('As senhas não coincidem');
+      return;
+    }
+
+    // Validate password requirements
+    if (!passwordRequirements.every(req => req.met)) {
+      setError('A senha não atende aos requisitos mínimos');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Erro ao redefinir senha');
+      }
+
+      setSuccess(true);
+      // Redirect to login after 3 seconds
+      setTimeout(() => {
+        setLocation('/login?password-reset=true');
+      }, 3000);
+    } catch (err: any) {
+      console.error('Password reset error:', err);
+      setError(err.message || 'Erro ao redefinir senha');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat relative"
-      style={{
-        backgroundImage: `url('https://i.ibb.co/MDH82jQG/the-deal-was-successfully-done-hose-agent-and-cus-2025-01-10-05-36-33-utc.jpg')`
-      }}
-    >
-      {/* Overlay para melhorar legibilidade */}
-      <div className="absolute inset-0 bg-black/70"></div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center p-3 bg-blue-600 rounded-xl shadow-lg mb-4">
+            <Building2 className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900">VentusHub</h1>
+          <p className="text-gray-600 mt-2">Sistema Imobiliário Integrado</p>
+        </div>
 
-      {/* Card do reset password com z-index maior */}
-      <div className="relative z-10 w-full max-w-md">
-        <Card className="w-full">
-          <CardHeader className="space-y-1 text-center">
-            <div className="flex items-center justify-center mb-4">
-              <img
-                src="https://i.ibb.co/GQgj134N/logo2.png"
-                alt="Ventus Hub"
-                className="w-[120px] h-auto"
-              />
-            </div>
-            <CardTitle className="flex items-center justify-center gap-2">
-              <Lock className="h-5 w-5" />
-              Redefinir Senha
+        {/* Reset Password Card */}
+        <Card className="shadow-xl border-0">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">
+              {step === 'request' ? 'Recuperar Senha' : 'Nova Senha'}
             </CardTitle>
-            <p className="text-muted-foreground">Digite sua nova senha</p>
+            <CardDescription className="text-center">
+              {step === 'request'
+                ? 'Digite seu email para receber o link de redefinição'
+                : 'Digite sua nova senha abaixo'
+              }
+            </CardDescription>
           </CardHeader>
 
           <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nova Senha</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showPassword ? "text" : "password"}
-                            placeholder="••••••••"
-                            {...field}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            {success && step === 'request' ? (
+              <div className="space-y-4">
+                <Alert className="bg-green-50 border-green-200">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-700">
+                    Email enviado com sucesso! Verifique sua caixa de entrada.
+                  </AlertDescription>
+                </Alert>
+                <p className="text-sm text-gray-600 text-center">
+                  Enviamos um link de redefinição para o email {email}.
+                  O link é válido por 1 hora.
+                </p>
+                <Button
+                  onClick={() => setLocation('/login')}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Voltar ao Login
+                </Button>
+              </div>
+            ) : success && step === 'reset' ? (
+              <div className="space-y-4">
+                <Alert className="bg-green-50 border-green-200">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-700">
+                    Senha redefinida com sucesso! Redirecionando...
+                  </AlertDescription>
+                </Alert>
+              </div>
+            ) : step === 'request' ? (
+              <form onSubmit={handleRequestReset} className="space-y-4">
+                {/* Error Alert */}
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
 
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirmar Nova Senha</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showConfirmPassword ? "text" : "password"}
-                            placeholder="••••••••"
-                            {...field}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          >
-                            {showConfirmPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Email Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="seu@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
 
+                {/* Submit Button */}
                 <Button
                   type="submit"
-                  className="w-full"
-                  disabled={resetPasswordMutation.isPending}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={isLoading}
                 >
-                  {resetPasswordMutation.isPending ? "Redefinindo..." : "Redefinir Senha"}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    'Enviar Link de Redefinição'
+                  )}
                 </Button>
               </form>
-            </Form>
+            ) : (
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                {/* Error Alert */}
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
 
-            <div className="mt-6 text-center text-sm">
-              <Link
-                href="/login"
-                className="text-blue-600 hover:text-blue-500 font-medium"
-              >
+                {/* Password Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="password">Nova Senha</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 pr-10"
+                      required
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm Password Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="pl-10 pr-10"
+                      required
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      tabIndex={-1}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                  {confirmPassword && password !== confirmPassword && (
+                    <p className="text-xs text-red-600 mt-1">As senhas não coincidem</p>
+                  )}
+                </div>
+
+                {/* Submit Button */}
+                <Button
+                  type="submit"
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Redefinindo...
+                    </>
+                  ) : (
+                    'Redefinir Senha'
+                  )}
+                </Button>
+              </form>
+            )}
+          </CardContent>
+
+          <CardFooter>
+            <div className="w-full text-center">
+              <Link href="/login" className="text-sm text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center">
+                <ArrowLeft className="mr-1 h-3 w-3" />
                 Voltar ao Login
               </Link>
             </div>
-          </CardContent>
+          </CardFooter>
         </Card>
+
+        {/* Footer */}
+        <div className="mt-8 text-center text-sm text-gray-500">
+          <p>&copy; 2025 VentusHub. Todos os direitos reservados.</p>
+        </div>
       </div>
     </div>
   );

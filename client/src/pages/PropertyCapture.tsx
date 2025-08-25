@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { Plus, Search, Filter, X, Circle, Clock, CheckCircle, FileText, Pen, FileCheck, Award, ArrowRight, ArrowLeft, Eye, Edit, MoreHorizontal, Share, Trash2, Home, Building, CheckSquare, XSquare } from "lucide-react";
+import { Plus, Search, Filter, X, Circle, Clock, CheckCircle, FileText, Pen, FileCheck, Award, ArrowRight, ArrowLeft, Eye, Edit, MoreHorizontal, Share, Trash2, Home, Building, CheckSquare, XSquare, Upload } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -101,13 +101,13 @@ const DocumentationProgress = ({ property }: DocumentationProgressProps) => {
             uploadedCount = 0;
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.log('Erro de rede ao buscar documentos:', error);
         uploadedCount = 0;
       }
 
       // Contar campos preenchidos
-      filledFieldsCount = requiredFields.filter(field => {
+      filledFieldsCount = requiredFields.filter((field: any) => {
         const value = prop[field as keyof Property];
         if (field === 'owners') {
           return value && Array.isArray(value) && value.length > 0 && value[0]?.fullName;
@@ -231,7 +231,7 @@ const PropertyActions = ({ property, onEdit, onDelete }: PropertyActionsProps) =
         // Recarregar a página para mostrar as mudanças
         window.location.reload();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao alterar estágio:', error);
     }
   };
@@ -486,7 +486,7 @@ export default function PropertyCapture() {
       ...prev,
       [filterType]: checked
         ? [...prev[filterType as keyof typeof prev] as string[], value]
-        : (prev[filterType as keyof typeof prev] as string[]).filter(item => item !== value)
+        : (prev[filterType as keyof typeof prev] as string[]).filter((item: any) => item !== value)
     }));
   };
 
@@ -521,7 +521,7 @@ export default function PropertyCapture() {
           const errorData = await response.json();
           alert(`Erro ao excluir propriedade: ${errorData.message || 'Erro desconhecido'}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Erro ao excluir propriedade:', error);
         alert('Erro ao excluir propriedade. Tente novamente.');
       }
@@ -538,13 +538,15 @@ export default function PropertyCapture() {
             Gerencie e acompanhe o processo de captação dos seus imóveis
           </p>
         </div>
-        <Button
-          onClick={() => setShowPropertyModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm btn-desktop-compact"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Captação
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            onClick={() => setShowPropertyModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm btn-desktop-compact"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Captação
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards - Property Capture Statistics */}
@@ -746,13 +748,13 @@ export default function PropertyCapture() {
                     <div>
                       <h4 className="font-medium mb-2 text-gray-900">Status</h4>
                       <div className="space-y-2">
-                        {uniqueStatuses.map((status) => (
-                          <div key={status} className="flex items-center space-x-2">
+                        {uniqueStatuses.map((status: any) => (
+                          <div key={String(status)} className="flex items-center space-x-2">
                             <input
                               type="checkbox"
                               id={`status-${status}`}
-                              checked={filters.status.includes(status)}
-                              onChange={(e) => handleFilterChange('status', status, e.target.checked)}
+                              checked={filters.status.includes(status as string)}
+                              onChange={(e) => handleFilterChange('status', status as string, e.target.checked)}
                               className="rounded border-gray-300 h-4 w-4 text-blue-600 focus:ring-blue-500"
                             />
                             <label htmlFor={`status-${status}`} className="text-sm text-gray-700">
@@ -773,8 +775,8 @@ export default function PropertyCapture() {
                     <div>
                       <h4 className="font-medium mb-2 text-gray-900">Tipo</h4>
                       <div className="space-y-2">
-                        {uniqueTypes.map((type) => (
-                          <div key={type} className="flex items-center space-x-2">
+                        {uniqueTypes.map((type: any) => (
+                          <div key={String(type)} className="flex items-center space-x-2">
                             <input
                               type="checkbox"
                               id={`type-${type}`}
@@ -792,16 +794,16 @@ export default function PropertyCapture() {
                     <div>
                       <h4 className="font-medium mb-2 text-gray-900">Cidade</h4>
                       <div className="space-y-2">
-                        {uniqueCities.map((city) => (
-                          <div key={city} className="flex items-center space-x-2">
+                        {uniqueCities.map((city: any) => (
+                          <div key={String(city)} className="flex items-center space-x-2">
                             <input
                               type="checkbox"
                               id={`city-${city}`}
-                              checked={filters.city.includes(city)}
-                              onChange={(e) => handleFilterChange('city', city, e.target.checked)}
+                              checked={filters.city.includes(city as string)}
+                              onChange={(e) => handleFilterChange('city', city as string, e.target.checked)}
                               className="rounded border-gray-300 h-4 w-4 text-blue-600 focus:ring-blue-500"
                             />
-                            <label htmlFor={`city-${city}`} className="text-sm text-gray-700">{city}</label>
+                            <label htmlFor={`city-${city}`} className="text-sm text-gray-700">{String(city)}</label>
                           </div>
                         ))}
                       </div>
@@ -945,8 +947,9 @@ export default function PropertyCapture() {
             setSelectedProperty(null);
           }
         }}
-        property={selectedProperty}
+        property={selectedProperty as any}
       />
+
     </div>
   );
 }

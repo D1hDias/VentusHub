@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { Plus, Search, Filter, X, Eye, Edit, MoreHorizontal, User, Users, UserCheck, UserX, UserPlus } from "lucide-react";
+import { Plus, Search, Filter, X, Eye, Edit, MoreHorizontal, User, Users, UserCheck, UserX, UserPlus, Building2, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -11,6 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageLoader } from "@/components/PageLoader";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ClientModal } from "@/components/ClientModal";
+// import { useOrganization } from "@/hooks/useOrganization"; // Temporarily disabled
+import { toast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,9 +50,10 @@ interface Client {
 interface ClientActionsProps {
   client: Client;
   onEdit: (client: Client) => void;
+  canEdit: boolean;
 }
 
-const ClientActions = ({ client, onEdit }: ClientActionsProps) => {
+const ClientActions = ({ client, onEdit, canEdit }: ClientActionsProps) => {
   const [, setLocation] = useLocation();
 
   const handleViewDetails = () => {
@@ -58,7 +61,9 @@ const ClientActions = ({ client, onEdit }: ClientActionsProps) => {
   };
 
   const handleEdit = () => {
-    onEdit(client);
+    if (canEdit) {
+      onEdit(client);
+    }
   };
 
   return (
@@ -77,8 +82,9 @@ const ClientActions = ({ client, onEdit }: ClientActionsProps) => {
         variant="ghost"
         size="sm"
         onClick={handleEdit}
-        className="hover:bg-blue-50 hover:text-blue-600 h-8 w-8 p-0"
-        title="Editar Cliente"
+        disabled={!canEdit}
+        className="hover:bg-blue-50 hover:text-blue-600 h-8 w-8 p-0 disabled:opacity-50 disabled:cursor-not-allowed"
+        title={canEdit ? "Editar Cliente" : "Sem permissão para editar"}
       >
         <Edit className="h-3.5 w-3.5" />
       </Button>
@@ -100,15 +106,20 @@ export default function Clientes() {
   });
   const { getListVariants, getListItemVariants } = useSmoothtTransitions();
   const { isMobile } = useResponsive();
+  
+  // Multi-tenant hooks - Temporarily disabled
+  // const { currentOrganization, canManageClients, hasPermission } = useOrganization();
+  
+  // Mock values for organization functionality
+  const currentOrganization = { id: 'temp-org', nome: 'Dias Consultor Imobiliário' };
+  const canManageClients = () => true;
+  const hasPermission = () => true;
+  
 
-  const { data: clientsResponse, isLoading, error } = useQuery({
-    queryKey: ["/api/clients"],
-    queryFn: async () => {
-      const response = await fetch("/api/clients");
-      if (!response.ok) throw new Error("Failed to fetch clients");
-      return response.json();
-    },
-  });
+  // Mock data for clients - temporarily disabled API
+  const clientsResponse = { clients: [] };
+  const isLoading = false;
+  const error = null;
 
   // Extrair o array de clientes da resposta da API
   const clients = clientsResponse?.clients || [];
@@ -170,7 +181,7 @@ export default function Clientes() {
       ...prev,
       [filterType]: checked
         ? [...prev[filterType as keyof typeof prev] as string[], value]
-        : (prev[filterType as keyof typeof prev] as string[]).filter(item => item !== value)
+        : (prev[filterType as keyof typeof prev] as string[]).filter((item: any) => item !== value)
     }));
   };
 
@@ -213,6 +224,53 @@ export default function Clientes() {
     return phone;
   };
 
+
+  // Função para editar cliente
+  const handleEditClient = (client: Client) => {
+    if (!hasPermission('clientes', 'write')) {
+      toast({
+        title: 'Sem permissão',
+        description: 'Você não tem permissão para editar clientes.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setSelectedClient(client);
+    setShowClientModal(true);
+  };
+
+  // Função para criar novo cliente
+  const handleNewClient = () => {
+    if (!hasPermission('clientes', 'write')) {
+      toast({
+        title: 'Sem permissão',
+        description: 'Você não tem permissão para criar clientes.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setSelectedClient(null);
+    setShowClientModal(true);
+  };
+
+  // Verificar permissões
+  if (!canManageClients()) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Acesso Restrito</h3>
+          <p className="text-sm text-gray-500 max-w-md">
+            Você não tem permissão para acessar o módulo de clientes. 
+            Entre em contato com o administrador da sua organização.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -234,13 +292,17 @@ export default function Clientes() {
             Gerencie e acompanhe seus clientes e contatos
           </p>
         </div>
-        <Button
-          onClick={() => setShowClientModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
-          title="Novo Cliente"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleNewClient}
+            disabled={!hasPermission('clientes', 'write')}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            title={hasPermission('clientes', 'write') ? "Novo Cliente" : "Sem permissão para criar clientes"}
+          >
+            <Plus className="h-4 w-4" />
+            {!isMobile && "Novo Cliente"}
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards - Client Statistics */}
@@ -442,17 +504,17 @@ export default function Clientes() {
                     <div>
                       <h4 className="font-medium mb-2 text-gray-900">Estado Civil</h4>
                       <div className="space-y-2">
-                        {uniqueMaritalStatuses.map((status) => (
-                          <div key={status} className="flex items-center space-x-2">
+                        {uniqueMaritalStatuses.map((status: any) => (
+                          <div key={String(status)} className="flex items-center space-x-2">
                             <input
                               type="checkbox"
                               id={`marital-${status}`}
-                              checked={filters.maritalStatus.includes(status)}
-                              onChange={(e) => handleFilterChange('maritalStatus', status, e.target.checked)}
+                              checked={filters.maritalStatus.includes(status as string)}
+                              onChange={(e) => handleFilterChange('maritalStatus', status as string, e.target.checked)}
                               className="rounded border-gray-300 h-4 w-4 text-blue-600 focus:ring-blue-500"
                             />
                             <label htmlFor={`marital-${status}`} className="text-sm text-gray-700">
-                              {status}
+                              {String(status)}
                             </label>
                           </div>
                         ))}
@@ -463,16 +525,16 @@ export default function Clientes() {
                     <div>
                       <h4 className="font-medium mb-2 text-gray-900">Cidade</h4>
                       <div className="space-y-2">
-                        {uniqueCities.map((city) => (
-                          <div key={city} className="flex items-center space-x-2">
+                        {uniqueCities.map((city: any) => (
+                          <div key={String(city)} className="flex items-center space-x-2">
                             <input
                               type="checkbox"
                               id={`city-${city}`}
-                              checked={filters.city.includes(city)}
-                              onChange={(e) => handleFilterChange('city', city, e.target.checked)}
+                              checked={filters.city.includes(city as string)}
+                              onChange={(e) => handleFilterChange('city', city as string, e.target.checked)}
                               className="rounded border-gray-300 h-4 w-4 text-blue-600 focus:ring-blue-500"
                             />
-                            <label htmlFor={`city-${city}`} className="text-sm text-gray-700">{city}</label>
+                            <label htmlFor={`city-${city}`} className="text-sm text-gray-700">{String(city)}</label>
                           </div>
                         ))}
                       </div>
@@ -482,16 +544,16 @@ export default function Clientes() {
                     <div>
                       <h4 className="font-medium mb-2 text-gray-900">Estado</h4>
                       <div className="space-y-2">
-                        {uniqueStates.map((state) => (
-                          <div key={state} className="flex items-center space-x-2">
+                        {uniqueStates.map((state: any) => (
+                          <div key={String(state)} className="flex items-center space-x-2">
                             <input
                               type="checkbox"
                               id={`state-${state}`}
-                              checked={filters.state.includes(state)}
-                              onChange={(e) => handleFilterChange('state', state, e.target.checked)}
+                              checked={filters.state.includes(state as string)}
+                              onChange={(e) => handleFilterChange('state', state as string, e.target.checked)}
                               className="rounded border-gray-300 h-4 w-4 text-blue-600 focus:ring-blue-500"
                             />
-                            <label htmlFor={`state-${state}`} className="text-sm text-gray-700">{state}</label>
+                            <label htmlFor={`state-${state}`} className="text-sm text-gray-700">{String(state)}</label>
                           </div>
                         ))}
                       </div>
@@ -613,10 +675,8 @@ export default function Clientes() {
                       <TableCell className="px-3 py-2" onClick={(e) => e.stopPropagation()}>
                         <ClientActions
                           client={client}
-                          onEdit={(clientToEdit) => {
-                            setSelectedClient(clientToEdit);
-                            setShowClientModal(true);
-                          }}
+                          onEdit={handleEditClient}
+                          canEdit={hasPermission('clientes', 'write')}
                         />
                       </TableCell>
                     </TableRow>
@@ -635,11 +695,14 @@ export default function Clientes() {
           setShowClientModal(open);
           if (!open) {
             setSelectedClient(null);
-            // Revalidar a lista de clientes quando o modal for fechado
-            queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
           }
         }}
         client={selectedClient}
+        onClientUpdated={(updatedClient) => {
+          // A própria modal já invalida as queries e mostra o toast
+          // Aqui podemos apenas garantir que a lista seja atualizada
+          queryClient.invalidateQueries({ queryKey: ['clients', currentOrganization?.id] });
+        }}
       />
     </div>
   );

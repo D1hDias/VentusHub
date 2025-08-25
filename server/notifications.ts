@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { db } from "./db.js";
 import { eq, desc, and, count } from "drizzle-orm";
-import { notifications, users } from "../shared/schema.js";
+import { notifications, user } from "../shared/schema.js";
 
 export function setupNotifications(app: Express) {
   
@@ -45,7 +45,7 @@ export function setupNotifications(app: Express) {
         }
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching notifications:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -79,7 +79,7 @@ export function setupNotifications(app: Express) {
 
       res.json(notification);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error marking notification as read:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -107,7 +107,7 @@ export function setupNotifications(app: Express) {
 
       res.json({ message: "Todas as notificações foram marcadas como lidas" });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error marking all notifications as read:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -138,7 +138,7 @@ export function setupNotifications(app: Express) {
 
       res.json(notification);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating notification:", error);
       res.status(500).json({ message: "Erro interno do servidor" });
     }
@@ -162,7 +162,7 @@ export async function createNotification(data: {
       .returning();
     
     return notification;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error creating notification:", error);
     return null;
   }

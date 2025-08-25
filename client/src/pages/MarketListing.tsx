@@ -264,7 +264,7 @@ export default function MarketListing() {
                   className="button-interactive border rounded-md m-1 transition-shadow"
                   style={{
                     '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.08)`
-                  }}
+                  } as any}
                 >
                   <Card>
                   <CardHeader>

@@ -94,14 +94,14 @@ const hexToRgb = (hex: string) => {
 };
 
 // Função TIR simplificada e robusta para cálculo do CET
-const calcularTIR = (fluxosCaixa, datas) => {
+const calcularTIR = (fluxosCaixa: any, datas: any) => {
   // Método de bissecção mais estável para TIR
   let taxaMin = -0.99; // Taxa mínima possível
   let taxaMax = 10.0;   // Taxa máxima razoável (1000% ao ano)
   const tolerancia = 1e-8;
   const maxIteracoes = 100;
 
-  const calcularVPL = (taxa) => {
+  const calcularVPL = (taxa: any) => {
     let vpl = 0;
     for (let j = 0; j < fluxosCaixa.length; j++) {
       const diasDiferenca = (datas[j] - datas[0]) / (1000 * 60 * 60 * 24);
@@ -146,7 +146,7 @@ const calcularTIR = (fluxosCaixa, datas) => {
 };
 
 // Função para calcular CET conforme padrão dos bancos (baseado no Itaú)
-const calcularCETRegulamentar = (valorLiberado, parcelas, taxaJurosAnual) => {
+const calcularCETRegulamentar = (valorLiberado: any, parcelas: any, taxaJurosAnual: any) => {
   try {
     // Se não há parcelas, não pode calcular CET
     if (!parcelas || parcelas.length === 0) {
@@ -154,7 +154,7 @@ const calcularCETRegulamentar = (valorLiberado, parcelas, taxaJurosAnual) => {
     }
 
     // Calcular CESH (Custo Efetivo do Seguro Habitacional)
-    const totalSeguros = parcelas.reduce((sum, p) => sum + p.seguroMIP + p.seguroDFI, 0);
+    const totalSeguros = parcelas.reduce((sum: any, p: any) => sum + p.seguroMIP + p.seguroDFI, 0);
     const ceshAnual = (totalSeguros / valorLiberado) * (12 / parcelas.length) * 100;
 
     // CET = Taxa de Juros + CESH (método usado pelos bancos)
@@ -171,7 +171,7 @@ const calcularCETRegulamentar = (valorLiberado, parcelas, taxaJurosAnual) => {
       ceshAnual,
       sucesso: true
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro no cálculo do CET:', error);
     return {
       taxaDiaria: 0,
@@ -429,7 +429,7 @@ const BANCOS_MCMV_CONFIG = {
 };
 
 export default function SimuladorComparativo() {
-  const [bancosEscolhidos, setBancosEscolhidos] = useState([]);
+  const [bancosEscolhidos, setBancosEscolhidos] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     tipoImovel: 'residencial',
     opcaoFinanciamento: 'imovel_pronto',
@@ -463,7 +463,7 @@ export default function SimuladorComparativo() {
   const getBancosConfig = () => minhaCasaMinhaVida ? BANCOS_MCMV_CONFIG : BANCOS_CONFIG;
 
   // Função para gerenciar o toggle do MCMV
-  const handleMCMVToggle = (checked) => {
+  const handleMCMVToggle = (checked: any) => {
     if (checked) {
       setShowMCMVModal(true);
     } else {
@@ -478,7 +478,7 @@ export default function SimuladorComparativo() {
   };
 
   // Calcular faixa MCMV e regras de financiamento
-  const calcularFaixaMCMV = (rendaFamiliar, valorImovel, opcaoFinanciamento) => {
+  const calcularFaixaMCMV = (rendaFamiliar: any, valorImovel: any, opcaoFinanciamento: any) => {
     if (!minhaCasaMinhaVida) return null;
 
     if (rendaFamiliar <= 2850) {
@@ -575,7 +575,7 @@ export default function SimuladorComparativo() {
   }, [minhaCasaMinhaVida]);
 
   // Calcular idade e prazo máximo baseado na data de nascimento
-  const calcularIdadePrazoMaximo = (dataNasc, bancoCodigo = null) => {
+  const calcularIdadePrazoMaximo = (dataNasc: any, bancoCodigo: any = null) => {
     if (!dataNasc) return { idade: 0, prazoMaximo: 420 };
 
     const hoje = new Date();
@@ -675,12 +675,12 @@ export default function SimuladorComparativo() {
     // 3. Os dados já foram calculados pelo menos uma vez (evita cálculo inicial inválido)
     if (bancosEscolhidos.length > 0 && dadosCompletos() && Object.keys(resultados).length > 0) {
       console.log('🔄 Recalculando devido à mudança no toggle IPCA:', incluirPrevisaoIPCA);
-      const novosResultados = {};
+      const novosResultados: any = {};
       bancosEscolhidos.forEach((codigoBanco) => {
         try {
           const resultado = calcularFinanciamentoBanco(codigoBanco);
-          if (resultado && !resultado.erro) {
-            console.log(`✅ Resultado ${codigoBanco}:`, resultado.primeiraParcela);
+          if (resultado && !(resultado as any).erro) {
+            console.log(`✅ Resultado ${codigoBanco}:`, (resultado as any).primeiraParcela);
             novosResultados[codigoBanco] = resultado;
           } else {
             console.error(`❌ Erro no cálculo ${codigoBanco}:`, resultado?.erro || 'Erro desconhecido');
@@ -690,7 +690,7 @@ export default function SimuladorComparativo() {
               erro: resultado?.erro || 'Erro no cálculo'
             };
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error(`❌ Erro fatal no cálculo ${codigoBanco}:`, error);
           novosResultados[codigoBanco] = {
             banco: codigoBanco,
@@ -703,7 +703,7 @@ export default function SimuladorComparativo() {
     }
   }, [incluirPrevisaoIPCA]); // Remover outras dependências para evitar cálculos desnecessários
 
-  const obterAliquotaMIP = (configBanco, idade) => {
+  const obterAliquotaMIP = (configBanco: any, idade: any) => {
     // Verifica se o banco usa o novo formato de alíquotas MIP (array)
     if (Array.isArray(configBanco.seguros.mip)) {
       // Novo formato: busca pela faixa etária
@@ -726,7 +726,7 @@ export default function SimuladorComparativo() {
     }
   };
 
-  const validarPrazo = (valor) => {
+  const validarPrazo = (valor: any) => {
     const prazo = parseInt(valor);
     const prazoMaximoPermitido = Math.min(420, dadosCalculados.prazoMaximo);
 
@@ -738,7 +738,7 @@ export default function SimuladorComparativo() {
     return true;
   };
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: any, value: any) => {
     if (field === 'valorImovel' || field === 'valorFinanciamento' || field === 'rendaBrutaFamiliar') {
       const numericValue = value.replace(/[^\d]/g, '');
       const formattedValue = new Intl.NumberFormat('pt-BR', {
@@ -755,7 +755,7 @@ export default function SimuladorComparativo() {
     }
   };
 
-  const calcularFinanciamentoBanco = (codigoBanco) => {
+  const calcularFinanciamentoBanco = (codigoBanco: any) => {
     console.log(`🏦 Calculando ${codigoBanco} com IPCA:`, incluirPrevisaoIPCA);
     
     // Validações iniciais para evitar erros
@@ -764,7 +764,7 @@ export default function SimuladorComparativo() {
       return { aprovado: false, erro: 'Código do banco inválido' };
     }
     
-    const configBanco = getBancosConfig()[codigoBanco];
+    const configBanco = (getBancosConfig() as any)[codigoBanco];
     if (!configBanco) {
       console.error(`❌ Configuração não encontrada para banco: ${codigoBanco}`);
       return { aprovado: false, erro: 'Banco não configurado' };
@@ -1084,8 +1084,8 @@ export default function SimuladorComparativo() {
 
   // Função para processar simulação após o modal
   const processarSimulacao = () => {
-    const novosResultados = {};
-    bancosEscolhidos.forEach(codigoBanco => {
+    const novosResultados: any = {};
+    bancosEscolhidos.forEach((codigoBanco: any) => {
       novosResultados[codigoBanco] = calcularFinanciamentoBanco(codigoBanco);
     });
 
@@ -1102,12 +1102,12 @@ export default function SimuladorComparativo() {
     }, 200);
   };
 
-  const fecharCard = (codigoBanco) => {
+  const fecharCard = (codigoBanco: any) => {
     const novosResultados = { ...resultados };
     delete novosResultados[codigoBanco];
 
     // Remove a seleção do banco correspondente
-    const novosBancosEscolhidos = bancosEscolhidos.filter(banco => banco !== codigoBanco);
+    const novosBancosEscolhidos = bancosEscolhidos.filter((banco: any) => banco !== codigoBanco);
     setBancosEscolhidos(novosBancosEscolhidos);
 
     // Se não sobrar nenhum card, reset completo da página
@@ -1125,25 +1125,25 @@ export default function SimuladorComparativo() {
     }
   };
 
-  const gerarPDFIndividual = async (codigoBanco, resultado) => {
+  const gerarPDFIndividual = async (codigoBanco: any, resultado: any) => {
     try {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.width;
       const pageHeight = doc.internal.pageSize.height;
 
-      const corPrimaria = resultado.cor;
+      const corPrimaria = (resultado as any).cor;
       const corVentusHub = '#001f3f';
       const rgbPrimaria = hexToRgb(corPrimaria);
       const rgbVentusHub = hexToRgb(corVentusHub);
 
-      const formatCurrency = (value) => {
+      const formatCurrency = (value: any) => {
         return new Intl.NumberFormat('pt-BR', {
           style: 'currency',
           currency: 'BRL'
         }).format(value);
       };
 
-      const formatPercent = (value) => {
+      const formatPercent = (value: any) => {
         return `${value.toFixed(2)}%`;
       };
 
@@ -1152,14 +1152,16 @@ export default function SimuladorComparativo() {
       let logoVentusHub = null;
 
       try {
-        logoBanco = await imageToBase64(resultado.logo);
-      } catch (error) {
+        logoBanco = await imageToBase64((resultado as any).logo);
+      } catch (error: any) {
         console.warn('Erro ao carregar logo do banco:', error);
       }
 
       try {
-        logoVentusHub = await imageToBase64(logoVentusHub);
-      } catch (error) {
+        if (logoVentusHub) {
+          logoVentusHub = await imageToBase64(logoVentusHub);
+        }
+      } catch (error: any) {
         console.warn('Erro ao carregar logo VentusHub:', error);
       }
 
@@ -1175,7 +1177,7 @@ export default function SimuladorComparativo() {
           const alturaDesejada = 20;
           const larguraProporcional = alturaDesejada * logoBanco.aspectRatio;
           doc.addImage(logoBanco.dataUrl, 'PNG', 15, 8, larguraProporcional, alturaDesejada, undefined, 'FAST');
-        } catch (error) {
+        } catch (error: any) {
           // Fallback: caixa com cor do banco
           doc.setFillColor(rgbPrimaria.r, rgbPrimaria.g, rgbPrimaria.b);
           doc.rect(15, 8, 35, 20, 'F');
@@ -1202,7 +1204,7 @@ export default function SimuladorComparativo() {
       doc.setTextColor(0, 0, 0);
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
-      doc.text(`SIMULAÇÃO DE FINANCIAMENTO ${resultado.banco.toUpperCase()}`, pageWidth / 2, 20, { align: 'center' });
+      doc.text(`SIMULAÇÃO DE FINANCIAMENTO ${((resultado as any).banco as any).toUpperCase()}`, pageWidth / 2, 20, { align: 'center' });
 
       // Faixa azul VentusHub
       doc.setFillColor(rgbVentusHub.r, rgbVentusHub.g, rgbVentusHub.b);
@@ -1214,7 +1216,7 @@ export default function SimuladorComparativo() {
           const alturaFaixa = 6;
           const larguraFaixa = alturaFaixa * logoVentusHub.aspectRatio;
           doc.addImage(logoVentusHub.dataUrl, 'PNG', pageWidth - larguraFaixa - 10, 36, larguraFaixa, alturaFaixa, undefined, 'FAST');
-        } catch (error) {
+        } catch (error: any) {
           // Fallback texto se logo não carregar
           doc.setTextColor(255, 255, 255);
           doc.setFontSize(10);
@@ -1239,25 +1241,25 @@ export default function SimuladorComparativo() {
       currentY += 10;
 
       // Usar CET regulamentar já calculado (conforme Resolução CMN 3.517/2007)
-      const cetCorreto = resultado.cet;
+      const cetCorreto = (resultado as any).cet;
 
       const resumoData = [
         ['Valor do Imóvel', formatCurrency(valorImovel)],
-        ['Valor Financiado', formatCurrency(resultado.valorFinanciamentoReal)],
-        ['Percentual Financiado', formatPercent(resultado.percentualFinanciamento)],
+        ['Valor Financiado', formatCurrency((resultado as any).valorFinanciamentoReal)],
+        ['Percentual Financiado', formatPercent((resultado as any).percentualFinanciamento)],
         ['Prazo', `${prazoDesejado} meses`],
-        ['Sistema de Amortização', resultado.sistemaUsado.replace('_', ' + ')],
-        ['Taxa de Juros', formatPercent(resultado.taxaJurosAnual) + ' a.a.'],
+        ['Sistema de Amortização', (resultado as any).sistemaUsado.replace('_', ' + ')],
+        ['Taxa de Juros', formatPercent((resultado as any).taxaJurosAnual) + ' a.a.'],
         ...(incluirPrevisaoIPCA && formData.sistemaAmortizacao.includes('IPCA') ?
           [['IPCA Aplicado', getIndicadoresFormatados().ipca + ' a.a.']] : []
         ),
         ['CET', formatPercent(cetCorreto) + ' a.a.'],
-        ['Primeira Parcela', formatCurrency(resultado.primeiraParcela)],
-        ['Última Parcela', formatCurrency(resultado.ultimaParcela)],
-        ['Total de Juros', formatCurrency(resultado.totalJuros)],
-        ['Total de Seguros', formatCurrency(resultado.totalSeguros)],
+        ['Primeira Parcela', formatCurrency((resultado as any).primeiraParcela)],
+        ['Última Parcela', formatCurrency((resultado as any).ultimaParcela)],
+        ['Total de Juros', formatCurrency((resultado as any).totalJuros)],
+        ['Total de Seguros', formatCurrency((resultado as any).totalSeguros)],
         // ['Total de TAC', 'R$ 25,00'], // TAC removida
-        ['Total Pago', formatCurrency(resultado.totalPago)]
+        ['Total Pago', formatCurrency((resultado as any).totalPago)]
       ];
 
       autoTable(doc, {
@@ -1304,9 +1306,9 @@ export default function SimuladorComparativo() {
       currentY += 5;
 
       // Preparar dados das parcelas (todas as parcelas) com validação
-      const parcelasData = resultado.parcelas
-        .filter(parcela => parcela && typeof parcela.prestacao === 'number') // Filtrar parcelas válidas
-        .map(parcela => [
+      const parcelasData = (resultado as any).parcelas
+        .filter((parcela: any) => parcela && typeof parcela.prestacao === 'number') // Filtrar parcelas válidas
+        .map((parcela: any) => [
           parcela.parcela?.toString() || '0',
           formatCurrency(parcela.prestacao || 0),
           formatCurrency(parcela.amortizacao || 0),
@@ -1353,7 +1355,7 @@ export default function SimuladorComparativo() {
       // Observações importantes
       const finalY = (doc as any).lastAutoTable.finalY + 15;
 
-      if (resultado.observacao || resultado.observacaoEspecial) {
+      if ((resultado as any).observacao || (resultado as any).observacaoEspecial) {
         // Verificar se precisa de nova página para observações
         if (finalY > pageHeight - 40) {
           doc.addPage();
@@ -1367,14 +1369,14 @@ export default function SimuladorComparativo() {
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(9);
 
-          if (resultado.observacao) {
-            const observacaoLines = doc.splitTextToSize(resultado.observacao, pageWidth - 30);
+          if ((resultado as any).observacao) {
+            const observacaoLines = doc.splitTextToSize((resultado as any).observacao, pageWidth - 30);
             doc.text(observacaoLines, 15, observacaoY);
             observacaoY += observacaoLines.length * 5 + 5;
           }
 
-          if (resultado.observacaoEspecial) {
-            const observacaoEspecialLines = doc.splitTextToSize(resultado.observacaoEspecial, pageWidth - 30);
+          if ((resultado as any).observacaoEspecial) {
+            const observacaoEspecialLines = doc.splitTextToSize((resultado as any).observacaoEspecial, pageWidth - 30);
             doc.text(observacaoEspecialLines, 15, observacaoY);
           }
         } else {
@@ -1386,14 +1388,14 @@ export default function SimuladorComparativo() {
           doc.setFontSize(9);
           let obsY = finalY + 10;
 
-          if (resultado.observacao) {
-            const observacaoLines = doc.splitTextToSize(resultado.observacao, pageWidth - 30);
+          if ((resultado as any).observacao) {
+            const observacaoLines = doc.splitTextToSize((resultado as any).observacao, pageWidth - 30);
             doc.text(observacaoLines, 15, obsY);
             obsY += observacaoLines.length * 5 + 5;
           }
 
-          if (resultado.observacaoEspecial) {
-            const observacaoEspecialLines = doc.splitTextToSize(resultado.observacaoEspecial, pageWidth - 30);
+          if ((resultado as any).observacaoEspecial) {
+            const observacaoEspecialLines = doc.splitTextToSize((resultado as any).observacaoEspecial, pageWidth - 30);
             doc.text(observacaoEspecialLines, 15, obsY);
           }
         }
@@ -1421,10 +1423,10 @@ export default function SimuladorComparativo() {
       }
 
       // Salvar
-      const fileName = `Simulacao_${resultado.banco.replace(/\s+/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
+      const fileName = `Simulacao_${((resultado as any).banco as any).replace(/\s+/g, '_')}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
       doc.save(fileName);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao gerar PDF:', error);
       alert('Erro ao gerar PDF: ' + error.message);
     }
@@ -1439,14 +1441,14 @@ export default function SimuladorComparativo() {
       const corVentusHub = '#001f3f';
       const rgbVentusHub = hexToRgb(corVentusHub);
 
-      const formatCurrency = (value) => {
+      const formatCurrency = (value: any) => {
         return new Intl.NumberFormat('pt-BR', {
           style: 'currency',
           currency: 'BRL'
         }).format(value);
       };
 
-      const formatPercent = (value) => {
+      const formatPercent = (value: any) => {
         return `${value.toFixed(2)}%`;
       };
 
@@ -1457,8 +1459,8 @@ export default function SimuladorComparativo() {
 
       // Filtrar bancos aprovados
       const bancosAprovados = Object.entries(resultados)
-        .filter(([_, resultado]) => resultado.aprovado)
-        .sort(([_, a], [__, b]) => a.primeiraParcela - b.primeiraParcela);
+        .filter(([_, resultado]) => (resultado as any).aprovado)
+        .sort(([_, a], [__, b]) => (a.primeiraParcela || 0) - (b.primeiraParcela || 0));
 
       if (bancosAprovados.length === 0) {
         doc.setTextColor(255, 0, 0);
@@ -1471,10 +1473,12 @@ export default function SimuladorComparativo() {
       // PÁGINA 1 - RESUMO COMPLETO CONFORME WIREFRAME
 
       // Carregar logo VentusHub primeiro
-      let logoVentusHub = null;
+      let logoVentusHubData = null;
       try {
-        logoVentusHub = await imageToBase64(logoVentusHub);
-      } catch (error) {
+        if (logoVentusHub) {
+          logoVentusHubData = await imageToBase64(logoVentusHub);
+        }
+      } catch (error: any) {
         console.warn('Erro ao carregar logo VentusHub:', error);
       }
 
@@ -1483,11 +1487,11 @@ export default function SimuladorComparativo() {
       doc.rect(0, 0, pageWidth, 25, 'F');
 
       // Logo VentusHub centralizada verticalmente à esquerda
-      if (logoVentusHub) {
+      if (logoVentusHubData) {
         const logoWidth = 25; // Largura ajustada conforme solicitado
-        const logoHeight = logoWidth / logoVentusHub.aspectRatio; // Altura proporcional
+        const logoHeight = logoWidth / logoVentusHubData.aspectRatio; // Altura proporcional
         const logoY = 12.5 - (logoHeight / 2); // Centralizar verticalmente no header (25px/2 = 12.5)
-        doc.addImage(logoVentusHub.dataUrl, 'PNG', 15, logoY, logoWidth, logoHeight);
+        doc.addImage(logoVentusHubData.dataUrl, 'PNG', 15, logoY, logoWidth, logoHeight);
       }
 
       doc.setTextColor(255, 255, 255);
@@ -1509,12 +1513,12 @@ export default function SimuladorComparativo() {
       currentY += 20;
 
       // Carregar logos dos bancos
-      const logosCarregados = {};
+      const logosCarregados: any = {};
       for (const [codigoBanco, resultado] of bancosAprovados) {
         try {
-          logosCarregados[codigoBanco] = await imageToBase64(resultado.logo);
-        } catch (error) {
-          console.warn(`Erro ao carregar logo do ${resultado.banco}:`, error);
+          logosCarregados[codigoBanco] = await imageToBase64((resultado as any).logo);
+        } catch (error: any) {
+          console.warn(`Erro ao carregar logo do ${(resultado as any).banco}:`, error);
         }
       }
 
@@ -1530,7 +1534,7 @@ export default function SimuladorComparativo() {
 
       // Usar CET regulamentar já calculado para cada banco
       const bancosComCET = bancosAprovados.map(([codigoBanco, resultado]) => {
-        return [codigoBanco, { ...resultado, cetCorreto: resultado.cet }];
+        return [codigoBanco, { ...resultado, cetCorreto: (resultado as any).cet }];
       });
 
       const linhasComparativo = [
@@ -1602,7 +1606,7 @@ export default function SimuladorComparativo() {
           if (centerX >= 0 && logoY >= 0 && bankLogoWidth > 0 && bankLogoHeight > 0) {
             doc.addImage(logosCarregados[codigoBanco].dataUrl, 'PNG', centerX, logoY, bankLogoWidth, bankLogoHeight);
           } else {
-            console.warn(`Coordenadas inválidas para logo ${resultado.banco}:`, { centerX, logoY, bankLogoWidth, bankLogoHeight });
+            console.warn(`Coordenadas inválidas para logo ${(resultado as any).banco}:`, { centerX, logoY, bankLogoWidth, bankLogoHeight });
           }
         }
       });
@@ -1637,14 +1641,14 @@ export default function SimuladorComparativo() {
       currentY = 40;
 
       // Tabela de parcelas (conforme wireframe)
-      const maxParcelas = Math.max(...bancosAprovados.map(([_, r]) => r.parcelas.length));
+      const maxParcelas = Math.max(...bancosAprovados.map(([_, r]) => (r.parcelas || []).length));
       const tabelaParcelas = [];
 
       for (let i = 0; i < maxParcelas; i++) {
         const linha = [(i + 1).toString().padStart(2, '0')]; // Parcela começa em 01, não 00
         bancosAprovados.forEach(([_, resultado]) => {
-          if (resultado.parcelas[i] && typeof resultado.parcelas[i].prestacao === 'number') {
-            linha.push(formatCurrency(resultado.parcelas[i].prestacao));
+          if ((resultado as any).parcelas[i] && typeof (resultado as any).parcelas[i].prestacao === 'number') {
+            linha.push(formatCurrency((resultado as any).parcelas[i].prestacao));
           } else {
             linha.push('-');
           }
@@ -1732,23 +1736,23 @@ export default function SimuladorComparativo() {
       const fileName = `Comparativo_Financiamento_${bancosAprovados.length}bancos_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.pdf`;
       doc.save(fileName);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao gerar PDF comparativo:', error);
       alert('Erro ao gerar PDF comparativo: ' + error.message);
     }
   };
 
-  const formatCurrency = (value) => {
+  const formatCurrency = (value: any) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(value || 0);
   };
 
-  const toggleBanco = (codigoBanco) => {
+  const toggleBanco = (codigoBanco: any) => {
     setBancosEscolhidos(prev => {
       const novosBancos = prev.includes(codigoBanco)
-        ? prev.filter(b => b !== codigoBanco)
+        ? prev.filter((b: any) => b !== codigoBanco)
         : [...prev, codigoBanco];
 
       // Se adicionou um banco e não havia nenhum antes, scroll para o formulário
@@ -2084,7 +2088,7 @@ export default function SimuladorComparativo() {
                     <p><strong>Média de renda bruta necessária:</strong> {formatCurrency((() => {
                       // Se já temos resultados de simulação, calcular baseado na menor parcela
                       if (Object.keys(resultados).length > 0) {
-                        const menorParcela = Math.min(...Object.values(resultados).map(r => r.primeiraParcela));
+                        const menorParcela = Math.min(...Object.values(resultados).map((r: any) => r.primeiraParcela));
                         return menorParcela / 0.30; // Renda necessária para a menor parcela ficar em 30%
                       }
                       // Caso contrário, usar a capacidade atual
@@ -2191,7 +2195,7 @@ export default function SimuladorComparativo() {
                     <motion.div
                       key={codigo}
                       className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 relative"
-                      style={{ borderLeftColor: resultado.cor, borderLeftWidth: '4px' }}
+                      style={{ borderLeftColor: (resultado as any).cor, borderLeftWidth: '4px' }}
                       initial={{ opacity: 1, scale: 1, x: 0 }}
                       exit={{ opacity: 0, scale: 0.9, x: -100 }}
                       transition={{ duration: 0.4, ease: "easeInOut" }}
@@ -2215,8 +2219,8 @@ export default function SimuladorComparativo() {
                       </div>
                       <div className="flex items-center gap-3 mb-4 pr-20">
                         <img
-                          src={resultado.logo}
-                          alt={`Logo ${resultado.banco}`}
+                          src={(resultado as any).logo}
+                          alt={`Logo ${(resultado as any).banco}`}
                           className="w-[100px] h-16 object-contain rounded"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
@@ -2229,20 +2233,20 @@ export default function SimuladorComparativo() {
                         />
                         <div
                           className="w-[100px] h-16 rounded items-center justify-center text-white text-xs font-medium"
-                          style={{ backgroundColor: resultado.cor, display: 'none' }}
+                          style={{ backgroundColor: (resultado as any).cor, display: 'none' }}
                         >
-                          {resultado.banco}
+                          {(resultado as any).banco}
                         </div>
                         <div>
-                          <h4 className="font-semibold">{resultado.banco}</h4>
+                          <h4 className="font-semibold">{(resultado as any).banco}</h4>
                           {/* Indicador de IPCA */}
                           {incluirPrevisaoIPCA && formData.sistemaAmortizacao.includes('IPCA') && (
                             <div className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded-full inline-block mb-1">
                               📈 IPCA {getIndicadoresFormatados().ipca} aplicado
                             </div>
                           )}
-                          {resultado.aprovado ? (
-                            resultado.aprovadoCapacidade ? (
+                          {(resultado as any).aprovado ? (
+                            (resultado as any).aprovadoCapacidade ? (
                               <span className="text-green-600 text-sm">✅ Cenário favorável</span>
                             ) : (
                               <span className="text-orange-600 text-sm">⚠️ Acima da capacidade</span>
@@ -2253,36 +2257,36 @@ export default function SimuladorComparativo() {
                         </div>
                       </div>
 
-                      {resultado.mensagemAjuste && (
+                      {(resultado as any).mensagemAjuste && (
                         <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-800">
-                          <strong>⚠️ Ajuste:</strong> {resultado.mensagemAjuste}
+                          <strong>⚠️ Ajuste:</strong> {(resultado as any).mensagemAjuste}
                         </div>
                       )}
 
-                      {resultado.aprovado ? (
+                      {(resultado as any).aprovado ? (
                         <div className="space-y-3 text-sm">
                           <div className="flex justify-between">
                             <span>Financiamento máx.:</span>
-                            <strong>{resultado.financiamentoMaxPermitido}%</strong>
+                            <strong>{(resultado as any).financiamentoMaxPermitido}%</strong>
                           </div>
-                          {resultado.percentualSolicitado !== resultado.percentualFinanciamento && (
+                          {(resultado as any).percentualSolicitado !== (resultado as any).percentualFinanciamento && (
                             <div className="flex justify-between text-yellow-700">
                               <span>Solicitado:</span>
-                              <strong>{resultado.percentualSolicitado.toFixed(1)}%</strong>
+                              <strong>{(resultado as any).percentualSolicitado.toFixed(1)}%</strong>
                             </div>
                           )}
                           <div className="flex justify-between">
                             <span>Simulado:</span>
-                            <strong>{resultado.percentualFinanciamento.toFixed(1)}%</strong>
+                            <strong>{(resultado as any).percentualFinanciamento.toFixed(1)}%</strong>
                           </div>
                           <div className="flex justify-between">
                             <span>Valor financiado:</span>
-                            <strong>{formatCurrency(resultado.valorFinanciamentoReal)}</strong>
+                            <strong>{formatCurrency((resultado as any).valorFinanciamentoReal)}</strong>
                           </div>
                           <div className="flex justify-between">
                             <span>Primeira parcela:</span>
-                            <strong className={resultado.aprovadoCapacidade ? 'text-green-600' : 'text-red-600'}>
-                              {formatCurrency(resultado.primeiraParcela)}
+                            <strong className={(resultado as any).aprovadoCapacidade ? 'text-green-600' : 'text-red-600'}>
+                              {formatCurrency((resultado as any).primeiraParcela)}
                             </strong>
                           </div>
 
@@ -2290,40 +2294,40 @@ export default function SimuladorComparativo() {
                           <div className="flex justify-between">
                             <span>Última parcela:</span>
                             <strong className="text-gray-600 dark:text-gray-400">
-                              {formatCurrency(resultado.ultimaParcela)}
+                              {formatCurrency((resultado as any).ultimaParcela)}
                             </strong>
                           </div>
                           <div className="flex justify-between">
                             <span>Taxa de juros:</span>
-                            <strong>{resultado.taxaJurosAnual}% a.a.</strong>
+                            <strong>{(resultado as any).taxaJurosAnual}% a.a.</strong>
                           </div>
                           <div className="flex justify-between">
                             <span>Sistema:</span>
-                            <strong>{resultado.sistemaUsado?.replace('_', ' + ')}</strong>
+                            <strong>{(resultado as any).sistemaUsado?.replace('_', ' + ')}</strong>
                           </div>
                           <div className="flex justify-between">
                             <span>CET:</span>
-                            <strong>{resultado.cet.toFixed(2)}% a.a.</strong>
+                            <strong>{(resultado as any).cet.toFixed(2)}% a.a.</strong>
                           </div>
                           <div className="flex justify-between">
                             <span>Total pago:</span>
-                            <strong>{formatCurrency(resultado.totalPago)}</strong>
+                            <strong>{formatCurrency((resultado as any).totalPago)}</strong>
                           </div>
-                          {resultado.observacao && (
+                          {(resultado as any).observacao && (
                             <div className="mt-3 p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-800">
-                              <strong>ℹ️</strong> {resultado.observacao}
+                              <strong>ℹ️</strong> {(resultado as any).observacao}
                             </div>
                           )}
-                          {resultado.observacaoEspecial && (
+                          {(resultado as any).observacaoEspecial && (
                             <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                              <strong>💡</strong> {resultado.observacaoEspecial}
+                              <strong>💡</strong> {(resultado as any).observacaoEspecial}
                             </div>
                           )}
                         </div>
                       ) : (
                         <div className="text-red-600 text-sm">
-                          {resultado.erro && (
-                            <p>{resultado.erro}</p>
+                          {(resultado as any).erro && (
+                            <p>{(resultado as any).erro}</p>
                           )}
                         </div>
                       )}

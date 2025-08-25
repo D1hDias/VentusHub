@@ -161,10 +161,10 @@ export default function Contracts() {
 
   const statsData = {
     total: mockContracts.length,
-    draft: mockContracts.filter(c => c.status === "draft").length,
-    sent: mockContracts.filter(c => c.status === "sent").length,
-    signed: mockContracts.filter(c => c.status === "signed").length,
-    expiringSoon: mockContracts.filter(c => c.daysToExpire <= 7).length,
+    draft: mockContracts.filter((c: any) => c.status === "draft").length,
+    sent: mockContracts.filter((c: any) => c.status === "sent").length,
+    signed: mockContracts.filter((c: any) => c.status === "signed").length,
+    expiringSoon: mockContracts.filter((c: any) => c.daysToExpire <= 7).length,
   };
 
   if (isLoading) {

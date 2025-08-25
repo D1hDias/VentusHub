@@ -135,7 +135,7 @@ const calcularTIR = (fluxosCaixa: number[], datas: Date[]) => {
 };
 
 // Função para calcular CET conforme padrão dos bancos (baseado no Itaú)
-const calcularCETRegulamentar = (valorLiberado, parcelas, taxaJurosAnual) => {
+const calcularCETRegulamentar = (valorLiberado: any, parcelas: any, taxaJurosAnual: any) => {
   try {
     // Se não há parcelas, não pode calcular CET
     if (!parcelas || parcelas.length === 0) {
@@ -143,7 +143,7 @@ const calcularCETRegulamentar = (valorLiberado, parcelas, taxaJurosAnual) => {
     }
 
     // Calcular CESH (Custo Efetivo do Seguro Habitacional)
-    const totalSeguros = parcelas.reduce((sum, p) => sum + p.seguroMIP + p.seguroDFI, 0);
+    const totalSeguros = parcelas.reduce((sum: any, p: any) => sum + p.seguroMIP + p.seguroDFI, 0);
     const ceshAnual = (totalSeguros / valorLiberado) * (12 / parcelas.length) * 100;
 
     // CET = Taxa de Juros + CESH (método usado pelos bancos)
@@ -160,7 +160,7 @@ const calcularCETRegulamentar = (valorLiberado, parcelas, taxaJurosAnual) => {
       ceshAnual,
       sucesso: true
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro no cálculo do CET:', error);
     return {
       taxaDiaria: 0,
@@ -309,7 +309,7 @@ const ESTADOS_BRASIL = [
 ];
 
 // Tabela de coeficientes de financiamento para cálculo SAC
-function gerarTabelaCoeficientesSAC(taxaMensal, numeroParcelas) {
+function gerarTabelaCoeficientesSAC(taxaMensal: any, numeroParcelas: any) {
   const parcelas = [];
   const amortizacao = 1 / numeroParcelas;
   let saldoDevedor = 1;
@@ -333,7 +333,7 @@ function gerarTabelaCoeficientesSAC(taxaMensal, numeroParcelas) {
 }
 
 // Calcular parcela Price
-function calcularParcelaPrice(valor, taxaMensal, numeroParcelas) {
+function calcularParcelaPrice(valor: any, taxaMensal: any, numeroParcelas: any) {
   if (taxaMensal === 0) return valor / numeroParcelas;
 
   const fatorPrice = (Math.pow(1 + taxaMensal, numeroParcelas) * taxaMensal) /
@@ -342,7 +342,7 @@ function calcularParcelaPrice(valor, taxaMensal, numeroParcelas) {
 }
 
 // Função para calibração exata - 240 meses
-function calcularTaxaNecessaria(valorFinanciado, prestacaoDesejada, prazo) {
+function calcularTaxaNecessaria(valorFinanciado: any, prestacaoDesejada: any, prazo: any) {
   // Busca binária para encontrar a taxa que resulta na prestação desejada
   let taxaMin = 0.001; // 0.1% ao mês
   let taxaMax = 0.05;   // 5% ao mês
@@ -390,7 +390,7 @@ function testarCalculosPrestacao() {
   console.log('');
 
   Object.entries(valoresEsperados).forEach(([banco, valorEsperado]) => {
-    const taxaInformada = taxasInformadas[banco];
+    const taxaInformada = (taxasInformadas as any)[banco];
     const taxaMensalInformada = Math.pow(1 + taxaInformada / 100, 1 / 12) - 1;
     const prestacaoCalculada = calcularParcelaPrice(valorFinanciado, taxaMensalInformada, prazo);
 
@@ -398,7 +398,7 @@ function testarCalculosPrestacao() {
     const taxaMensalNecessaria = calcularTaxaNecessaria(valorFinanciado, valorEsperado, prazo);
     const taxaAnualNecessaria = (Math.pow(1 + taxaMensalNecessaria, 12) - 1) * 100;
 
-    console.log(`${banco.toUpperCase()}:`);
+    console.log(`${(banco as any).toUpperCase()}:`);
     console.log(`  Valor esperado: R$ ${valorEsperado.toFixed(2)}`);
     console.log(`  Taxa informada: ${taxaInformada}% a.a.`);
     console.log(`  Prestação atual: R$ ${prestacaoCalculada.toFixed(2)}`);
@@ -409,7 +409,7 @@ function testarCalculosPrestacao() {
 }
 
 // Tabela de parcelas Price
-function gerarTabelaParcelasPrice(valor, taxaMensal, numeroParcelas) {
+function gerarTabelaParcelasPrice(valor: any, taxaMensal: any, numeroParcelas: any) {
   const parcelas = [];
   const parcelaFixa = calcularParcelaPrice(valor, taxaMensal, numeroParcelas);
   let saldoDevedor = valor;
@@ -433,7 +433,7 @@ function gerarTabelaParcelasPrice(valor, taxaMensal, numeroParcelas) {
 }
 
 // Calcular FGTS
-function calcularFGTS(salarioBruto, tempoContribuicao) {
+function calcularFGTS(salarioBruto: any, tempoContribuicao: any) {
   const fgtsBase = salarioBruto * 0.08 * 12 * tempoContribuicao;
   // Assumindo um rendimento médio de 5.5% ao ano (TR + juros)
   const rendimento = Math.pow(1 + 0.055, tempoContribuicao) - 1;
@@ -441,8 +441,8 @@ function calcularFGTS(salarioBruto, tempoContribuicao) {
 }
 
 // Calcular seguros
-function calcularSeguros(banco, idade, valorFinanciado, tipoImovel = 'residencial', valorImovel = valorFinanciado, numeroParcela = 1) {
-  const config = BANCOS_CONFIG[banco];
+function calcularSeguros(banco: any, idade: any, valorFinanciado: any, tipoImovel: any = 'residencial', valorImovel: any = valorFinanciado, numeroParcela: any = 1) {
+  const config = (BANCOS_CONFIG as any)[banco];
   if (!config) return { mip: 0, dfi: 0 };
 
   let seguroMIP = 0;
@@ -456,7 +456,7 @@ function calcularSeguros(banco, idade, valorFinanciado, tipoImovel = 'residencia
     seguroMIP = Math.max(mipInicial - (numeroParcela - 1) * reducaoMensal, 50);
   } else if (Array.isArray(config.seguros.mip)) {
     // Para bancos com faixas de idade (como Bradesco)
-    const faixaIdade = config.seguros.mip.find(faixa =>
+    const faixaIdade = config.seguros.mip.find((faixa: any) =>
       idade >= faixa.idadeMin && idade <= faixa.idadeMax
     );
     if (faixaIdade) {
@@ -489,7 +489,7 @@ function calcularSeguros(banco, idade, valorFinanciado, tipoImovel = 'residencia
 }
 
 // Função para calcular tabela SAC com seguros
-function calcularTabelaSAC(valorFinanciado, taxaMensal, numeroParcelas, banco, idade, valorImovel, tipoImovel = 'residencial') {
+function calcularTabelaSAC(valorFinanciado: any, taxaMensal: any, numeroParcelas: any, banco: any, idade: any, valorImovel: any, tipoImovel: any = 'residencial') {
   const parcelas = [];
   const amortizacao = valorFinanciado / numeroParcelas;
   let saldoDevedor = valorFinanciado;
@@ -523,7 +523,7 @@ function calcularTabelaSAC(valorFinanciado, taxaMensal, numeroParcelas, banco, i
 }
 
 // Função para calcular tabela PRICE com seguros
-function calcularTabelaPrice(valorFinanciado, taxaMensal, numeroParcelas, banco, idade, valorImovel, tipoImovel = 'residencial') {
+function calcularTabelaPrice(valorFinanciado: any, taxaMensal: any, numeroParcelas: any, banco: any, idade: any, valorImovel: any, tipoImovel: any = 'residencial') {
   const parcelas = [];
   const parcelaFixaPrincipal = calcularParcelaPrice(valorFinanciado, taxaMensal, numeroParcelas);
   let saldoDevedor = valorFinanciado;
@@ -558,7 +558,7 @@ function calcularTabelaPrice(valorFinanciado, taxaMensal, numeroParcelas, banco,
 
 const SimuladorCGI = () => {
   // Estados do formulário
-  const [bancosEscolhidos, setBancosEscolhidos] = useState([]);
+  const [bancosEscolhidos, setBancosEscolhidos] = useState<string[]>([]);
   const [valorImovel, setValorImovel] = useState('');
   const [valorFinanciamento, setValorFinanciamento] = useState('');
   const [prazoMeses, setPrazoMeses] = useState('');
@@ -597,14 +597,14 @@ const SimuladorCGI = () => {
   const [incluirPrevisaoIPCA, setIncluirPrevisaoIPCA] = useState(false);
 
   // Hook para indicadores de mercado
-  const { indicadores, loading: indicadoresLoading, error: indicadoresError } = useIndicadoresMercado();
+  const { indicadores, isLoading: indicadoresLoading } = useIndicadoresMercado();
 
 
   // Função para alternar seleção de banco
   const toggleBanco = (codigoBanco: string) => {
     setBancosEscolhidos(prev => {
       const novosBancos = prev.includes(codigoBanco)
-        ? prev.filter(b => b !== codigoBanco)
+        ? prev.filter((b: any) => b !== codigoBanco)
         : [...prev, codigoBanco];
 
       // Definir padrão do sistema baseado no banco selecionado
@@ -661,7 +661,7 @@ const SimuladorCGI = () => {
   };
 
   // Função para calcular idade a partir da data de nascimento
-  const calcularIdade = (dataNasc) => {
+  const calcularIdade = (dataNasc: any) => {
     if (!dataNasc) return 0;
     const hoje = new Date();
     const nascimento = new Date(dataNasc);
@@ -674,7 +674,7 @@ const SimuladorCGI = () => {
   };
 
   // Função para calcular prazo máximo baseado na idade
-  const calcularPrazoMaximo = (dataNasc, bancoKey = null) => {
+  const calcularPrazoMaximo = (dataNasc: any, bancoKey: any = null) => {
     const idade = calcularIdade(dataNasc);
     const idadeMaxima = 80;
     const prazoMaximo = (idadeMaxima - idade) * 12;
@@ -683,14 +683,14 @@ const SimuladorCGI = () => {
   };
 
   // Função para atualizar valor do financiamento baseado no valor do imóvel
-  const atualizarValorFinanciamento = (valorImovelStr) => {
+  const atualizarValorFinanciamento = (valorImovelStr: any) => {
     const valor = limparFormatacao(valorImovelStr);
     const maxFinanciamento = valor * 0.6; // 60% máximo
     setValorFinanciamento(formatarEntradaMoeda(maxFinanciamento.toString()));
   };
 
   // Função para formatar valores monetários
-  const formatarMoeda = (valor) => {
+  const formatarMoeda = (valor: any) => {
     if (valor === null || valor === undefined || isNaN(valor)) return 'R$ 0,00';
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -699,7 +699,7 @@ const SimuladorCGI = () => {
   };
 
   // Função para formatar porcentagem
-  const formatarPorcentagem = (valor, decimais = 2) => {
+  const formatarPorcentagem = (valor: any, decimais: any = 2) => {
     if (valor === null || valor === undefined || isNaN(valor)) return '0,00%';
     return (valor).toLocaleString('pt-BR', {
       minimumFractionDigits: decimais,
@@ -708,13 +708,13 @@ const SimuladorCGI = () => {
   };
 
   // Função para limpar formatação de moeda
-  const limparFormatacao = (valor) => {
+  const limparFormatacao = (valor: any) => {
     if (!valor) return 0;
     return parseFloat(valor.toString().replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
   };
 
   // Função para formatar entrada de moeda
-  const formatarEntradaMoeda = (valor) => {
+  const formatarEntradaMoeda = (valor: any) => {
     const numero = limparFormatacao(valor);
     if (numero === 0) return '';
     return numero.toLocaleString('pt-BR', {
@@ -724,7 +724,7 @@ const SimuladorCGI = () => {
   };
 
   // Função para formatar valor monetário durante a digitação
-  const formatarMoedaDigitacao = (valor) => {
+  const formatarMoedaDigitacao = (valor: any) => {
     // Remove tudo que não é dígito
     const apenasNumeros = valor.replace(/\D/g, '');
 
@@ -826,12 +826,12 @@ const SimuladorCGI = () => {
       fgtsDisponivel = fgtsTitular + fgtsConjuge;
     }
 
-    const resultadosBancos = {};
-    const tabelasBanco = {};
+    const resultadosBancos: any = {};
+    const tabelasBanco: any = {};
 
     // Calcular para cada banco selecionado
-    bancosEscolhidos.forEach(bancoKey => {
-      const banco = BANCOS_CONFIG[bancoKey];
+    bancosEscolhidos.forEach((bancoKey: any) => {
+      const banco = (BANCOS_CONFIG as any)[bancoKey];
 
       // Validar compatibilidade banco x sistema/correção
       let chaveIndexador = tipoFinanciamento;
@@ -847,7 +847,7 @@ const SimuladorCGI = () => {
         chaveIndexador = tipoFinanciamento;
       }
 
-      const taxaAnual = banco.taxas[chaveIndexador];
+      const taxaAnual = (banco as any).taxas[chaveIndexador];
 
       if (!taxaAnual) return;
 
@@ -882,7 +882,7 @@ const SimuladorCGI = () => {
         const taxaIPCAAnual = indicadores?.ipca || 4.2;
         const taxaIPCAMensal = Math.pow(1 + taxaIPCAAnual / 100, 1 / 12) - 1;
 
-        parcelas = parcelas.map(parcela => ({
+        parcelas = parcelas.map((parcela: any) => ({
           ...parcela,
           // Aplicar correção IPCA acumulada nas parcelas futuras
           parcela: parcela.numero > 1 ?
@@ -905,9 +905,9 @@ const SimuladorCGI = () => {
       const aprovado = comprometimentoRenda <= 30;
 
       resultadosBancos[bancoKey] = {
-        banco: banco.nome,
-        cor: banco.cor,
-        logo: banco.logo,
+        banco: (banco as any).nome,
+        cor: (banco as any).cor,
+        logo: (banco as any).logo,
         taxaJuros: taxaAnual,
         primeiraParcela: primeiraParcela.parcela,
         ultimaParcela: ultimaParcela.parcela,
@@ -918,8 +918,8 @@ const SimuladorCGI = () => {
         comprometimentoRenda: comprometimentoRenda,
         aprovado: aprovado,
         observacao: incluirPrevisaoIPCA && chaveIndexador.includes('IPCA')
-          ? `${banco.observacaoEspecial || ''} Previsão IPCA de ${indicadores?.ipca || 4.2}% a.a. aplicada nas parcelas futuras.`.trim()
-          : banco.observacaoEspecial,
+          ? `${(banco as any).observacaoEspecial || ''} Previsão IPCA de ${indicadores?.ipca || 4.2}% a.a. aplicada nas parcelas futuras.`.trim()
+          : (banco as any).observacaoEspecial,
         valorFinanciado: valorFinanciado,
         valorEntrada: valorEntrada,
         parcelas: parcelas.length,
@@ -946,22 +946,22 @@ const SimuladorCGI = () => {
   };
 
   // Função para visualizar tabela de amortização
-  const visualizarTabela = (bancoKey) => {
+  const visualizarTabela = (bancoKey: any) => {
     setTabelaAtual({
       banco: bancoKey,
       dados: tabelasAmortizacao[bancoKey],
-      nome: BANCOS_CONFIG[bancoKey].nome
+      nome: (BANCOS_CONFIG as any)[bancoKey].nome
     });
     setMostrarTabela(true);
   };
 
   // Função para fechar card individual
-  const fecharCard = (codigoBanco) => {
+  const fecharCard = (codigoBanco: any) => {
     const novosResultados = { ...resultados };
     delete novosResultados[codigoBanco];
 
     // Remove a seleção do banco correspondente
-    const novosBancosEscolhidos = bancosEscolhidos.filter(banco => banco !== codigoBanco);
+    const novosBancosEscolhidos = bancosEscolhidos.filter((banco: any) => banco !== codigoBanco);
     setBancosEscolhidos(novosBancosEscolhidos);
 
     // Se não sobrar nenhum card, reset completo da página
@@ -1016,14 +1016,14 @@ const SimuladorCGI = () => {
       const corVentusHub = '#001f3f';
       const rgbVentusHub = hexToRgb(corVentusHub);
 
-      const formatCurrency = (value) => {
+      const formatCurrency = (value: any) => {
         return new Intl.NumberFormat('pt-BR', {
           style: 'currency',
           currency: 'BRL'
         }).format(value);
       };
 
-      const formatPercent = (value) => {
+      const formatPercent = (value: any) => {
         return `${value.toFixed(2)}%`;
       };
 
@@ -1032,9 +1032,11 @@ const SimuladorCGI = () => {
 
       try {
         console.log('Carregando logo...');
-        logoVentusHubData = await imageToBase64(logoVentusHub);
+        if (logoVentusHub) {
+          logoVentusHubData = await imageToBase64(logoVentusHub);
+        }
         console.log('Logo carregado com sucesso');
-      } catch (error) {
+      } catch (error: any) {
         console.warn('Erro ao carregar logo VentusHub:', error);
       }
 
@@ -1066,7 +1068,7 @@ const SimuladorCGI = () => {
 
         // Texto ao lado da logo
         doc.text(textoTitulo, inicioX + logoWidthReal + espacoEntreLogo, 20);
-      } catch (error) {
+      } catch (error: any) {
         console.warn('Erro ao carregar logo do Bari:', error);
         // Fallback: apenas o texto centralizado
         doc.text(textoTitulo, pageWidth / 2, 20, { align: 'center' });
@@ -1082,7 +1084,7 @@ const SimuladorCGI = () => {
           const alturaFaixa = 6;
           const larguraFaixa = alturaFaixa * logoVentusHubData.aspectRatio;
           doc.addImage(logoVentusHubData.dataUrl, 'PNG', pageWidth - larguraFaixa - 10, 36, larguraFaixa, alturaFaixa, undefined, 'FAST');
-        } catch (error) {
+        } catch (error: any) {
           // Fallback texto se logo não carregar
           doc.setTextColor(255, 255, 255);
           doc.setFontSize(10);
@@ -1225,7 +1227,7 @@ const SimuladorCGI = () => {
         const linhasTexto = doc.splitTextToSize(textoCompleto, larguraBloco - 10);
 
         let yTexto = currentY + 18;
-        linhasTexto.forEach(linha => {
+        linhasTexto.forEach((linha: any) => {
           doc.text(linha, margemLateral + 5, yTexto);
           yTexto += 4;
         });
@@ -1245,7 +1247,7 @@ const SimuladorCGI = () => {
         for (const key of bancosParaPDF) {
           const resultado = resultados[key];
 
-          if (resultado.erro) continue;
+          if ((resultado as any).erro) continue;
 
           // Verificar se precisa de nova página
           if (currentY > pageHeight - 80) {
@@ -1254,7 +1256,7 @@ const SimuladorCGI = () => {
           }
 
           // Definir cor do banco para as tabelas
-          const corBanco = resultado.cor ? hexToRgb(resultado.cor) : rgbVentusHub;
+          const corBanco = (resultado as any).cor ? hexToRgb((resultado as any).cor) : rgbVentusHub;
 
           // Verificar se precisa de nova página para tabela de parcelas
           if (currentY > pageHeight - 100) {
@@ -1269,7 +1271,7 @@ const SimuladorCGI = () => {
           const parcelasArray = tabelasAmortizacao && tabelasAmortizacao[key] ? tabelasAmortizacao[key] : null;
 
           if (Array.isArray(parcelasArray) && parcelasArray.length > 0) {
-            parcelasData = parcelasArray.map(parcela => [
+            parcelasData = parcelasArray.map((parcela: any) => [
               parcela.numero.toString(),
               formatCurrency(parcela.parcela || 0),
               formatCurrency(parcela.amortizacao || 0),
@@ -1282,7 +1284,7 @@ const SimuladorCGI = () => {
             console.warn('Parcelas não encontradas para o banco:', key);
             // Gerar tabela básica se não houver parcelas detalhadas
             const prazoNum = parseInt(prazo.toString()) || 240;
-            const valorParcela = resultado.primeiraParcela || 0;
+            const valorParcela = (resultado as any).primeiraParcela || 0;
             for (let i = 1; i <= Math.min(prazoNum, 12); i++) { // Mostrar apenas 12 primeiras se não houver dados
               parcelasData.push([
                 i.toString(),
@@ -1348,11 +1350,11 @@ const SimuladorCGI = () => {
           }
 
           // Observação se existir
-          if (resultado.observacao) {
+          if ((resultado as any).observacao) {
             doc.setFont('helvetica', 'italic');
             doc.setFontSize(8);
             doc.setTextColor(100, 100, 100);
-            const observacaoLinhas = doc.splitTextToSize(resultado.observacao, pageWidth - 40);
+            const observacaoLinhas = doc.splitTextToSize((resultado as any).observacao, pageWidth - 40);
             doc.text(observacaoLinhas, 16, currentY);
             currentY += observacaoLinhas.length * 4 + 5;
           }
@@ -1368,14 +1370,14 @@ const SimuladorCGI = () => {
 
       // Salvar PDF
       const nomeArquivo = bancoKey
-        ? `simulacao-cgi-${BANCOS_CONFIG[bancoKey].nome.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`
+        ? `simulacao-cgi-${(BANCOS_CONFIG as any)[bancoKey].nome.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`
         : `simulacao-cgi-completa-${new Date().toISOString().split('T')[0]}.pdf`;
 
       console.log('Salvando PDF:', nomeArquivo);
       doc.save(nomeArquivo);
       console.log('PDF gerado com sucesso!');
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro detalhado ao gerar PDF:', error);
       console.error('Stack trace:', error.stack);
       alert(`Erro ao gerar PDF: ${error.message}. Verifique o console para mais detalhes.`);
@@ -1386,7 +1388,7 @@ const SimuladorCGI = () => {
   const gerarPDFComparativo = async () => {
     try {
       // Verificar se há pelo menos 2 bancos nos resultados
-      const bancosComResultado = Object.entries(resultados).filter(([_, resultado]) => !resultado.erro);
+      const bancosComResultado = Object.entries(resultados as any).filter(([, resultado]) => !(resultado as any).erro);
       if (bancosComResultado.length < 2) {
         alert('É necessário ter pelo menos 2 bancos com resultados válidos para gerar o comparativo.');
         return;
@@ -1399,14 +1401,14 @@ const SimuladorCGI = () => {
       const corVentusHub = '#001f3f';
       const rgbVentusHub = hexToRgb(corVentusHub);
 
-      const formatCurrency = (value) => {
+      const formatCurrency = (value: any) => {
         return new Intl.NumberFormat('pt-BR', {
           style: 'currency',
           currency: 'BRL'
         }).format(value);
       };
 
-      const formatPercent = (value) => {
+      const formatPercent = (value: any) => {
         return `${value.toFixed(2)}%`;
       };
 
@@ -1417,13 +1419,15 @@ const SimuladorCGI = () => {
 
       // Filtrar e ordenar bancos por primeira parcela
       const bancosParaComparar = bancosComResultado
-        .sort(([_, a], [__, b]) => a.primeiraParcela - b.primeiraParcela);
+        .sort(([_, a]: any, [__, b]: any) => ((a as any).primeiraParcela || 0) - ((b as any).primeiraParcela || 0));
 
       // Carregar logo VentusHub
       let logoVentusHubData = null;
       try {
-        logoVentusHubData = await imageToBase64(logoVentusHub);
-      } catch (error) {
+        if (logoVentusHub) {
+          logoVentusHubData = await imageToBase64(logoVentusHub);
+        }
+      } catch (error: any) {
         console.warn('Erro ao carregar logo VentusHub:', error);
       }
 
@@ -1464,18 +1468,18 @@ const SimuladorCGI = () => {
       currentY += 15;
 
       // Tabela comparativa
-      const headerComparativo = ['Item', ...bancosParaComparar.map(([_, resultado]) => resultado.banco)];
+      const headerComparativo = ['Item', ...bancosParaComparar.map(([_, resultado]: any) => (resultado as any).banco)];
 
       const linhasComparativo = [
         ['Valor do imóvel', ...bancosParaComparar.map(() => formatCurrency(valor))],
-        ['Valor financiado', ...bancosParaComparar.map(([_, r]) => formatCurrency(r.valorFinanciado))],
-        ['Primeira parcela', ...bancosParaComparar.map(([_, r]) => formatCurrency(r.primeiraParcela))],
-        ['Taxa de juros', ...bancosParaComparar.map(([_, r]) => formatPercent(r.taxaJuros) + ' a.a.')],
+        ['Valor financiado', ...bancosParaComparar.map(([_, r]: any) => formatCurrency((r as any).valorFinanciado))],
+        ['Primeira parcela', ...bancosParaComparar.map(([_, r]: any) => formatCurrency((r as any).primeiraParcela))],
+        ['Taxa de juros', ...bancosParaComparar.map(([_, r]: any) => formatPercent((r as any).taxaJuros) + ' a.a.')],
         ['Sistema/Correção', ...bancosParaComparar.map(() => tipoFinanciamento.replace('_', ' + '))],
-        ['CET', ...bancosParaComparar.map(([_, r]) => formatPercent(r.cetAnual) + ' a.a.')],
-        ['Total pago', ...bancosParaComparar.map(([_, r]) => formatCurrency(r.totalPago))],
+        ['CET', ...bancosParaComparar.map(([_, r]: any) => formatPercent((r as any).cetAnual) + ' a.a.')],
+        ['Total pago', ...bancosParaComparar.map(([_, r]: any) => formatCurrency((r as any).totalPago))],
         ['Prazo', ...bancosParaComparar.map(() => prazo + ' meses')],
-        ['Comprometimento', ...bancosParaComparar.map(([_, r]) => formatPercent(r.comprometimentoRenda))]
+        ['Comprometimento', ...bancosParaComparar.map(([_, r]: any) => formatPercent((r as any).comprometimentoRenda))]
       ];
 
       autoTable(doc, {
@@ -1531,7 +1535,7 @@ const SimuladorCGI = () => {
         '• CGI: Crédito com Garantia de Imóvel permite financiar até 60% do valor do imóvel.'
       ];
 
-      observacoes.forEach(obs => {
+      observacoes.forEach((obs: any) => {
         doc.text(obs, 15, currentY);
         currentY += 5;
       });
@@ -1547,7 +1551,7 @@ const SimuladorCGI = () => {
       const nomeArquivo = `comparativo-cgi-${bancosParaComparar.length}-bancos-${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(nomeArquivo);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao gerar PDF comparativo:', error);
       alert(`Erro ao gerar PDF comparativo: ${error.message}`);
     }
@@ -1566,11 +1570,7 @@ const SimuladorCGI = () => {
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Selecione um ou mais bancos para ver as condições específicas de cada um</p><br></br>
 
           {/* Widget de Indicadores de Mercado */}
-          <IndicadoresMercado
-            indicadores={indicadores}
-            loading={indicadoresLoading}
-            error={indicadoresError}
-          />
+          <IndicadoresMercado />
         </div>
 
 
@@ -1940,15 +1940,15 @@ const SimuladorCGI = () => {
                           transition={{ duration: 0.4, ease: "easeInOut" }}
                           layout
                           className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 relative"
-                          style={{ borderLeftColor: resultado.cor, borderLeftWidth: '4px' }}
+                          style={{ borderLeftColor: (resultado as any).cor, borderLeftWidth: '4px' }}
                         >
-                          {resultado.erro ? (
+                          {(resultado as any).erro ? (
                             <div className="text-center">
                               <div className="bg-red-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
                                 <X className="h-6 w-6 text-red-600" />
                               </div>
-                              <h3 className="font-semibold text-red-900 mb-2">{resultado.banco}</h3>
-                              <p className="text-sm text-red-700">{resultado.erro}</p>
+                              <h3 className="font-semibold text-red-900 mb-2">{(resultado as any).banco}</h3>
+                              <p className="text-sm text-red-700">{(resultado as any).erro}</p>
                             </div>
                           ) : (
                             <>
@@ -1962,7 +1962,7 @@ const SimuladorCGI = () => {
                                   <X className="h-4 w-4" />
                                 </button>
                                 <button
-                                  onClick={() => gerarPDF(bancoKey)}
+                                  onClick={() => gerarPDF(bancoKey as any)}
                                   className="p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                                   title="Gerar PDF individual"
                                 >
@@ -1971,23 +1971,23 @@ const SimuladorCGI = () => {
                               </div>
 
                               <div className="flex items-center gap-3 mb-4 pr-20">
-                                {resultado.logo ? (
+                                {(resultado as any).logo ? (
                                   <img
-                                    src={resultado.logo}
-                                    alt={resultado.banco}
+                                    src={(resultado as any).logo}
+                                    alt={(resultado as any).banco}
                                     className="h-8 object-contain"
                                   />
                                 ) : (
                                   <div
                                     className="h-8 w-16 rounded flex items-center justify-center text-white text-xs font-bold"
-                                    style={{ backgroundColor: resultado.cor }}
+                                    style={{ backgroundColor: (resultado as any).cor }}
                                   >
-                                    {resultado.banco}
+                                    {(resultado as any).banco}
                                   </div>
                                 )}
                                 <div>
-                                  <h4 className="font-semibold">{resultado.banco}</h4>
-                                  {resultado.aprovado ? (
+                                  <h4 className="font-semibold">{(resultado as any).banco}</h4>
+                                  {(resultado as any).aprovado ? (
                                     <span className="text-green-600 text-sm">✅ Cenário favorável</span>
                                   ) : (
                                     <span className="text-red-600 text-sm">❌ Não atende critérios</span>
@@ -1998,17 +1998,17 @@ const SimuladorCGI = () => {
                               <div className="space-y-3 text-sm">
                                 <div className="flex justify-between">
                                   <span>Valor financiado:</span>
-                                  <strong>{formatarMoeda(resultado.valorFinanciado)}</strong>
+                                  <strong>{formatarMoeda((resultado as any).valorFinanciado)}</strong>
                                 </div>
                                 <div className="flex justify-between">
                                   <span>Primeira parcela:</span>
-                                  <strong className={resultado.aprovado ? 'text-green-600' : 'text-red-600'}>
-                                    {formatarMoeda(resultado.primeiraParcela)}
+                                  <strong className={(resultado as any).aprovado ? 'text-green-600' : 'text-red-600'}>
+                                    {formatarMoeda((resultado as any).primeiraParcela)}
                                   </strong>
                                 </div>
                                 <div className="flex justify-between">
                                   <span>Taxa de juros:</span>
-                                  <strong>{formatarPorcentagem(resultado.taxaJuros)} a.a.</strong>
+                                  <strong>{formatarPorcentagem((resultado as any).taxaJuros)} a.a.</strong>
                                 </div>
                                 <div className="flex justify-between">
                                   <span>Sistema:</span>
@@ -2016,44 +2016,44 @@ const SimuladorCGI = () => {
                                 </div>
                                 <div className="flex justify-between">
                                   <span>CET:</span>
-                                  <strong>{formatarPorcentagem(resultado.cetAnual)} a.a.</strong>
+                                  <strong>{formatarPorcentagem((resultado as any).cetAnual)} a.a.</strong>
                                 </div>
                                 <div className="flex justify-between">
                                   <span>Total pago:</span>
-                                  <strong>{formatarMoeda(resultado.totalPago)}</strong>
+                                  <strong>{formatarMoeda((resultado as any).totalPago)}</strong>
                                 </div>
                                 <div className="flex justify-between">
                                   <span>Prazo:</span>
-                                  <strong>{resultado.prazo || prazoMeses} meses</strong>
+                                  <strong>{(resultado as any).prazo || prazoMeses} meses</strong>
                                 </div>
                                 <div className="flex justify-between">
                                   <span>Comprometimento:</span>
-                                  <strong className={resultado.comprometimentoRenda <= 30 ? 'text-green-600' : 'text-red-600'}>
-                                    {formatarPorcentagem(resultado.comprometimentoRenda)} da renda
+                                  <strong className={(resultado as any).comprometimentoRenda <= 30 ? 'text-green-600' : 'text-red-600'}>
+                                    {formatarPorcentagem((resultado as any).comprometimentoRenda)} da renda
                                   </strong>
                                 </div>
                               </div>
 
-                              {resultado.observacao && (
+                              {(resultado as any).observacao && (
                                 <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
-                                  <strong>💡</strong> {resultado.observacao}
+                                  <strong>💡</strong> {(resultado as any).observacao}
                                 </div>
                               )}
 
-                              {resultado.sistemaAdaptado && (
+                              {(resultado as any).sistemaAdaptado && (
                                 <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                                   <p className="text-xs text-yellow-700 flex items-center">
                                     <Info className="h-3 w-3 mr-1" />
-                                    Sistema adaptado para {resultado.sistemaUsado.replace('_', ' + ')}
+                                    Sistema adaptado para {(resultado as any).sistemaUsado.replace('_', ' + ')}
                                   </p>
                                 </div>
                               )}
 
-                              {!resultado.aprovado && (
+                              {!(resultado as any).aprovado && (
                                 <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                                   <p className="text-xs text-orange-700 flex items-center">
                                     <Info className="h-3 w-3 mr-1" />
-                                    Parcela compromete {formatarPorcentagem(resultado.comprometimentoRenda)} da renda (máx. 30%)
+                                    Parcela compromete {formatarPorcentagem((resultado as any).comprometimentoRenda)} da renda (máx. 30%)
                                   </p>
                                 </div>
                               )}
@@ -2126,7 +2126,7 @@ const SimuladorCGI = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {tabelaAtual.dados.map((parcela, index) => (
+                      {tabelaAtual.dados.map((parcela: any, index: any) => (
                         <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                           <td className="px-4 py-2 text-gray-900">{parcela.numero}</td>
                           <td className="px-4 py-2 text-right font-medium">{formatarMoeda(parcela.parcela)}</td>

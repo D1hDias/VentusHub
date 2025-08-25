@@ -186,7 +186,7 @@ export default function SimuladorSacXPrice() {
           indicacao_perfil: indicacaoPerfil
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro no cálculo:", error);
     } finally {
       setLoading(false);
@@ -218,14 +218,14 @@ export default function SimuladorSacXPrice() {
     if (!resultado) return [];
     
     const dados = [];
-    const maxPontos = Math.min(resultado.price.fluxo_parcelas.length, 60); // Máximo 60 pontos para performance
-    const intervalo = Math.ceil(resultado.price.fluxo_parcelas.length / maxPontos);
+    const maxPontos = Math.min((resultado as any).price.fluxo_parcelas.length, 60); // Máximo 60 pontos para performance
+    const intervalo = Math.ceil((resultado as any).price.fluxo_parcelas.length / maxPontos);
     
-    for (let i = 0; i < resultado.price.fluxo_parcelas.length; i += intervalo) {
+    for (let i = 0; i < (resultado as any).price.fluxo_parcelas.length; i += intervalo) {
       dados.push({
         mes: i + 1,
-        price: resultado.price.fluxo_parcelas[i],
-        sac: resultado.sac.fluxo_parcelas[i]
+        price: (resultado as any).price.fluxo_parcelas[i],
+        sac: (resultado as any).sac.fluxo_parcelas[i]
       });
     }
     
@@ -360,7 +360,7 @@ export default function SimuladorSacXPrice() {
                       <div>
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Sistema Price</p>
                         <p className="text-2xl font-bold text-blue-600">
-                          {formatCurrency(resultado.price.primeira_parcela)}
+                          {formatCurrency((resultado as any).price.primeira_parcela)}
                         </p>
                         <p className="text-xs text-gray-500">Parcela fixa</p>
                       </div>
@@ -375,7 +375,7 @@ export default function SimuladorSacXPrice() {
                       <div>
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Sistema SAC</p>
                         <p className="text-2xl font-bold text-green-600">
-                          {formatCurrency(resultado.sac.primeira_parcela)}
+                          {formatCurrency((resultado as any).sac.primeira_parcela)}
                         </p>
                         <p className="text-xs text-gray-500">1ª parcela</p>
                       </div>
@@ -389,12 +389,12 @@ export default function SimuladorSacXPrice() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Economia SAC</p>
-                        <p className={`text-2xl font-bold ${resultado.comparativo.economia_juros_sac_vs_price > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {formatCurrency(Math.abs(resultado.comparativo.economia_juros_sac_vs_price))}
+                        <p className={`text-2xl font-bold ${(resultado as any).comparativo.economia_juros_sac_vs_price > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(Math.abs((resultado as any).comparativo.economia_juros_sac_vs_price))}
                         </p>
                         <p className="text-xs text-gray-500">Em juros totais</p>
                       </div>
-                      <DollarSign className={`w-8 h-8 ${resultado.comparativo.economia_juros_sac_vs_price > 0 ? 'text-green-600' : 'text-red-600'}`} />
+                      <DollarSign className={`w-8 h-8 ${(resultado as any).comparativo.economia_juros_sac_vs_price > 0 ? 'text-green-600' : 'text-red-600'}`} />
                     </div>
                   </CardContent>
                 </Card>
@@ -406,7 +406,7 @@ export default function SimuladorSacXPrice() {
                   <div className="text-center">
                     <h3 className="text-lg font-semibold mb-2">Recomendação</h3>
                     <p className="text-gray-600 dark:text-gray-400">
-                      {resultado.comparativo.indicacao_perfil}
+                      {(resultado as any).comparativo.indicacao_perfil}
                     </p>
                   </div>
                 </CardContent>
@@ -434,15 +434,15 @@ export default function SimuladorSacXPrice() {
                       <tbody>
                         <tr className="border-b">
                           <td className="p-3 font-medium text-blue-600">Price</td>
-                          <td className="text-right p-3">{formatCurrency(resultado.price.primeira_parcela)}</td>
-                          <td className="text-right p-3">{formatCurrency(resultado.price.ultima_parcela)}</td>
-                          <td className="text-right p-3">{formatCurrency(resultado.price.total_juros)}</td>
+                          <td className="text-right p-3">{formatCurrency((resultado as any).price.primeira_parcela)}</td>
+                          <td className="text-right p-3">{formatCurrency((resultado as any).price.ultima_parcela)}</td>
+                          <td className="text-right p-3">{formatCurrency((resultado as any).price.total_juros)}</td>
                         </tr>
                         <tr>
                           <td className="p-3 font-medium text-green-600">SAC</td>
-                          <td className="text-right p-3">{formatCurrency(resultado.sac.primeira_parcela)}</td>
-                          <td className="text-right p-3">{formatCurrency(resultado.sac.ultima_parcela)}</td>
-                          <td className="text-right p-3">{formatCurrency(resultado.sac.total_juros)}</td>
+                          <td className="text-right p-3">{formatCurrency((resultado as any).sac.primeira_parcela)}</td>
+                          <td className="text-right p-3">{formatCurrency((resultado as any).sac.ultima_parcela)}</td>
+                          <td className="text-right p-3">{formatCurrency((resultado as any).sac.total_juros)}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -466,7 +466,7 @@ export default function SimuladorSacXPrice() {
                         <XAxis dataKey="mes" />
                         <YAxis />
                         <Tooltip 
-                          formatter={(value) => formatCurrency(Number(value))}
+                          formatter={(value: any) => formatCurrency(Number(value))}
                           labelFormatter={(label) => `Mês ${label}`}
                         />
                         <Legend />

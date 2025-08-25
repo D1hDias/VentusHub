@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import { DueDiligenceModal } from "@/components/DueDiligenceModal";
 import { useResponsive } from "@/hooks/useMediaQuery";
 import { motion } from "framer-motion";
@@ -138,9 +139,9 @@ export default function DueDiligence() {
 
   // Calculando estatísticas
   const stats = {
-    completed: properties.filter(p => p.diligenceStatus === 'completed').length,
-    inProgress: properties.filter(p => p.diligenceStatus === 'in_progress').length,
-    pending: properties.filter(p => p.diligenceStatus === 'pending').length,
+    completed: properties.filter((p: any) => p.diligenceStatus === 'completed').length,
+    inProgress: properties.filter((p: any) => p.diligenceStatus === 'in_progress').length,
+    pending: properties.filter((p: any) => p.diligenceStatus === 'pending').length,
     total: properties.length
   };
 
@@ -195,7 +196,7 @@ export default function DueDiligence() {
   };
 
   const handleStartDiligence = (propertyId: string) => {
-    const property = properties.find(p => p.id === propertyId);
+    const property = properties.find((p: any) => p.id === propertyId);
     if (property) {
       setSelectedProperty(property);
       setIsModalOpen(true);
@@ -219,7 +220,7 @@ export default function DueDiligence() {
       property.street?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       property.neighborhood?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       property.sequenceNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      property.owners?.some(owner => 
+      property.owners?.some((owner: any) => 
         owner.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
       );
 
@@ -446,7 +447,7 @@ export default function DueDiligence() {
                       onClick={() => handleViewProperty(property)}
                       style={{
                         '--hover-shadow': `0 4px 12px rgba(0, 31, 63, 0.08)`
-                      }}
+                      } as any}
                     >
                       <Card>
                       <CardContent className="p-6">
@@ -620,7 +621,7 @@ export default function DueDiligence() {
                   </Button>
                   
                   <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page: any) => (
                       <Button
                         key={page}
                         variant={currentPage === page ? "default" : "outline"}

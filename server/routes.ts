@@ -1,10 +1,16 @@
 import type { Express } from "express";
-import { createServer } from "http";
-import { storage } from "./storage.js";
-import { isAuthenticated } from "./auth.js";
 import multer from "multer";
-import fs from "fs";
 import path from "path";
+import { storage } from "./storage.js";
+
+// Simple auth middleware
+function isAuthenticated(req: any, res: any, next: any) {
+  if (req.session && req.session.user) {
+    req.user = req.session.user;
+    return next();
+  }
+  return res.status(401).json({ message: "Unauthorized" });
+}
 import { 
   insertProposalSchema, 
   createRegistroSchema, 
@@ -13,42 +19,17 @@ import {
   cartorios, 
   createClientSchema, 
   updateClientSchema, 
-  clients, 
   notifications, 
   clientNotes, 
   createClientNoteSchema, 
   updateClientNoteSchema,
-  clientNoteAuditLogs,
-  scheduledNotifications,
-  createAuditLogSchema,
-  createScheduledNotificationSchema,
-  stageRequirements,
-  propertyRequirements,
-  stageCompletionMetrics,
-  stageAdvancementLog,
-  pendencyNotifications,
-  createStageRequirementSchema,
-  updatePropertyRequirementSchema,
-  stageAdvancementSchema,
-  type PendencyValidationResult,
   clientDocuments
 } from "../shared/schema.js";
 import { z } from "zod";
-import { db, isDBHealthy, reconnectDB } from "./db.js";
+import { db } from "./db.js";
 import { documents as propertyDocuments, properties } from "../shared/schema.js";
-import { eq, and, or, ilike, desc, count, sql } from "drizzle-orm";
+import { eq, and, desc, count } from "drizzle-orm";
 import indicadoresRouter from "./indicadores.js";
-import { 
-  PendencyValidationEngine,
-  seedStageRequirements,
-  initializeExistingProperties
-} from "./pendency-engine.js";
-import { 
-  PendencyNotificationService,
-  RealTimePendencyTracker,
-  runDailyPendencyCleanup,
-  initializePendencyNotifications
-} from "./pendency-notifications.js";
 import { supabaseAdmin } from "./supabase-client.js";
 import { 
   consultarStatusCartorio, 
@@ -58,60 +39,15 @@ import {
   generateProtocolo
 } from "./registro-mock.js";
 
-// Configurar multer para upload de documentos de propriedades
-const documentStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = './uploads/property-documents';
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + file.originalname;
-    cb(null, uniqueSuffix);
-  }
-});
-
-const documentUpload = multer({
-  storage: documentStorage,
+// Configuração simples do multer para uploads
+const upload = multer({ 
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
-    // Aceitar PDF, JPG, PNG
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Tipo de arquivo não permitido. Use PDF, JPG ou PNG.'));
-    }
+    cb(null, allowedTypes.includes(file.mimetype));
   }
 });
 
-// Middleware para verificar saúde do banco de dados
-const dbHealthCheck = async (req: any, res: any, next: any) => {
-  try {
-    const isHealthy = await isDBHealthy();
-    if (!isHealthy) {
-      console.warn('⚠️ Database unhealthy, attempting reconnection...');
-      const reconnected = await reconnectDB();
-      if (!reconnected) {
-        return res.status(503).json({ 
-          error: 'Database temporarily unavailable',
-          code: 'DB_UNAVAILABLE',
-          retry: true
-        });
-      }
-    }
-    next();
-  } catch (error: any) {
-    console.error('❌ Database health check failed:', error.message);
-    return res.status(503).json({ 
-      error: 'Database connection error',
-      code: 'DB_CONNECTION_ERROR',
-      retry: true
-    });
-  }
-};
 
 export function registerApiRoutes(app: Express): void {
   // Market indicators routes (não requer autenticação) 
@@ -136,12 +72,12 @@ export function registerApiRoutes(app: Express): void {
   
 
   // Property routes
-  app.get("/api/properties", isAuthenticated, dbHealthCheck, async (req: any, res) => {
+  app.get("/api/properties", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
       const properties = await storage.getProperties(userId);
       res.json(properties);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching properties:", error);
       res.status(500).json({ message: "Failed to fetch properties" });
     }
@@ -150,7 +86,7 @@ export function registerApiRoutes(app: Express): void {
   app.get("/api/properties/:id", isAuthenticated, async (req: any, res) => {
     try {
       const propertyId = parseInt(req.params.id);
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
       
       if (isNaN(propertyId)) {
         return res.status(400).json({ message: "Invalid property ID" });
@@ -162,16 +98,12 @@ export function registerApiRoutes(app: Express): void {
         return res.status(404).json({ message: "Property not found" });
       }
 
-      // Ensure user owns this property - corrigir type mismatch
-      // Garantir que ambos sejam strings para comparação
-      const propertyUserId = String(property.userId);
-      const sessionUserId = String(userId);
-      
-      if (propertyUserId !== sessionUserId) {
+      // Ensure user owns this property
+      if (String(property.userId) !== String(userId)) {
         return res.status(403).json({ message: "Access denied" });
       }
       res.json(property);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching property:", error);
       res.status(500).json({ message: "Failed to fetch property", error: error.message });
     }
@@ -180,7 +112,7 @@ export function registerApiRoutes(app: Express): void {
   app.post("/api/properties", isAuthenticated, async (req: any, res) => {
 
     try {
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
       
       // Gerar próximo número sequencial
       const sequenceNumber = await storage.generateNextSequenceNumber();
@@ -226,13 +158,8 @@ export function registerApiRoutes(app: Express): void {
       }
 
       res.json(property);
-    } catch (error) {
-      console.error("=== ERRO DETALHADO ===");
+    } catch (error: any) {
       console.error("Error creating property:", error);
-      if (error instanceof Error) {
-        console.error("Stack:", error.stack);
-      }
-      console.error("======================");
       res.status(500).json({ message: "Failed to create property", error: error instanceof Error ? error.message : String(error) });
     }
   });
@@ -240,9 +167,7 @@ export function registerApiRoutes(app: Express): void {
   app.put("/api/properties/:id", isAuthenticated, async (req: any, res) => {
     try {
       const propertyId = parseInt(req.params.id);
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
-      
-
+      const userId = req.session.user.id.toString();
       
       // Check ownership
       const existingProperty = await storage.getProperty(propertyId);
@@ -293,7 +218,7 @@ export function registerApiRoutes(app: Express): void {
       }
 
       res.json(updatedProperty);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating property:", error);
       res.status(500).json({ message: "Failed to update property", error: error instanceof Error ? error.message : String(error) });
     }
@@ -302,7 +227,7 @@ export function registerApiRoutes(app: Express): void {
   app.patch("/api/properties/:id", isAuthenticated, async (req: any, res) => {
     try {
       const propertyId = parseInt(req.params.id);
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
       
       // Check ownership
       const existingProperty = await storage.getProperty(propertyId);
@@ -313,7 +238,7 @@ export function registerApiRoutes(app: Express): void {
       const property = await storage.updateProperty(propertyId, req.body);
 
       res.json(property);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating property:", error);
       res.status(500).json({ message: "Failed to update property" });
     }
@@ -323,25 +248,21 @@ export function registerApiRoutes(app: Express): void {
   app.get("/api/properties/:id/documents", isAuthenticated, async (req: any, res) => {
     try {
       const propertyId = parseInt(req.params.id);
-      const userId = req.session.user.id; // Manter como string
+      const userId = req.session.user.id;
       
-      // Check ownership with type normalization
+      // Check ownership
       const property = await storage.getProperty(propertyId);
       if (!property) {
         return res.status(404).json({ message: "Property not found" });
       }
       
-      // Garantir que ambos sejam strings para comparação
-      const propertyUserId = String(property.userId);
-      const sessionUserId = String(userId);
-      
-      if (propertyUserId !== sessionUserId) {
+      if (String(property.userId) !== String(userId)) {
         return res.status(404).json({ message: "Property not found" });
       }
 
       const documents = await storage.getPropertyDocuments(propertyId);
       res.json(documents);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching documents:", error);
       res.status(500).json({ message: "Failed to fetch documents" });
     }
@@ -352,7 +273,7 @@ export function registerApiRoutes(app: Express): void {
     try {
       
       const propertyId = parseInt(req.params.id);
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
       
 
       
@@ -365,7 +286,7 @@ export function registerApiRoutes(app: Express): void {
       // Deletar a propriedade (cascade deletará os relacionamentos)
       await storage.deleteProperty(propertyId);
       res.json({ message: "Property deleted successfully" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting property:", error);
       res.status(500).json({ message: "Failed to delete property", error: error instanceof Error ? error.message : String(error) });
     }
@@ -533,7 +454,7 @@ export function registerApiRoutes(app: Express): void {
 
       const proposals = await storage.getPropertyProposals(propertyId);
       res.json(proposals);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching proposals:", error);
       res.status(500).json({ message: "Failed to fetch proposals" });
     }
@@ -567,7 +488,7 @@ export function registerApiRoutes(app: Express): void {
       });
 
       res.status(201).json(proposal);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating proposal:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid data", errors: error.errors });
@@ -590,7 +511,7 @@ export function registerApiRoutes(app: Express): void {
 
       const timeline = await storage.getPropertyTimeline(propertyId);
       res.json(timeline);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching timeline:", error);
       res.status(500).json({ message: "Failed to fetch timeline" });
     }
@@ -599,11 +520,11 @@ export function registerApiRoutes(app: Express): void {
   // Dashboard stats
   app.get("/api/dashboard/stats", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
 
       const stats = await storage.getUserStats(userId);
       res.json(stats);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });
     }
@@ -611,24 +532,19 @@ export function registerApiRoutes(app: Express): void {
 
   app.get("/api/dashboard/recent", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
 
       const recent = await storage.getRecentTransactions(userId);
       res.json(recent);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching recent transactions:", error);
       res.status(500).json({ message: "Failed to fetch recent transactions" });
     }
   });
 
   // Endpoint para upload de documentos de propriedades (fallback do Supabase)
-  app.post("/api/property-documents/upload", isAuthenticated, documentUpload.single('file'), async (req: any, res) => {
+  app.post("/api/property-documents/upload", isAuthenticated, upload.single('file'), async (req: any, res) => {
     try {
-      console.log("=== PROPERTY DOCUMENT UPLOAD ===");
-      console.log("File:", req.file);
-      console.log("Body:", req.body);
-      console.log("User:", req.session.user);
-      console.log("===============================");
 
       if (!req.file) {
         return res.status(400).json({ message: "Nenhum arquivo foi enviado" });
@@ -667,7 +583,7 @@ export function registerApiRoutes(app: Express): void {
         }
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading document:", error);
       res.status(500).json({ 
         message: "Erro ao fazer upload do documento",
@@ -707,10 +623,7 @@ export function registerApiRoutes(app: Express): void {
       const propertyUserId = String(property.userId);
       const sessionUserId = String(req.session.user.id);
       
-      console.log(`Create document ownership check: "${propertyUserId}" === "${sessionUserId}" = ${propertyUserId === sessionUserId}`);
-      
       if (propertyUserId !== sessionUserId) {
-        console.log(`Create document access denied. Property owner: "${propertyUserId}", Current user: "${sessionUserId}"`);
         return res.status(403).json({ message: "Acesso negado" });
       }
 
@@ -723,9 +636,6 @@ export function registerApiRoutes(app: Express): void {
         status: 'uploaded'           // ← Campo obrigatório
       }).returning();
 
-      // Track document upload for pendency notifications
-      // TODO: Implementar RealTimePendencyTracker.trackDocumentUpload
-      // await RealTimePendencyTracker.trackDocumentUpload(
       //   propertyIdNumber,
       //   fileType || 'OUTROS',
       //   parseInt(sessionUserId)
@@ -733,7 +643,7 @@ export function registerApiRoutes(app: Express): void {
 
       res.json(document[0]);
       
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error saving document metadata:", error);
         const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
         res.status(500).json({ 
@@ -743,27 +653,7 @@ export function registerApiRoutes(app: Express): void {
       }
   });
 
-  // Rota temporária para criar usuário de teste
-  app.post("/api/create-test-user", async (req: any, res) => {
-    try {
-      const bcrypt = require('bcryptjs');
-      const hashedPassword = await bcrypt.hash("123456", 10);
-      
-      const testUser = await storage.createUser({
-        firstName: "Teste",
-        lastName: "Usuario",
-        email: "teste@ventushub.com.br",
-        password: hashedPassword,
-        cpf: "12345678901",
-        creci: "12345",
-        phone: "11999999999",
-      });
-      
-      res.json({ message: "Usuário de teste criado", user: testUser });
-    } catch (error) {
-      res.status(500).json({ message: "Erro ao criar usuário", error: error.message });
-    }
-  });
+  // Test user creation removed - using Better Auth only
 
   // Rota temporária para corrigir sequence numbers
   app.get("/api/fix-sequence-numbers", isAuthenticated, async (req: any, res) => {
@@ -789,14 +679,14 @@ export function registerApiRoutes(app: Express): void {
       res.json({ 
         message: "Sequence numbers corrigidos com sucesso",
         updatedCount: userProperties.length,
-        properties: userProperties.map((p, i) => ({
+        properties: userProperties.map((p: any, i: any) => ({
           id: p.id,
           oldNumber: p.sequenceNumber,
           newNumber: "#" + String(i + 1).padStart(5, '0')
         }))
       });
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro na correção dos sequence numbers:", error);
       res.status(500).json({ message: "Erro ao corrigir sequence numbers", error: error.message });
     }
@@ -812,7 +702,7 @@ export function registerApiRoutes(app: Express): void {
    */
   app.get("/api/registros", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
 
       
       const registros = await storage.getRegistros(userId);
@@ -833,7 +723,7 @@ export function registerApiRoutes(app: Express): void {
       }
       
       res.json(registrosWithProperty);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching registros:", error);
       res.status(500).json({ message: "Failed to fetch registros" });
     }
@@ -875,7 +765,7 @@ export function registerApiRoutes(app: Express): void {
       };
       
       res.json(registroWithProperty);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching registro:", error);
       res.status(500).json({ message: "Failed to fetch registro" });
     }
@@ -887,7 +777,7 @@ export function registerApiRoutes(app: Express): void {
    */
   app.post("/api/registros", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
       
       // Validar dados com Zod
       const validatedData = createRegistroSchema.parse(req.body);
@@ -941,7 +831,7 @@ export function registerApiRoutes(app: Express): void {
       });
       
       res.status(201).json(registro);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating registro:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
@@ -980,7 +870,7 @@ export function registerApiRoutes(app: Express): void {
       const updatedRegistro = await storage.updateRegistro(registroId, validatedData);
       
       res.json(updatedRegistro);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating registro:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
@@ -1013,7 +903,7 @@ export function registerApiRoutes(app: Express): void {
       await storage.deleteRegistro(registroId);
       
       res.json({ message: "Registro deletado com sucesso" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting registro:", error);
       res.status(500).json({ message: "Failed to delete registro" });
     }
@@ -1059,7 +949,7 @@ export function registerApiRoutes(app: Express): void {
         statusAtual: registro.status,
         statusConsultado: statusMock
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error consulting registro status:", error);
       res.status(500).json({ message: "Failed to consult status" });
     }
@@ -1103,7 +993,7 @@ export function registerApiRoutes(app: Express): void {
         registro: updatedRegistro,
         mockData
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating status:", error);
       res.status(500).json({ message: "Failed to update status" });
     }
@@ -1129,7 +1019,7 @@ export function registerApiRoutes(app: Express): void {
       const registros = await storage.getRegistrosByProperty(propertyId);
       
       res.json(registros);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching property registros:", error);
       res.status(500).json({ message: "Failed to fetch property registros" });
     }
@@ -1143,7 +1033,7 @@ export function registerApiRoutes(app: Express): void {
     try {
       const cartoriosList = await db.select().from(cartorios).where(eq(cartorios.ativo, true));
       res.json(cartoriosList);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching cartorios:", error);
       res.status(500).json({ message: "Failed to fetch cartorios" });
     }
@@ -1166,7 +1056,7 @@ export function registerApiRoutes(app: Express): void {
       const taxas = await consultarTaxasCartorio(cartorioNome, parseFloat(valorImovel));
       
       res.json(taxas);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error consulting taxes:", error);
       res.status(500).json({ message: "Failed to consult taxes" });
     }
@@ -1182,7 +1072,7 @@ export function registerApiRoutes(app: Express): void {
    */
   app.get("/api/clients", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
       
       // Extrair query parameters
       const {
@@ -1211,7 +1101,7 @@ export function registerApiRoutes(app: Express): void {
       const result = await storage.getClients(userId, options);
       
       res.json(result);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching clients:", error);
       res.status(500).json({ 
         message: "Failed to fetch clients",
@@ -1227,7 +1117,7 @@ export function registerApiRoutes(app: Express): void {
   app.get("/api/clients/:id", isAuthenticated, async (req: any, res) => {
     try {
       const clientId = parseInt(req.params.id);
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
       
       
       if (isNaN(clientId)) {
@@ -1246,7 +1136,7 @@ export function registerApiRoutes(app: Express): void {
       }
       
       res.json(client);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching client:", error);
       res.status(500).json({ 
         message: "Failed to fetch client",
@@ -1261,7 +1151,7 @@ export function registerApiRoutes(app: Express): void {
    */
   app.post("/api/clients", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
       
       // Validar dados com Zod
       const validatedData = createClientSchema.parse(req.body);
@@ -1291,7 +1181,7 @@ export function registerApiRoutes(app: Express): void {
       });
       
       res.status(201).json(client);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating client:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
@@ -1313,7 +1203,7 @@ export function registerApiRoutes(app: Express): void {
   app.put("/api/clients/:id", isAuthenticated, async (req: any, res) => {
     try {
       const clientId = parseInt(req.params.id);
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
       
       
       if (isNaN(clientId)) {
@@ -1356,7 +1246,7 @@ export function registerApiRoutes(app: Express): void {
       const updatedClient = await storage.updateClient(clientId, validatedData);
       
       res.json(updatedClient);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating client:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
@@ -1378,7 +1268,7 @@ export function registerApiRoutes(app: Express): void {
   app.delete("/api/clients/:id", isAuthenticated, async (req: any, res) => {
     try {
       const clientId = parseInt(req.params.id);
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
       
       
       if (isNaN(clientId)) {
@@ -1395,7 +1285,7 @@ export function registerApiRoutes(app: Express): void {
       await storage.deleteClient(clientId);
       
       res.json({ message: "Cliente deletado com sucesso" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting client:", error);
       res.status(500).json({ 
         message: "Failed to delete client",
@@ -1410,12 +1300,12 @@ export function registerApiRoutes(app: Express): void {
    */
   app.get("/api/clients/stats", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
       
       const stats = await storage.getClientStats(userId);
       
       res.json(stats);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching client stats:", error);
       res.status(500).json({ 
         message: "Failed to fetch client statistics",
@@ -1430,14 +1320,14 @@ export function registerApiRoutes(app: Express): void {
    */
   app.get("/api/clients/recent", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.session.user.id.toString(); // Manter como string para compatibilidade com schema
+      const userId = req.session.user.id.toString();
       const limit = parseInt(req.query.limit as string) || 10;
       
       
       const recentClients = await storage.getRecentClients(userId, Math.min(limit, 50));
       
       res.json(recentClients);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching recent clients:", error);
       res.status(500).json({ 
         message: "Failed to fetch recent clients",
@@ -1464,7 +1354,7 @@ export function registerApiRoutes(app: Express): void {
         isValid: !existingClient,
         message: existingClient ? "CPF já cadastrado" : "CPF disponível"
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error validating CPF:", error);
       res.status(500).json({ message: "Failed to validate CPF" });
     }
@@ -1488,7 +1378,7 @@ export function registerApiRoutes(app: Express): void {
         isValid: !existingClient,
         message: existingClient ? "Email já cadastrado" : "Email disponível"
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error validating email:", error);
       res.status(500).json({ message: "Failed to validate email" });
     }
@@ -1539,12 +1429,12 @@ export function registerApiRoutes(app: Express): void {
       // Contar notas por tipo
       const noteStats = {
         total: notes.length,
-        pending: notes.filter(n => !n.isCompleted && n.type === 'reminder').length,
-        completed: notes.filter(n => n.isCompleted).length,
-        reminders: notes.filter(n => n.type === 'reminder').length,
-        notes: notes.filter(n => n.type === 'note').length,
-        meetings: notes.filter(n => n.type === 'meeting').length,
-        calls: notes.filter(n => n.type === 'call').length,
+        pending: notes.filter((n: any) => !n.isCompleted && n.type === 'reminder').length,
+        completed: notes.filter((n: any) => n.isCompleted).length,
+        reminders: notes.filter((n: any) => n.type === 'reminder').length,
+        notes: notes.filter((n: any) => n.type === 'note').length,
+        meetings: notes.filter((n: any) => n.type === 'meeting').length,
+        calls: notes.filter((n: any) => n.type === 'call').length,
       };
       
       res.json({
@@ -1553,7 +1443,7 @@ export function registerApiRoutes(app: Express): void {
         documents,
         stats: noteStats
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching client details:", error);
       res.status(500).json({ 
         message: "Failed to fetch client details",
@@ -1606,7 +1496,7 @@ export function registerApiRoutes(app: Express): void {
       const notes = await query.orderBy(desc(clientNotes.createdAt));
       
       res.json(notes);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching client notes:", error);
       res.status(500).json({ 
         message: "Failed to fetch client notes",
@@ -1663,7 +1553,7 @@ export function registerApiRoutes(app: Express): void {
       }
       
       res.status(201).json(note[0]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating client note:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
@@ -1720,7 +1610,7 @@ export function registerApiRoutes(app: Express): void {
         .returning();
       
       res.json(updatedNote[0]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating client note:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
@@ -1764,7 +1654,7 @@ export function registerApiRoutes(app: Express): void {
         .where(and(eq(clientNotes.id, noteId), eq(clientNotes.userId, userId)));
       
       res.json({ message: "Nota deletada com sucesso" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting client note:", error);
       res.status(500).json({ 
         message: "Failed to delete client note",
@@ -1822,7 +1712,7 @@ export function registerApiRoutes(app: Express): void {
           hasMore
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching notifications:", error);
       res.status(500).json({ 
         message: "Failed to fetch notifications",
@@ -1869,7 +1759,7 @@ export function registerApiRoutes(app: Express): void {
         ));
 
       res.json({ message: "Notification marked as read" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error marking notification as read:", error);
       res.status(500).json({ 
         message: "Failed to mark notification as read",
@@ -1898,7 +1788,7 @@ export function registerApiRoutes(app: Express): void {
         ));
 
       res.json({ message: "All notifications marked as read" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error marking all notifications as read:", error);
       res.status(500).json({ 
         message: "Failed to mark all notifications as read",
@@ -1965,7 +1855,7 @@ export function registerApiRoutes(app: Express): void {
         message: "Nota marcada como completa",
         note: updatedNote[0]
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error completing note:", error);
       res.status(500).json({
         message: "Erro ao completar nota",
@@ -2016,7 +1906,7 @@ export function registerApiRoutes(app: Express): void {
         message: "Lembrete agendado com sucesso",
         notification: notification[0]
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error scheduling reminder:", error);
       res.status(500).json({
         message: "Erro ao agendar lembrete",
@@ -2058,7 +1948,7 @@ export function registerApiRoutes(app: Express): void {
         noteId,
         auditLogs
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching audit log:", error);
       res.status(500).json({
         message: "Erro ao buscar histórico",
@@ -2111,7 +2001,7 @@ export function registerApiRoutes(app: Express): void {
         period: `${days} dias`,
         upcomingNotes
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching upcoming notes:", error);
       res.status(500).json({
         message: "Erro ao buscar lembretes próximos",
@@ -2159,7 +2049,7 @@ export function registerApiRoutes(app: Express): void {
         message: "Ligação registrada com sucesso",
         note: note[0]
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating call note:", error);
       res.status(500).json({
         message: "Erro ao registrar ligação",
@@ -2225,7 +2115,7 @@ export function registerApiRoutes(app: Express): void {
         message: "Reunião agendada com sucesso",
         note: note[0]
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating meeting note:", error);
       res.status(500).json({
         message: "Erro ao agendar reunião",
@@ -2234,41 +2124,6 @@ export function registerApiRoutes(app: Express): void {
     }
   });
 
-  // ================================
-  // PENDENCY CONTROL SYSTEM ROUTES
-  // ================================
-
-  /**
-   * GET /api/properties/:id/pendencies
-   * Get all pendencies for a property with real-time validation
-   */
-  app.get("/api/properties/:id/pendencies", isAuthenticated, async (req: any, res) => {
-    try {
-      const propertyId = parseInt(req.params.id);
-      const userId = req.session.user.id.toString();
-      
-      if (isNaN(propertyId)) {
-        return res.status(400).json({ message: "ID da propriedade inválido" });
-      }
-      
-      // Verify property ownership
-      const property = await db.select().from(properties).where(eq(properties.id, propertyId)).limit(1);
-      if (!property.length || property[0].userId !== userId) {
-        return res.status(404).json({ message: "Propriedade não encontrada" });
-      }
-      
-      // Get comprehensive pendency summary
-      const summary = await PendencyValidationEngine.getPropertyPendencySummary(propertyId);
-      
-      res.json(summary);
-    } catch (error) {
-      console.error("Error fetching property pendencies:", error);
-      res.status(500).json({ 
-        message: "Erro ao buscar pendências",
-        error: error instanceof Error ? error.message : String(error)
-      });
-    }
-  });
 
   /**
    * GET /api/properties/:id/stage/:stageId/requirements
@@ -2321,7 +2176,7 @@ export function registerApiRoutes(app: Express): void {
         stageId,
         propertyId,
         validation: validationResult,
-        requirements: requirements.map(r => ({
+        requirements: requirements.map((r: any) => ({
           ...r.requirement,
           status: r.propertyRequirement?.status || 'PENDING',
           completionPercentage: r.propertyRequirement?.completionPercentage || 0,
@@ -2332,7 +2187,7 @@ export function registerApiRoutes(app: Express): void {
           completedBy: r.propertyRequirement?.completedBy
         }))
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching stage requirements:", error);
       res.status(500).json({ 
         message: "Erro ao buscar requisitos do estágio",
@@ -2405,7 +2260,7 @@ export function registerApiRoutes(app: Express): void {
           validation: result.validationResult
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error advancing property stage:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
@@ -2492,7 +2347,7 @@ export function registerApiRoutes(app: Express): void {
         message: "Requisito atualizado com sucesso",
         requirement: updated[0]
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating requirement:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
@@ -2532,7 +2387,7 @@ export function registerApiRoutes(app: Express): void {
       res.json({
         stageId,
         stageName: stageNames[stageId] || `Stage ${stageId}`,
-        requirements: requirements.map(req => ({
+        requirements: requirements.map((req: any) => ({
           id: req.id,
           requirementKey: req.requirementKey,
           requirementName: req.requirementName,
@@ -2543,7 +2398,7 @@ export function registerApiRoutes(app: Express): void {
           propertyTypes: req.propertyTypes
         }))
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching stage templates:", error);
       res.status(500).json({ 
         message: "Erro ao buscar templates do estágio",
@@ -2581,7 +2436,7 @@ export function registerApiRoutes(app: Express): void {
         message: "Validação de requisitos executada com sucesso",
         summary
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error validating requirements:", error);
       res.status(500).json({ 
         message: "Erro ao validar requisitos",
@@ -2622,13 +2477,13 @@ export function registerApiRoutes(app: Express): void {
       
       res.json({
         propertyId,
-        log: log.map(entry => ({
+        log: log.map((entry: any) => ({
           ...entry,
           fromStageName: entry.fromStage ? stageNames[entry.fromStage] : null,
           toStageName: stageNames[entry.toStage] || `Stage ${entry.toStage}`
         }))
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching stage advancement log:", error);
       res.status(500).json({ 
         message: "Erro ao buscar histórico de avanços",
@@ -2650,7 +2505,7 @@ export function registerApiRoutes(app: Express): void {
       // Note: In production, add admin role check here
       await seedStageRequirements();
       res.json({ message: "Stage requirements seeded successfully" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error seeding stage requirements:", error);
       res.status(500).json({ 
         message: "Erro ao popular requisitos de estágio",
@@ -2669,7 +2524,7 @@ export function registerApiRoutes(app: Express): void {
       await initializeExistingProperties();
       await initializePendencyNotifications();
       res.json({ message: "Existing properties initialized successfully" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error initializing existing properties:", error);
       res.status(500).json({ 
         message: "Erro ao inicializar propriedades existentes",
@@ -2695,7 +2550,7 @@ export function registerApiRoutes(app: Express): void {
         message: "Requisito de estágio criado com sucesso",
         requirement: requirement[0]
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating stage requirement:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
@@ -2729,7 +2584,7 @@ export function registerApiRoutes(app: Express): void {
         notifications,
         count: notifications.length
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching pendency notifications:", error);
       res.status(500).json({ 
         message: "Erro ao buscar notificações de pendências",
@@ -2764,7 +2619,7 @@ export function registerApiRoutes(app: Express): void {
         notifications,
         count: notifications.length
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching property pendency notifications:", error);
       res.status(500).json({ 
         message: "Erro ao buscar notificações da propriedade",
@@ -2791,7 +2646,7 @@ export function registerApiRoutes(app: Express): void {
       res.json({
         message: "Notificação marcada como resolvida"
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error resolving pendency notification:", error);
       res.status(500).json({ 
         message: "Erro ao resolver notificação",
@@ -2824,7 +2679,7 @@ export function registerApiRoutes(app: Express): void {
       res.json({
         message: "Revisão de pendências iniciada com sucesso"
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error triggering pendency review:", error);
       res.status(500).json({ 
         message: "Erro ao iniciar revisão de pendências",
@@ -2842,7 +2697,7 @@ export function registerApiRoutes(app: Express): void {
       // Note: In production, add admin role check here
       await runDailyPendencyCleanup();
       res.json({ message: "Pendency cleanup completed successfully" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error running pendency cleanup:", error);
       res.status(500).json({ 
         message: "Erro ao executar limpeza de pendências",
@@ -2913,7 +2768,7 @@ export function registerApiRoutes(app: Express): void {
         property,
         pendencySummary
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating property with pendency tracking:", error);
       res.status(500).json({ 
         message: "Erro ao criar propriedade com controle de pendências", 
@@ -3024,7 +2879,7 @@ export function registerApiRoutes(app: Express): void {
         document
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading document:", error);
       res.status(500).json({ 
         message: "Erro interno do servidor", 
@@ -3060,7 +2915,7 @@ export function registerApiRoutes(app: Express): void {
 
       res.json({ documents });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching client documents:", error);
       res.status(500).json({ 
         message: "Erro ao buscar documentos", 
@@ -3118,12 +2973,78 @@ export function registerApiRoutes(app: Express): void {
 
       res.json({ message: "Documento deletado com sucesso" });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting document:", error);
       res.status(500).json({ 
         message: "Erro ao deletar documento", 
         error: error instanceof Error ? error.message : String(error) 
       });
+    }
+  });
+
+  // ================================
+  // SETUP ROUTES
+  // ================================
+
+  /**
+   * GET /api/setup/is-first-user
+   * Check if this is the first user registration
+   */
+  app.get("/api/setup/is-first-user", async (req: any, res) => {
+    try {
+      // Import user schema
+      const { user } = await import('../shared/better-auth-schema.js');
+      
+      // Check if any users exist
+      const userCount = await db.select({ count: count() }).from(user);
+      const isFirstUser = userCount[0].count === 0;
+      
+      res.json({ isFirstUser });
+    } catch (error: any) {
+      console.error("Error checking first user:", error);
+      res.status(500).json({ message: "Error checking first user" });
+    }
+  });
+
+  /**
+   * POST /api/setup/promote-to-master-admin
+   * Promote user to master admin (only for first user)
+   */
+  app.post("/api/setup/promote-to-master-admin", async (req: any, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+      
+      // Import user schema
+      const { user } = await import('../shared/better-auth-schema.js');
+      
+      // Check if any users have MASTER_ADMIN role
+      const adminUsers = await db.select()
+        .from(user)
+        .where(eq(user.role, 'MASTER_ADMIN'));
+      
+      if (adminUsers.length > 0) {
+        return res.status(400).json({ message: "Master admin already exists" });
+      }
+      
+      // Update user role to MASTER_ADMIN
+      await db
+        .update(user)
+        .set({ 
+          role: 'MASTER_ADMIN',
+          updatedAt: new Date()
+        })
+        .where(eq(user.id, userId));
+      
+      console.log('✅ User promoted to MASTER_ADMIN:', userId);
+      res.json({ success: true, message: "User promoted to master admin" });
+      
+    } catch (error: any) {
+      console.error('❌ Error promoting user to master admin:', error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 

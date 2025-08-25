@@ -132,7 +132,7 @@ export const enviarDocumentosCartorio = async (dados: {
   await simulateDelay(1000, 3000); // Simula upload mais demorado
 
   const protocolo = generateProtocolo();
-  const cartorio = cartoriosMock.find(c => c.nome === dados.cartorioNome) || cartoriosMock[0];
+  const cartorio = cartoriosMock.find((c: any) => c.nome === dados.cartorioNome) || cartoriosMock[0];
   
   // Calcula taxa baseada no valor do imóvel (simulação realística)
   const percentualTaxa = 0.003; // 0.3% do valor do imóvel
@@ -209,7 +209,7 @@ export const forcarAtualizacaoStatus = async (
 export const consultarTaxasCartorio = async (cartorioNome: string, valorImovel: number): Promise<any> => {
   await simulateDelay(500, 1200);
 
-  const cartorio = cartoriosMock.find(c => c.nome === cartorioNome) || cartoriosMock[0];
+  const cartorio = cartoriosMock.find((c: any) => c.nome === cartorioNome) || cartoriosMock[0];
   
   // Simulação realística de cálculo de taxas
   const percentualItbi = 0.02; // 2% ITBI

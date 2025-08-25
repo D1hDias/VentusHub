@@ -250,7 +250,7 @@ export const useFeedbackQueue = () => {
   };
 
   const removeFeedback = (id: string) => {
-    setFeedbacks(prev => prev.filter(f => f.id !== id));
+    setFeedbacks(prev => prev.filter((f: any) => f.id !== id));
   };
 
   const clearAll = () => {

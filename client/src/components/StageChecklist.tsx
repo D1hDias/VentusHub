@@ -66,14 +66,14 @@ export function StageChecklist({
   className,
 }: StageChecklistProps) {
   const filteredRequirements = showCriticalOnly 
-    ? requirements.filter(req => req.priority === 'critical')
+    ? requirements.filter((req: any) => req.priority === 'critical')
     : requirements;
 
-  const completedCount = filteredRequirements.filter(req => req.status === 'completed').length;
+  const completedCount = filteredRequirements.filter((req: any) => req.status === 'completed').length;
   const totalCount = filteredRequirements.length;
   const completionPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
   
-  const criticalIncomplete = requirements.filter(req => 
+  const criticalIncomplete = requirements.filter((req: any) => 
     req.priority === 'critical' && req.status !== 'completed'
   ).length;
 
@@ -205,19 +205,19 @@ export function StageChecklist({
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-bold text-amber-600">
-                      {requirements.filter(r => r.status === 'in_progress').length}
+                      {requirements.filter((r: any) => r.status === 'in_progress').length}
                     </div>
                     <div className="text-xs text-gray-600">Em Andamento</div>
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-bold text-gray-600">
-                      {requirements.filter(r => r.status === 'pending').length}
+                      {requirements.filter((r: any) => r.status === 'pending').length}
                     </div>
                     <div className="text-xs text-gray-600">Pendentes</div>
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-bold text-red-600">
-                      {requirements.filter(r => r.status === 'blocked').length}
+                      {requirements.filter((r: any) => r.status === 'blocked').length}
                     </div>
                     <div className="text-xs text-gray-600">Bloqueados</div>
                   </div>

@@ -44,7 +44,7 @@ export const fetchIndicadoresMercado = async (): Promise<IndicadoresResponse> =>
     
     return data; // Não sobrescrever timestamp do servidor
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao buscar indicadores do backend:', error);
     
     // Em caso de falha total da nossa API, retorna um objeto de fallback
@@ -78,7 +78,7 @@ export const forceUpdateIndicadores = async (): Promise<IndicadoresResponse> => 
     const result = await response.json();
     return result.data || result; // Retorna os dados atualizados
     
-  } catch (error) {
+  } catch (error: any) {
     console.warn('Erro no force refresh, fallback para fetch normal:', error);
     // Fallback para o fetch normal se o force refresh falhar
     return fetchIndicadoresMercado();

@@ -43,7 +43,7 @@ const ResponsiveGrid: React.FC<ResponsiveGridProps> = ({
     xl: 1200
   }
 }) => {
-  const [containerRef, currentBreakpoint] = useContainerQuery(breakpoints) as [React.RefObject<HTMLDivElement>, string | null];
+  const [containerRef, currentBreakpoint] = useContainerQuery(breakpoints) as unknown as [React.RefObject<HTMLDivElement>, string | null];
   const { prefersReducedMotion } = useResponsive();
   const shouldAnimate = animateItems && !prefersReducedMotion;
 
@@ -102,7 +102,7 @@ const ResponsiveGrid: React.FC<ResponsiveGridProps> = ({
 };
 
 // Variações específicas para casos comuns
-export const KPIGrid: React.FC<Omit<ResponsiveGridProps, 'minItemWidth' | 'maxColumns'>> = (props) => {
+export const KPIGrid: React.FC<Omit<ResponsiveGridProps, 'minItemWidth' | 'maxColumns'>> = (props: any) => {
   const { isMobile } = useResponsive();
   
   // Para mobile, usar layout de coluna única otimizado (lista)
@@ -130,7 +130,7 @@ export const KPIGrid: React.FC<Omit<ResponsiveGridProps, 'minItemWidth' | 'maxCo
   );
 };
 
-export const CardGrid: React.FC<Omit<ResponsiveGridProps, 'minItemWidth' | 'maxColumns'>> = (props) => (
+export const CardGrid: React.FC<Omit<ResponsiveGridProps, 'minItemWidth' | 'maxColumns'>> = (props: any) => (
   <ResponsiveGrid
     {...props}
     minItemWidth={320}
@@ -144,7 +144,7 @@ export const CardGrid: React.FC<Omit<ResponsiveGridProps, 'minItemWidth' | 'maxC
   />
 );
 
-export const CompactGrid: React.FC<Omit<ResponsiveGridProps, 'minItemWidth' | 'maxColumns'>> = (props) => (
+export const CompactGrid: React.FC<Omit<ResponsiveGridProps, 'minItemWidth' | 'maxColumns'>> = (props: any) => (
   <ResponsiveGrid
     {...props}
     minItemWidth={200}

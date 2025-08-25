@@ -188,7 +188,7 @@ const Registro: React.FC = () => {
         } else {
           console.log('⚠️ API indisponível, usando cartórios estáticos');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.log('⚠️ Erro na API, usando cartórios estáticos');
       } finally {
         setLoading(false);
@@ -202,7 +202,7 @@ const Registro: React.FC = () => {
     fetchCartorios();
   }, []);
 
-  const filteredRegistros = registros.filter(registro => {
+  const filteredRegistros = registros.filter((registro: any) => {
     const matchesSearch =
       registro.numeroProtocolo.toLowerCase().includes(searchTerm.toLowerCase()) ||
       registro.propertyAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -217,9 +217,9 @@ const Registro: React.FC = () => {
   // Calculate registry statistics
   const registryStats = {
     total: registros.length,
-    completed: registros.filter(r => r.status === 'registrado').length,
-    pending: registros.filter(r => r.status === 'em_analise' || r.status === 'pronto_para_registro').length,
-    thisMonth: registros.filter(r => {
+    completed: registros.filter((r: any) => r.status === 'registrado').length,
+    pending: registros.filter((r: any) => r.status === 'em_analise' || r.status === 'pronto_para_registro').length,
+    thisMonth: registros.filter((r: any) => {
       const registroDate = new Date(r.dataEnvio);
       const now = new Date();
       return registroDate.getMonth() === now.getMonth() && registroDate.getFullYear() === now.getFullYear();

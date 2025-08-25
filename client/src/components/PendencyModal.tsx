@@ -67,8 +67,8 @@ export function PendencyModal({
   totalRequirements,
   completedRequirements,
 }: PendencyModalProps) {
-  const criticalPendencies = pendencies.filter(p => p.priority === 'critical');
-  const nonCriticalPendencies = pendencies.filter(p => p.priority !== 'critical');
+  const criticalPendencies = pendencies.filter((p: any) => p.priority === 'critical');
+  const nonCriticalPendencies = pendencies.filter((p: any) => p.priority !== 'critical');
   const completionPercentage = Math.round((completedRequirements / totalRequirements) * 100);
 
   const modalVariants = {

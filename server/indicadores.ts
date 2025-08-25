@@ -61,7 +61,7 @@ const fetchApiData = async (url: string, source: string) => {
       return response.data;
     }
     throw new Error(`Status ${response.status}`);
-  } catch (error) {
+  } catch (error: any) {
     console.error(`❌ Erro ao buscar [${source}]: ${error.message}`);
     return null;
   }
@@ -100,7 +100,7 @@ const fetchIPCAFromIBGE = async (): Promise<number | null> => {
     }
     
     throw new Error(`Status ${response.status}`);
-  } catch (error) {
+  } catch (error: any) {
     console.error(`❌ Erro ao buscar IPCA do IBGE: ${error.message}`);
     return null;
   }
@@ -159,7 +159,7 @@ router.get('/indicadores', async (req, res) => {
 
     res.status(200).json(resultado);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('🚨 Erro fatal no endpoint /api/indicadores:', error);
     
     // Fallback final com dados estáticos
@@ -193,7 +193,7 @@ router.post('/indicadores/refresh', async (req, res) => {
       data
     });
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('🚨 Erro no force refresh:', error);
     res.status(500).json({
       error: 'Erro ao forçar atualização dos indicadores'

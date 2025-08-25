@@ -65,7 +65,7 @@ export const useNotifications = () => {
       return response.json();
     },
     staleTime: 30000, // 30 seconds
-    cacheTime: 60000, // 1 minute
+    gcTime: 60000, // 1 minute (formerly cacheTime)
     refetchOnWindowFocus: true,
     refetchInterval: 90000, // Poll every 90 seconds (otimizado)
     retry: (failureCount, error: any) => {
@@ -100,7 +100,7 @@ export const useNotifications = () => {
       return response.json();
     },
     staleTime: 30000,
-    cacheTime: 60000,
+    gcTime: 60000, // formerly cacheTime
     refetchOnWindowFocus: true,
     enabled: false, // Only fetch when needed (when dropdown is opened)
     refetchInterval: false // Disable auto-polling for list, only on-demand
@@ -173,9 +173,9 @@ export const useNotifications = () => {
   };
 
   // Computed values
-  const notifications = notificationsData?.notifications || [];
-  const unreadCount = summaryData?.totals?.unread || 0;
-  const urgentCount = summaryData?.totals?.urgent || 0;
+  const notifications = (notificationsData as any)?.notifications || [];
+  const unreadCount = (summaryData as any)?.totals?.unread || 0;
+  const urgentCount = (summaryData as any)?.totals?.urgent || 0;
   const hasUnread = unreadCount > 0;
   const hasUrgent = urgentCount > 0;
 
@@ -187,21 +187,30 @@ export const useNotifications = () => {
     urgentCount,
     hasUnread,
     hasUrgent,
+    totalCount: notifications?.length || 0,
     
     // Loading states
     isLoadingNotifications,
     isLoadingSummary,
+    isLoading: isLoadingNotifications || isLoadingSummary,
     
     // Error states  
     notificationsError,
     summaryError,
+    error: notificationsError || summaryError,
     
     // Connection state (always true for simplified version)
     isConnected: true,
     
+    // Pagination (simplified - no real pagination in current implementation)
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    fetchNextPage: () => Promise.resolve(),
+    
     // Actions
     markAsRead,
     markAllAsRead,
+    refetch: refetchNotifications,
     refetchNotifications,
     openNotifications,
     archiveNotification,

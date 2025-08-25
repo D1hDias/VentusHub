@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Home, Store, Handshake, File, Plus, TrendingUp, Search, Edit, Trash2, FileCheck, CreditCard, Stamp, CheckCircle } from "lucide-react";
+import { Home, Store, Handshake, File, Plus, TrendingUp, Search, Edit, Trash2, FileCheck, CreditCard, Stamp, CheckCircle, Building2, Shield } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
@@ -7,16 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TimelineStep } from "@/components/TimelineStep";
-import { PropertyModal } from "@/components/PropertyModal";
+// import { PropertyModal } from "@/components/PropertyModal"; // Temporarily disabled
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequestLegacy as apiRequest } from "@/lib/queryClient";
+// import { useOrganization } from "@/hooks/useOrganization"; // Temporarily disabled
+// import { OrganizationBadge } from "@/components/OrganizationSelector"; // Temporarily disabled
 import { useSmoothtTransitions, useEntranceAnimation } from "@/hooks/useSmoothtTransitions";
 import { useResponsive } from "@/hooks/useMediaQuery";
 import { PageLoader } from "@/components/PageLoader";
 import { formatSequenceNumber, formatCurrency, formatPropertyAddress, formatStageName, formatStageClasses } from "@/lib/formatUtils";
+// import { AIAssistant } from "@/components/AIAssistant"; // Temporarily disabled
+// import { useAIInsights } from "@/hooks/useAI"; // Temporarily disabled
 
 // Garantir que crypto está disponível
 if (typeof crypto === 'undefined') {
@@ -67,6 +70,21 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  // const { 
+  //   currentOrganization, 
+  //   currentMembership,
+  //   canManageProperties,
+  //   hasPermission,
+  //   isOrgAdmin,
+  //   isManager 
+  // } = useOrganization(); // Temporarily disabled
+  
+  // Temporary mock values
+  const currentOrganization = { id: 'temp-org', nome: 'Dias Consultor Imobiliário' };
+  const canManageProperties = () => true;
+  const hasPermission = () => true;
+  const isOrgAdmin = true;
+  const isManager = true;
   const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();
   const { isMobile } = useResponsive();
 
@@ -84,13 +102,18 @@ export default function Dashboard() {
     }
   };
 
-  // Buscar todas as propriedades para calcular estatísticas
-  const { data: allProperties = [], isLoading: propertiesLoading, error } = useQuery<Property[]>({
-    queryKey: ["/api/properties"],
-    enabled: !!user, // Só executar se usuário estiver logado
-    // Usar o queryFn padrão que já inclui credentials
-  });
+  
+  // Mock data for testing
+  const propertiesResponse = { imoveis: [] };
+  const propertiesLoading = false;
+  const error = null;
 
+  const allProperties = propertiesResponse?.imoveis || [];
+
+  // Buscar insights de IA - Temporarily disabled
+  // const { data: aiInsights, isLoading: aiInsightsLoading } = useAIInsights();
+  const aiInsights = null;
+  const aiInsightsLoading = false;
 
   // Calcular estatísticas baseadas no status das propriedades
   const stats: Stats = {
@@ -169,11 +192,12 @@ export default function Dashboard() {
     setLocation(`/property/${property.id}`);
   };
 
-  // Função para abrir modal de edição
+  // Função para abrir modal de edição - Temporarily disabled
   const handleEditProperty = (property: Property, e: React.MouseEvent) => {
     e.stopPropagation();
-    setEditingProperty(property);
-    setShowPropertyModal(true);
+    // setEditingProperty(property);
+    // setShowPropertyModal(true);
+    console.log('PropertyModal temporarily disabled');
   };
 
   // Função para fechar modal
@@ -182,22 +206,31 @@ export default function Dashboard() {
     setEditingProperty(null);
   };
 
+  // Função mockada para "Novo Imóvel"
+  const handleNewProperty = () => {
+    console.log('PropertyModal temporarily disabled - New property creation');
+  };
+
   // Mutation para deletar propriedade
   const deletePropertyMutation = useMutation({
     mutationFn: async (propertyId: string) => {
-      await apiRequest('DELETE', `/api/properties/${propertyId}`);
+      const result = await api.delete(`/imoveis/${propertyId}`);
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao excluir propriedade');
+      }
+      return result.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/properties"] });
+      queryClient.invalidateQueries({ queryKey: ['properties', currentOrganization?.id] });
       toast({
         title: "Propriedade excluída",
         description: "A propriedade foi removida com sucesso.",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Erro ao excluir",
-        description: "Não foi possível excluir a propriedade.",
+        description: error.message || "Não foi possível excluir a propriedade.",
         variant: "destructive",
       });
     },
@@ -206,6 +239,16 @@ export default function Dashboard() {
   // Função para deletar propriedade com confirmação
   const handleDeleteProperty = (property: Property, e: React.MouseEvent) => {
     e.stopPropagation();
+
+    // Verificar permissão de exclusão
+    if (!hasPermission('imoveis', 'delete')) {
+      toast({
+        title: "Sem permissão",
+        description: "Você não tem permissão para excluir propriedades.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const propertyAddress = `${property.type} - ${property.street}, ${property.number}`;
 
@@ -292,17 +335,50 @@ export default function Dashboard() {
     }
   ];
 
+  // Verificar se tem organização selecionada
+  if (!currentOrganization) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Nenhuma Organização Selecionada</h3>
+          <p className="text-sm text-gray-500 max-w-md">
+            Por favor, selecione uma organização no menu superior para visualizar o dashboard.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Verificar permissões básicas
+  if (!canManageProperties()) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Acesso Restrito</h3>
+          <p className="text-sm text-gray-500 max-w-md">
+            Você não tem permissão para visualizar o dashboard de propriedades.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6 card-desktop-compact">
       {/* Welcome Header */}
       <div className="flex items-center justify-between">
-        <div>
+        <div className="flex-1">
           <h1 className={`font-bold mb-1 ${isMobile ? "text-xl" : "text-2xl"}`}>
             {getGreeting()}, {(user as any)?.firstName || "Usuário"} {(user as any)?.lastName || ""}
           </h1>
-          <p className={`text-muted-foreground ${isMobile ? "text-sm" : "text-sm"}`}>
-            CRECI: {(user as any)?.creci || "Não informado"} | Última atualização: {new Date().toLocaleString('pt-BR')}
-          </p>
+          <div className="flex items-center gap-4">
+            <p className={`text-muted-foreground ${isMobile ? "text-sm" : "text-sm"}`}>
+              CRECI: {(user as any)?.creci || "Não informado"} | Última atualização: {new Date().toLocaleString('pt-BR')}
+            </p>
+            {/* <OrganizationBadge /> */}
+          </div>
         </div>
       </div>
 
@@ -515,7 +591,7 @@ export default function Dashboard() {
                   Últimas atualizações em suas propriedades
                 </CardDescription>
               </div>
-              <Button onClick={() => setShowPropertyModal(true)}>
+              <Button onClick={handleNewProperty}>
                 <Plus className="h-2 w-2 mr-0" />
                 Captação
               </Button>
@@ -528,14 +604,14 @@ export default function Dashboard() {
                   <p className="text-muted-foreground mb-4">
                     Comece cadastrando seu primeiro imóvel para começar a usar o sistema.
                   </p>
-                  <Button onClick={() => setShowPropertyModal(true)}>
+                  <Button onClick={handleNewProperty}>
                     <Plus className="h-4 w-4 mr-2" />
                     Cadastrar Primeiro Imóvel
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-4 transition-smooth">
-                  {recentTransactions.map((property, index) => {
+                  {recentTransactions.map((property: Property, index: number) => {
                     const formattedValue = formatCurrency(property.value);
 
                     // Extract just street and number for mobile
@@ -620,7 +696,7 @@ export default function Dashboard() {
                     Últimas atualizações em suas propriedades
                   </CardDescription>
                 </div>
-                <Button onClick={() => setShowPropertyModal(true)}>
+                <Button onClick={handleNewProperty}>
                   <Plus className="h-2 w-2 mr-0" />
                   Captação
                 </Button>
@@ -633,14 +709,14 @@ export default function Dashboard() {
                     <p className="text-muted-foreground mb-4">
                       Comece cadastrando seu primeiro imóvel para começar a usar o sistema.
                     </p>
-                    <Button onClick={() => setShowPropertyModal(true)}>
+                    <Button onClick={handleNewProperty}>
                       <Plus className="h-4 w-4 mr-2" />
                       Cadastrar Primeiro Imóvel
                     </Button>
                   </div>
                 ) : (
                   <div className="space-y-4 transition-smooth">
-                    {recentTransactions.map((property, index) => {
+                    {recentTransactions.map((property: Property, index: number) => {
                       const formattedValue = formatCurrency(property.value);
 
                       return (
@@ -773,7 +849,7 @@ export default function Dashboard() {
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => setShowPropertyModal(true)}
+                  onClick={handleNewProperty}
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Nova Captação
@@ -792,15 +868,58 @@ export default function Dashboard() {
                 </Button>
               </CardContent>
             </Card>
+
           </div>
         </div>
       )}
 
-      <PropertyModal
+      {/* <PropertyModal
         open={showPropertyModal}
         onOpenChange={handleCloseModal}
-        property={editingProperty}
-      />
+        property={editingProperty as any}
+      /> */}
+
+      {/* AI Assistant - Temporarily disabled */}
+      {/* <AIAssistant
+        context={{
+          type: 'general',
+          data: {
+            properties: allProperties.slice(0, 5), // Send recent properties for context
+            stats: {
+              total: allProperties.length,
+              captacao: stats.captacao,
+              mercado: stats.mercado,
+              propostas: stats.propostas
+            }
+          }
+        }}
+        suggestions={[
+          {
+            label: "Analisar meu portfólio",
+            action: "analyze",
+            type: "portfolio",
+            icon: TrendingUp
+          },
+          {
+            label: "Sugestões de marketing",
+            action: "suggest",
+            type: "marketing",
+            icon: Search
+          },
+          {
+            label: "Melhorar conversões",
+            action: "suggest", 
+            type: "conversion",
+            icon: CheckCircle
+          },
+          {
+            label: "Orientações para vendas",
+            action: "guide",
+            type: "sales",
+            icon: Handshake
+          }
+        ]}
+      /> */}
     </div>
   );
 }

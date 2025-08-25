@@ -3,6 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
+// import { OrganizationProvider } from "./hooks/useOrganization";
 import { Loader2 } from "lucide-react";
 
 // Pages
@@ -43,9 +44,12 @@ import Notifications from "./pages/Notifications";
 import Registro from "./pages/Registro";
 import Clientes from "./pages/Clientes";
 import DocumentosUteis from "./pages/DocumentosUteis";
+import MasterAdminLogin from "./pages/MasterAdminLogin";
+import MasterAdmin from "./pages/MasterAdmin";
 
 // Components
 import Layout from "./components/Layout";
+
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -83,6 +87,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+
 function AppRoutes() {
   return (
     <Switch>
@@ -103,6 +108,17 @@ function AppRoutes() {
         <PublicRoute>
           <ResetPassword />
         </PublicRoute>
+      </Route>
+
+      {/* Master Admin Routes - Public (has own auth) */}
+      <Route path="/master-admin-login">
+        <PublicRoute>
+          <MasterAdminLogin />
+        </PublicRoute>
+      </Route>
+
+      <Route path="/master-admin">
+        <MasterAdmin />
       </Route>
 
       {/* Rotas protegidas */}
@@ -213,6 +229,11 @@ function AppRoutes() {
           <DocumentosUteis />
         </ProtectedRoute>
       </Route>
+
+
+
+
+
 
       <Route path="/timeline">
         <ProtectedRoute>

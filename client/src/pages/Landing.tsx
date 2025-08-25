@@ -65,12 +65,12 @@ export default function Landing() {
             Ventus Hub - Corretores
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            A plataforma completa para digitalizar e automatizar todos os processos do mercado imobiliário. 
+            A plataforma completa para digitalizar e automatizar todos os processos do mercado imobiliário.
             Gerencie sua carteira de imóveis com eficiência e profissionalismo.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="text-lg px-8 py-6"
               onClick={() => window.location.href = "/api/login"}
             >
@@ -88,11 +88,11 @@ export default function Landing() {
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">7 Etapas Automatizadas</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Do primeiro contato com o proprietário até a escritura definitiva, 
+            Do primeiro contato com o proprietário até a escritura definitiva,
             acompanhe e gerencie todo o processo em uma única plataforma.
           </p>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {features.map((feature, index) => {
             const Icon = feature.icon;
@@ -135,7 +135,7 @@ export default function Landing() {
                 ))}
               </div>
             </div>
-            
+
             <Card className="p-8">
               <CardHeader className="text-center pb-6">
                 <CardTitle className="text-2xl">Comece Hoje Mesmo</CardTitle>
@@ -144,8 +144,8 @@ export default function Landing() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   className="w-full"
                   onClick={() => window.location.href = "/api/login"}
                 >
@@ -163,7 +163,7 @@ export default function Landing() {
       {/* Footer */}
       <footer className="border-t bg-background py-8">
         <div className="container mx-auto px-4 text-center text-muted-foreground">
-          <p>&copy; 2024 Ventus Hub. Todos os direitos reservados.</p>
+          <p>&copy; 2025 Ventus Hub. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>

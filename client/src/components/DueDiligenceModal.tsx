@@ -178,7 +178,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
           const data = JSON.parse(savedData);
           if (data.propertyItems) setPropertyItems(data.propertyItems);
           if (data.personalItems) setPersonalItems(data.personalItems);
-        } catch (error) {
+        } catch (error: any) {
           console.error('Erro ao carregar dados do localStorage:', error);
         }
       }
@@ -213,7 +213,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
 
   const handleRequestDocument = (itemId: string, category: 'property' | 'personal') => {
     const allItems = [...propertyItems, ...personalItems];
-    const item = allItems.find(item => item.id === itemId);
+    const item = allItems.find((item: any) => item.id === itemId);
     
     if (!item) return;
 
@@ -262,7 +262,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
       
       if (category === 'property') {
         setPropertyItems(prev => {
-          const updatedItems = prev.map(item => 
+          const updatedItems = prev.map((item: any) => 
             item.id === itemId 
               ? { ...item, status: 'requested' as const, requestedAt: now }
               : item
@@ -276,7 +276,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
         });
       } else {
         setPersonalItems(prev => {
-          const updatedItems = prev.map(item => 
+          const updatedItems = prev.map((item: any) => 
             item.id === itemId 
               ? { ...item, status: 'requested' as const, requestedAt: now }
               : item
@@ -313,7 +313,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
     
     if (category === 'property') {
       setPropertyItems(prev => {
-        const updatedItems = prev.map(item => 
+        const updatedItems = prev.map((item: any) => 
           item.id === itemId 
             ? { ...item, status: 'requested' as const, requestedAt: now }
             : item
@@ -327,7 +327,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
       });
     } else {
       setPersonalItems(prev => {
-        const updatedItems = prev.map(item => 
+        const updatedItems = prev.map((item: any) => 
           item.id === itemId 
             ? { ...item, status: 'requested' as const, requestedAt: now }
             : item
@@ -363,7 +363,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
     
     if (category === 'property') {
       setPropertyItems(prev => {
-        const updatedItems = prev.map(item => 
+        const updatedItems = prev.map((item: any) => 
           item.id === itemId 
             ? { 
                 ...item, 
@@ -375,13 +375,13 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
             : item
         );
         // Salvar no localStorage
-        const itemsToSave = updatedItems.map(item => ({
+        const itemsToSave = updatedItems.map((item: any) => ({
           ...item,
           documentFile: undefined // Não salvar File no localStorage
         }));
         localStorage.setItem(`diligence_${property.id}`, JSON.stringify({
           propertyItems: itemsToSave,
-          personalItems: personalItems.map(item => ({
+          personalItems: personalItems.map((item: any) => ({
             ...item,
             documentFile: undefined
           }))
@@ -390,7 +390,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
       });
     } else {
       setPersonalItems(prev => {
-        const updatedItems = prev.map(item => 
+        const updatedItems = prev.map((item: any) => 
           item.id === itemId 
             ? { 
                 ...item, 
@@ -402,12 +402,12 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
             : item
         );
         // Salvar no localStorage
-        const itemsToSave = updatedItems.map(item => ({
+        const itemsToSave = updatedItems.map((item: any) => ({
           ...item,
           documentFile: undefined // Não salvar File no localStorage
         }));
         localStorage.setItem(`diligence_${property.id}`, JSON.stringify({
-          propertyItems: propertyItems.map(item => ({
+          propertyItems: propertyItems.map((item: any) => ({
             ...item,
             documentFile: undefined
           })),
@@ -417,7 +417,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
       });
     }
     
-    const item = [...propertyItems, ...personalItems].find(i => i.id === itemId);
+    const item = [...propertyItems, ...personalItems].find((i: any) => i.id === itemId);
     toast({
       title: "Documento validado!",
       description: `${item?.name} foi marcado como concluído.`,
@@ -426,13 +426,13 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
 
   const handleRevertRequest = (itemId: string, category: 'property' | 'personal') => {
     const allItems = [...propertyItems, ...personalItems];
-    const item = allItems.find(item => item.id === itemId);
+    const item = allItems.find((item: any) => item.id === itemId);
     
     if (!item) return;
 
     if (category === 'property') {
       setPropertyItems(prev => {
-        const updatedItems = prev.map(item => 
+        const updatedItems = prev.map((item: any) => 
           item.id === itemId 
             ? { ...item, status: 'pending' as const, requestedAt: undefined }
             : item
@@ -446,7 +446,7 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
       });
     } else {
       setPersonalItems(prev => {
-        const updatedItems = prev.map(item => 
+        const updatedItems = prev.map((item: any) => 
           item.id === itemId 
             ? { ...item, status: 'pending' as const, requestedAt: undefined }
             : item
@@ -468,12 +468,12 @@ export function DueDiligenceModal({ open, onOpenChange, property }: DueDiligence
 
   const calculateProgress = () => {
     const allItems = [...propertyItems, ...personalItems];
-    const completedItems = allItems.filter(item => item.status === 'completed').length;
+    const completedItems = allItems.filter((item: any) => item.status === 'completed').length;
     return Math.round((completedItems / allItems.length) * 100);
   };
 
   const getProgressCount = (items: ChecklistItem[]) => {
-    return items.filter(item => item.status === 'completed').length;
+    return items.filter((item: any) => item.status === 'completed').length;
   };
 
   const isAllCompleted = () => {

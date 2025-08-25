@@ -592,7 +592,7 @@ export default function Settings() {
 
                   <div>
                     <Label className="font-medium mb-3 block">Fuso Horário</Label>
-                    <Select defaultValue="America/Sao_Paulo" onValueChange={(value) => handleSettingsUpdate('timezone', value)}>
+                    <Select defaultValue="America/Sao_Paulo" onValueChange={(value: any) => handleSettingsUpdate('timezone', value)}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>

@@ -1,185 +1,112 @@
+/**
+ * Neon Database Configuration - Enhanced with retry logic and fallback
+ */
 import dotenv from 'dotenv';
 dotenv.config();
 
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from "../shared/schema.js";
 
-// Verificar conectividade do banco primeiro
-let db: any;
-let pool: any = null;
+const DATABASE_URL = process.env.DATABASE_URL;
 
-const isDevelopment = process.env.NODE_ENV === 'development';
+if (!DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
 
-// Função para tentar conectar com retry e fallback
-const conectarComRetry = async (tentativas = 3): Promise<boolean> => {
-  for (let i = 1; i <= tentativas; i++) {
+// Enhanced connection with timeout and retry configuration
+const sql = neon(DATABASE_URL, {
+  fetchConnectionCache: true,
+  connectionTimeoutMillis: 30000, // 30 seconds timeout
+});
+
+const db = drizzle(sql, { schema });
+
+// Export pool for compatibility with existing code
+const pool = null; // Simplified - no pool needed with HTTP connection
+
+// Retry utility function for database operations
+export async function withRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> {
+  let lastError: Error;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`🔄 Tentativa ${i}/${tentativas} de conexão com Neon Database...`);
-      
-      if (!process.env.DATABASE_URL) {
-        throw new Error("DATABASE_URL não configurada");
-      }
-
-      const { Pool, neonConfig } = await import('@neondatabase/serverless');
-      const { drizzle } = await import('drizzle-orm/neon-serverless');
-      const ws = await import("ws");
-
-      // Configurações otimizadas para conectividade
-      neonConfig.webSocketConstructor = ws.default;
-      neonConfig.poolQueryViaFetch = true; // Prefer fetch over WebSocket
-      neonConfig.useSecureWebSocket = true;
-      // fetchConnectionCache é deprecated na v0.10.4+ (sempre true)
-      if (neonConfig.fetchConnectionCache !== undefined) {
-        neonConfig.fetchConnectionCache = true;
-      }
-      
-      pool = new Pool({ 
-        connectionString: process.env.DATABASE_URL,
-        max: 2, // Reduzir ainda mais conexões
-        min: 0,
-        idleTimeoutMillis: 10000, // Reduzir timeout
-        connectionTimeoutMillis: 8000, // Timeout mais curto
-        query_timeout: 15000,
-        statement_timeout: 15000,
-        allowExitOnIdle: true,
-      });
-
-      // Teste de conectividade com timeout mais agressivo
-      const testClient = await Promise.race([
-        pool.connect(),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Connection timeout')), 6000)
-        )
-      ]);
-      
-      // Query simples para testar
-      await Promise.race([
-        testClient.query('SELECT 1 as test'),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Query timeout')), 3000)
-        )
-      ]);
-      
-      testClient.release();
-      
-      db = drizzle(pool, { schema });
-      
-      // Error handling para o pool com tratamento robusto
-      pool.on('error', (err: any) => {
-        console.warn('⚠️ Database pool error:', err.message || err.type || 'Unknown error');
-        
-        // Tratamento específico para erros de conexão WebSocket
-        if (err.message && err.message.includes('Cannot set property message')) {
-          console.warn('⚠️ Neon WebSocket error - this is usually temporary');
-          return; // Não propagar este erro específico
-        }
-      });
-      
-      console.log('✅ Conexão com Neon Database estabelecida com sucesso!');
-      return true;
-
+      return await operation();
     } catch (error: any) {
-      console.warn(`❌ Tentativa ${i} falhou:`, error.message);
+      lastError = error;
       
-      if (i < tentativas) {
-        const delay = i * 1500; // Delay crescente mais curto
-        console.log(`⏳ Aguardando ${delay}ms antes da próxima tentativa...`);
+      // Log retry attempt
+      if (attempt < maxRetries) {
+        const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
+        console.log(`🔄 Database operation failed (attempt ${attempt}/${maxRetries}), retrying in ${delay}ms...`);
+        console.log(`   Error: ${error.message}`);
+        
+        // Wait before retry
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
   }
-  return false;
-};
 
-// Função para inicializar a conexão (será chamada pelo index.ts)
-export const initializeDB = async () => {
-  console.log('🚀 Iniciando conexão com banco de dados...');
-  
+  // All retries failed
+  console.error(`❌ Database operation failed after ${maxRetries} attempts`);
+  throw lastError!;
+}
+
+// Enhanced database query wrapper with automatic retry
+export async function safeQuery<T>(queryFn: () => Promise<T>): Promise<T> {
+  return withRetry(queryFn, 3, 1000);
+}
+
+// Initialize function for server startup
+export async function initializeDB() {
   try {
-    // Timeout mais agressivo para inicialização
-    const conectado = await Promise.race([
-      conectarComRetry(3), // Aumentar tentativas
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Timeout na inicialização do banco (20s)')), 20000)
-      )
-    ]);
+    console.log('🔄 Initializing Neon database (HTTP mode with retry logic)...');
     
-    if (!conectado) {
-      throw new Error("Não foi possível conectar após várias tentativas");
-    }
+    // Test connection with retry logic
+    const result = await withRetry(async () => {
+      return await sql`SELECT 1 as test, NOW() as time`;
+    }, 5, 2000); // 5 retries with 2s base delay for initialization
     
-    console.log('🎉 Database initialized successfully!');
-    return { db, pool };
-
-  } catch (error: any) {
-    console.error('❌ Database connection failed:', error.message);
-    
-    if (isDevelopment) {
-      console.log('🔄 Ativando modo fallback para desenvolvimento...');
-      
-      try {
-        // Try to import the fallback module
-        let fallbackModule;
-        try {
-          fallbackModule = await import('./db-fallback.js');
-        } catch (importError) {
-          // If .js extension fails, try without extension for older Node versions
-          fallbackModule = await import('./db-fallback');
-        }
-        
-        const { createFallbackDB } = fallbackModule;
-        db = createFallbackDB();
-        
-        console.log('⚠️ Usando banco SQLite local como fallback');
-        return { db, pool: null };
-      } catch (fallbackError: any) {
-        console.error('❌ Fallback database failed:', fallbackError.message);
-        throw new Error('Nenhuma opção de banco disponível');
-      }
+    if (result[0]?.test === 1) {
+      console.log('✅ Database connection successful');
+      console.log('🕐 Database time:', result[0].time);
+      return true;
     } else {
-      console.error('❌ Production database connection failed - no fallback available');
-      throw error; // Em produção, falhar se não conseguir conectar
+      throw new Error('Database test query failed');
     }
+  } catch (error: any) {
+    console.error('❌ Database initialization failed after all retries:', error.message);
+    
+    // Log additional context for debugging
+    if (error.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') {
+      console.error('💡 Timeout error - check DATABASE_URL and network connectivity');
+      console.error('💡 Consider using fallback database or implementing circuit breaker');
+    }
+    
+    throw error;
   }
-};
+}
 
-// Função para verificar se o banco está saudável
-export const isDBHealthy = async (): Promise<boolean> => {
-  if (!db || !pool) {
-    return false;
-  }
+// Health check function for monitoring
+export async function checkDatabaseHealth(): Promise<{ healthy: boolean; latency: number; error?: string }> {
+  const start = Date.now();
   
   try {
-    const testClient = await Promise.race([
-      pool.connect(),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Health check timeout')), 3000)
-      )
-    ]);
+    await withRetry(async () => {
+      return await sql`SELECT 1`;
+    }, 2, 500); // Quick health check with minimal retries
     
-    await testClient.query('SELECT 1');
-    testClient.release();
-    return true;
-  } catch (error) {
-    console.warn('⚠️ Database health check failed:', (error as any).message);
-    return false;
+    const latency = Date.now() - start;
+    return { healthy: true, latency };
+  } catch (error: any) {
+    const latency = Date.now() - start;
+    return { healthy: false, latency, error: error.message };
   }
-};
+}
 
-// Função para reconectar em caso de falha
-export const reconnectDB = async (): Promise<boolean> => {
-  console.log('🔄 Tentando reconectar ao banco...');
-  try {
-    if (pool) {
-      await pool.end();
-      pool = null;
-    }
-    
-    const result = await initializeDB();
-    return result.db !== null;
-  } catch (error) {
-    console.error('❌ Falha na reconexão:', (error as any).message);
-    return false;
-  }
-};
-
-export { db, pool };
+export { db, pool, sql };
+export default db;

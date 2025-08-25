@@ -48,6 +48,7 @@ export function useIndicadoresMercado(options: UseIndicadoresMercadoOptions = {}
 
   const [indicadores, setIndicadores] = useState<IndicadoresComMetadata>(() => ({
     ...INDICADORES_MERCADO,
+    valorizacao: INDICADORES_MERCADO.valorizacaoImovel,
     fonte: 'carregando' as FonteIndicadores,
     ultimaAtualizacao: new Date(),
     erro: undefined
@@ -75,7 +76,7 @@ export function useIndicadoresMercado(options: UseIndicadoresMercadoOptions = {}
       itbiRegistro: INDICADORES_MERCADO.itbiRegistro, // Sempre estático
       irGanhoCapital: INDICADORES_MERCADO.irGanhoCapital, // Sempre estático
       corretagem: INDICADORES_MERCADO.corretagem, // Sempre estático
-      valorizacao: dadosAPI.valorizacao || INDICADORES_MERCADO.valorizacao,
+      valorizacao: dadosAPI.valorizacao || INDICADORES_MERCADO.valorizacaoImovel,
       fonte: 'api' as FonteIndicadores,
       ultimaAtualizacao,
       erro: undefined
@@ -85,6 +86,7 @@ export function useIndicadoresMercado(options: UseIndicadoresMercadoOptions = {}
   // Função para dados estáticos
   const getDadosEstaticos = (erro?: string): IndicadoresComMetadata => ({
     ...INDICADORES_MERCADO,
+    valorizacao: INDICADORES_MERCADO.valorizacaoImovel,
     fonte: 'estatico' as FonteIndicadores,
     ultimaAtualizacao: new Date(),
     erro
@@ -130,7 +132,7 @@ export function useIndicadoresMercado(options: UseIndicadoresMercadoOptions = {}
             data: indicadoresFormatados,
             timestamp: Date.now()
           }));
-        } catch (e) {
+        } catch (e: any) {
           console.warn('Não foi possível salvar cache no localStorage');
         }
 
@@ -139,7 +141,7 @@ export function useIndicadoresMercado(options: UseIndicadoresMercadoOptions = {}
       } else {
         throw new Error('Dados da API inválidos');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.warn('⚠️ Erro na API, usando dados estáticos:', error);
       
       // Fallback para dados estáticos
@@ -161,7 +163,7 @@ export function useIndicadoresMercado(options: UseIndicadoresMercadoOptions = {}
     try {
       localStorage.removeItem(CACHE_KEY);
       console.log('🧹 Cache localStorage limpo');
-    } catch (e) {
+    } catch (e: any) {
       console.warn('Não foi possível limpar cache localStorage');
     }
   };
@@ -193,7 +195,7 @@ export function useIndicadoresMercado(options: UseIndicadoresMercadoOptions = {}
             data: indicadoresFormatados,
             timestamp: Date.now()
           }));
-        } catch (e) {
+        } catch (e: any) {
           console.warn('Não foi possível salvar cache no localStorage');
         }
 
@@ -202,7 +204,7 @@ export function useIndicadoresMercado(options: UseIndicadoresMercadoOptions = {}
       } else {
         throw new Error('Dados do force refresh inválidos');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.warn('⚠️ Erro no force refresh, fallback para dados estáticos:', error);
       const dadosEstaticos = getDadosEstaticos(
         `Erro no refresh: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
@@ -227,7 +229,7 @@ export function useIndicadoresMercado(options: UseIndicadoresMercadoOptions = {}
           cacheData = parsed;
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.warn('Erro ao carregar cache do localStorage');
     }
 

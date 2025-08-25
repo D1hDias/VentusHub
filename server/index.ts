@@ -3,12 +3,14 @@ dotenv.config();
 
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
-import { setupAuth, setupAuthRoutes } from "./auth.js";
+// Legacy auth removed - using Better Auth only
 import { setupBetterAuthRoutes } from "./better-auth-routes.js";
 import { registerApiRoutes } from "./routes.js"; // Renomeado para maior clareza
 import { initializeDB } from "./db.js";
 import { initCRMServices } from "./crm-service.js";
 import notificationRoutes from "./notification-routes.js";
+import healthRoutes from "./health-routes.js";
+import masterAdminRoutes from "./master-admin-routes.js";
 // Vite imports condicionais
 
 // Função de log simples
@@ -35,7 +37,7 @@ log(`
     try {
       await initializeDB();
       log("✅ Banco de dados inicializado");
-    } catch (error) {
+    } catch (error: any) {
       log(`❌ Erro fatal na inicialização do banco: ${error.message}`);
       process.exit(1);
     }
@@ -65,9 +67,7 @@ log(`
   app.use(cors(corsOptions));
   log("✅ CORS configurado");
 
-  // 3. Configuração da Sessão (essencial antes das rotas)
-  setupAuth(app);
-  log("✅ Auth configurado");
+  // 3. Note: Session/Auth now handled by Better Auth
 
   // 4. Parsers de corpo de requisição
   app.use(express.json());
@@ -98,20 +98,29 @@ log(`
     });
   });
   
-  setupBetterAuthRoutes(app); // Better Auth routes (PRIMEIRO!)
-  setupAuthRoutes(app); // Rotas de autenticação legadas
-  registerApiRoutes(app); // Outras rotas da API
   
-  // 5.5. Registrar rotas de notificação
+  // 5.1. Better Auth routes (handles /api/auth/sign-in/email, etc.)
+  setupBetterAuthRoutes(app);
+  
+  
+  // 5.2. Other API routes
+  registerApiRoutes(app);
+  
+  
+  
+  // 5.3. Registrar rotas de notificação
   app.use('/api/notifications', notificationRoutes);
   
-  // 5.6. Registrar rotas de preferências de usuário
-  const userPreferencesRoutes = await import('./user-preferences-routes.js');
-  app.use('/api/user-preferences', userPreferencesRoutes.default);
+  // 5.4. Registrar rotas de health monitoring
+  app.use('/api/health', healthRoutes);
   
-  // 5.7. Registrar rotas de push notifications
+  // 5.5. Registrar rotas de push notifications
   const pushNotificationRoutes = await import('./push-notifications-routes.js');
   app.use('/api/push', pushNotificationRoutes.default);
+  
+  // 5.6. Registrar rotas do Master Admin
+  app.use('/api/master-admin', masterAdminRoutes);
+  log("✅ Rotas Master Admin registradas");
   
   // Servir arquivos de upload estaticamente
   app.use('/uploads', express.static('./uploads'));
@@ -120,7 +129,7 @@ log(`
   try {
     initCRMServices();
     log("✅ Serviços CRM inicializados");
-  } catch (error) {
+  } catch (error: any) {
     log(`⚠️ Erro ao inicializar serviços CRM: ${error.message}`);
   }
   
@@ -130,9 +139,12 @@ log(`
     const notificationService = getNotificationService();
     await notificationService.initialize();
     log("✅ Serviço de notificações inicializado");
-  } catch (error) {
+  } catch (error: any) {
     log(`⚠️ Erro ao inicializar serviço de notificações: ${error.message}`);
   }
+  
+  
+  
   
   log("✅ Rotas registradas");
 
@@ -171,13 +183,23 @@ log(`
     res.status(status).json({ message, path: req.path, method: req.method });
   });
 
+  // Criar servidor HTTP
+  const port = parseInt(process.env.PORT || "5000");
+  const host = "0.0.0.0";
+  
+  const server = app.listen(port, host, () => {
+    log(`✅ Server listening on ${host}:${port}`);
+    log(`🌐 Acesse: http://localhost:${port}`);
+    log(`🔧 Host: ${host}, Port: ${port}`);
+  });
+
   // 7. Configuração do Vite ou Servidor Estático (deve vir por último)
   if (process.env.NODE_ENV === "development") {
     try {
       const { setupVite } = await import("./vite.js");
-      await setupVite(app, undefined);
+      await setupVite(app, server);
       log("✅ Vite configurado com sucesso");
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Erro no Vite:", error.message);
       console.error("Stack:", error.stack);
       
@@ -206,20 +228,9 @@ log(`
     });
   }
 
-
-  // Iniciar o servidor
-  const port = parseInt(process.env.PORT || "5000");
-  const host = "0.0.0.0"; // Configuração original
-  
   log(`🔧 Variáveis: PORT=${process.env.PORT}, port=${port}`);
-  
-  app.listen(port, host, () => {
-    log(`✅ Server listening on ${host}:${port}`);
-    log(`🌐 Acesse: http://localhost:${port}`);
-    log(`🔧 Host: ${host}, Port: ${port}`);
-  });
 
-} catch (error) {
+} catch (error: any) {
   console.error("❌ Erro fatal no servidor:", error);
   process.exit(1);
 }

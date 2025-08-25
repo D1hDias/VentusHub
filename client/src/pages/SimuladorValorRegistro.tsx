@@ -407,13 +407,13 @@ export default function SimuladorValorRegistro() {
       const resultado = data.result || data;
 
       // Validar se a resposta tem a estrutura esperada
-      if (resultado && typeof resultado.total === 'number' && Array.isArray(resultado.atos)) {
+      if (resultado && typeof (resultado as any).total === 'number' && Array.isArray((resultado as any).atos)) {
         // Garantir que taxas_extras seja um array (pode ser undefined em algumas respostas)
         const resultadoValidado: ResultadoRegistro = {
-          total: resultado.total,
-          extra_information: resultado.extra_information || '',
-          atos: resultado.atos || [],
-          taxas_extras: Array.isArray(resultado.taxas_extras) ? resultado.taxas_extras : []
+          total: (resultado as any).total,
+          extra_information: (resultado as any).extra_information || '',
+          atos: (resultado as any).atos || [],
+          taxas_extras: Array.isArray((resultado as any).taxas_extras) ? (resultado as any).taxas_extras : []
         };
         setResultado(resultadoValidado);
       } else {
@@ -421,7 +421,7 @@ export default function SimuladorValorRegistro() {
         throw new Error(`Formato de resposta inválido da API. Estrutura recebida: ${Object.keys(resultado).join(', ')}`);
       }
 
-    } catch (error) {
+    } catch (error: any) {
 
       if (error instanceof Error) {
         if (error.message.includes('Failed to fetch')) {
@@ -483,7 +483,7 @@ export default function SimuladorValorRegistro() {
                     </label>
                     <Select
                       value={formData.estado_selecionado}
-                      onValueChange={(value) => setFormData(prev => ({
+                      onValueChange={(value: any) => setFormData(prev => ({
                         ...prev,
                         estado_selecionado: value,
                         codigo_municipio: '', // Reset município quando mudar estado
@@ -510,8 +510,8 @@ export default function SimuladorValorRegistro() {
                     </label>
                     <Select
                       value={formData.codigo_municipio}
-                      onValueChange={(value) => {
-                        const municipioSelecionado = municipiosDisponiveis.find(m => m.codigo === value);
+                      onValueChange={(value: any) => {
+                        const municipioSelecionado = municipiosDisponiveis.find((m: any) => m.codigo === value);
                         setFormData(prev => ({
                           ...prev,
                           codigo_municipio: value,
@@ -539,7 +539,7 @@ export default function SimuladorValorRegistro() {
                     </label>
                     <Select
                       value={formData.consulta_id.toString()}
-                      onValueChange={(value) => setFormData(prev => ({
+                      onValueChange={(value: any) => setFormData(prev => ({
                         ...prev,
                         consulta_id: Number(value),
                         valor_financiamento: Number(value) !== 2 ? '' : prev.valor_financiamento
@@ -605,7 +605,7 @@ export default function SimuladorValorRegistro() {
                       </label>
                       <Select
                         value={formData.desconto}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, desconto: value }))}
+                        onValueChange={(value: any) => setFormData(prev => ({ ...prev, desconto: value }))}
                       >
                         <SelectTrigger className="w-full px-4 py-3 rounded-xl border-2 focus:ring-4 focus:ring-green-200 focus:border-green-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-200 dark:border-gray-600">
                           <SelectValue placeholder="Nenhum desconto" />
@@ -666,7 +666,7 @@ export default function SimuladorValorRegistro() {
                     <div>
                       <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Valor Total do Registro</p>
                       <p className="text-3xl font-bold text-green-600">
-                        {formatCurrency(resultado.total)}
+                        {formatCurrency((resultado as any).total)}
                       </p>
                       <p className="text-xs text-gray-500">Custos oficiais calculados</p>
                     </div>
@@ -685,7 +685,7 @@ export default function SimuladorValorRegistro() {
                 </CardHeader>
                 <CardContent className="p-0">
                   <ResponsiveTable
-                    data={resultado.atos || []}
+                    data={(resultado as any).atos || []}
                     columns={[
                       {
                         key: 'descricao',
@@ -732,7 +732,7 @@ export default function SimuladorValorRegistro() {
               </Card>
 
               {/* Taxas Extras */}
-              {resultado.taxas_extras && resultado.taxas_extras.length > 0 && (
+              {(resultado as any).taxas_extras && (resultado as any).taxas_extras.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -741,7 +741,7 @@ export default function SimuladorValorRegistro() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {resultado.taxas_extras && resultado.taxas_extras.map((taxa, index) => (
+                    {(resultado as any).taxas_extras && (resultado as any).taxas_extras.map((taxa: any, index: any) => (
                       <div key={index} className="flex justify-between items-center p-3 border-b last:border-b-0">
                         <span className="font-medium">{taxa.descricao}</span>
                         <span className="text-orange-600 font-bold">{formatCurrency(taxa.valor)}</span>
@@ -752,7 +752,7 @@ export default function SimuladorValorRegistro() {
               )}
 
               {/* Informações Adicionais */}
-              {resultado.extra_information && (
+              {(resultado as any).extra_information && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -763,7 +763,7 @@ export default function SimuladorValorRegistro() {
                   <CardContent>
                     <div
                       className="text-sm text-muted-foreground"
-                      dangerouslySetInnerHTML={{ __html: resultado.extra_information }}
+                      dangerouslySetInnerHTML={{ __html: (resultado as any).extra_information }}
                     />
                   </CardContent>
                 </Card>
@@ -783,7 +783,7 @@ export default function SimuladorValorRegistro() {
                       <span className="font-medium">Código IBGE:</span> {formData.codigo_municipio}
                     </div>
                     <div>
-                      <span className="font-medium">Tipo de Registro:</span> {TIPOS_CONSULTA.find(t => t.id === formData.consulta_id)?.nome}
+                      <span className="font-medium">Tipo de Registro:</span> {TIPOS_CONSULTA.find((t: any) => t.id === formData.consulta_id)?.nome}
                     </div>
                     <div>
                       <span className="font-medium">Valor do Imóvel:</span> {formData.valor_imovel}
@@ -797,7 +797,7 @@ export default function SimuladorValorRegistro() {
                       <div className="col-span-2">
                         <span className="font-medium">Desconto Aplicado:</span>
                         <Badge variant="secondary" className="ml-2">
-                          {descontosDisponiveis.find(d => d.codigo === formData.desconto)?.titulo}
+                          {descontosDisponiveis.find((d: any) => d.codigo === formData.desconto)?.titulo}
                         </Badge>
                       </div>
                     )}

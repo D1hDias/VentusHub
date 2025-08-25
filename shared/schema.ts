@@ -5,17 +5,20 @@ import {
   timestamp,
   jsonb,
   index,
+  uniqueIndex,
   serial,
   integer,
   decimal,
   boolean,
   date,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
-// Better Auth tables
+// Better Auth tables (using snake_case to match existing database)
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -53,6 +56,7 @@ export const account = pgTable("account", {
   refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
   scope: text("scope"),
   password: text("password"),
+  expiresAt: timestamp("expires_at"),
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
 });
@@ -66,34 +70,42 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updated_at").$defaultFn(() => new Date()),
 });
 
-// Session storage table (required for Replit Auth)
-export const sessions = pgTable(
-  "sessions",
-  {
-    sid: varchar("sid").primaryKey(),
-    sess: jsonb("sess").notNull(),
-    expire: timestamp("expire").notNull(),
-  },
-  (table) => [index("IDX_session_expire").on(table.expire)],
-);
-
-export const users = pgTable("users", {
-  avatarUrl: varchar("avatar_url"),
-  bio: text("bio"),
-  lastLoginAt: timestamp("last_login_at"),
+// B2B User Profiles - Separate table for business data
+export const b2bUserProfiles = pgTable("b2b_user_profiles", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  
+  // Business Type
+  userType: text("user_type").notNull(), // CORRETOR_AUTONOMO, IMOBILIARIA
+  
+  // Organization Info
+  organizationName: text("organization_name"), // Nome da imobiliária/empresa
+  organizationId: text("organization_id"),
+  
+  // Professional Data
+  creci: text("creci"), // CRECI para corretores
+  cnpj: text("cnpj"), // CNPJ para imobiliárias
+  cpf: text("cpf"), // CPF para corretores autônomos
+  
+  // Contact Info
+  phone: text("phone"), // Telefone de contato
+  address: text("address"), // Endereço completo
+  
+  // System Data
+  permissions: text("permissions").default('[]'), // JSON array as text
   isActive: boolean("is_active").default(true),
-  id: serial("id").primaryKey(),
-  email: varchar("email").unique().notNull(),
-  password: varchar("password").notNull(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
-  cpf: varchar("cpf").unique(),
-  creci: varchar("creci").unique(),
-  phone: varchar("phone"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+  createdBy: text("created_by"), // ID do admin que criou o usuário
+  notes: text("notes"), // Observações administrativas
+  
+  // Timestamps
+  createdAt: timestamp("created_at").default(sql`now()`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`now()`).notNull(),
+}, (table) => [
+  index("idx_b2b_user_profiles_user_id").on(table.userId),
+  index("idx_b2b_user_profiles_user_type").on(table.userType),
+  index("idx_b2b_user_profiles_active").on(table.isActive),
+]);
+
 
 // Properties table - ATUALIZADA
 export const properties = pgTable("properties", {
@@ -327,6 +339,614 @@ export const registrosRelations = relations(registros, ({ one }) => ({
   }),
 }));
 
+// ==========================================
+// MULTI-TENANT TABLES - VENTUS SaaS
+// ==========================================
+
+// Organizações (Multi-tenant root)
+export const organization = pgTable("organization", {
+  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
+  nome: varchar("nome").notNull(),
+  tipo: varchar("tipo").notNull(), // AUTONOMO, IMOBILIARIA, CONSTRUTORA, EQUIPE_VENTUS
+  ownerUserId: text("owner_user_id").notNull().references(() => user.id),
+  
+  // Configurações da organização
+  settings: jsonb("settings").$type<{
+    // Configurações de negócio
+    comissaoDefault?: number;
+    metaMensal?: number;
+    
+    // Configurações de marca
+    logo?: string;
+    cores?: {
+      primary: string;
+      secondary: string;
+    };
+    
+    // Configurações de integração
+    portais?: {
+      vivaReal?: { token?: string; ativo: boolean };
+      zapimoveis?: { token?: string; ativo: boolean };
+      olx?: { token?: string; ativo: boolean };
+    };
+    
+    // Configurações de IA
+    ia?: {
+      gerarAnuncio: boolean;
+      buscarSemantica: boolean;
+      assistenteVirtual: boolean;
+    };
+  }>(),
+  
+  // Dados administrativos
+  documento: varchar("documento"), // CNPJ ou CPF
+  endereco: jsonb("endereco").$type<{
+    logradouro: string;
+    numero: string;
+    complemento?: string;
+    bairro: string;
+    cidade: string;
+    estado: string;
+    cep: string;
+  }>(),
+  
+  // Status
+  ativo: boolean("ativo").notNull().default(true),
+  plano: varchar("plano").notNull().default("FREE"), // FREE, BASIC, PRO, ENTERPRISE
+  
+  // Auditoria
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+// Membros da organização (RBAC)
+export const membership = pgTable("membership", {
+  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
+  organizationId: text("organizationId").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  userId: text("userId").notNull().references(() => user.id, { onDelete: "cascade" }),
+  
+  // RBAC - Roles
+  role: varchar("role").notNull(), // ORG_ADMIN, GERENTE, CORRETOR, AUTONOMO, EQUIPE_VENTUS, CLIENTE_FINAL, CONSTRUTORA
+  
+  // Permissões específicas (override do role)
+  permissions: jsonb("permissions").$type<{
+    clientes?: { read: boolean; write: boolean; delete: boolean };
+    imoveis?: { read: boolean; write: boolean; delete: boolean };
+    propostas?: { read: boolean; write: boolean; delete: boolean };
+    financeiro?: { read: boolean; write: boolean; delete: boolean };
+    relatorios?: { read: boolean; write: boolean };
+    configuracoes?: { read: boolean; write: boolean };
+  }>(),
+  
+  // Status
+  ativo: boolean("ativo").notNull().default(true),
+  
+  // Hierarquia (para imobiliárias)
+  supervisorId: text("supervisorId").references(() => user.id),
+  
+  // Auditoria
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+}, (table) => [
+  // Índices para performance
+  index("idx_membership_org").on(table.organizationId),
+  index("idx_membership_user").on(table.userId),
+]);
+
+// Pessoas (Clientes, Proprietários, Compradores) - Multi-tenant
+export const pessoa = pgTable("pessoa", {
+  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  
+  // Identificação (com criptografia)
+  cpfHash: text("cpf_hash").notNull(), // SHA256(CPF normalizado) para busca
+  cpfEnc: text("cpf_enc"), // PGP_SYM_ENCRYPT(CPF) para descriptografia
+  rg: varchar("rg"),
+  
+  // Dados pessoais
+  nome: varchar("nome").notNull(),
+  nascimento: date("nascimento"),
+  
+  // Contatos (LGPD-friendly)
+  contatos: jsonb("contatos").$type<{
+    telefones: Array<{
+      numero: string;
+      tipo: 'CELULAR' | 'FIXO' | 'COMERCIAL';
+      principal: boolean;
+    }>;
+    emails: Array<{
+      email: string;
+      tipo: 'PESSOAL' | 'COMERCIAL';
+      principal: boolean;
+    }>;
+  }>(),
+  
+  // Endereço
+  endereco: jsonb("endereco").$type<{
+    logradouro: string;
+    numero: string;
+    complemento?: string;
+    bairro: string;
+    cidade: string;
+    estado: string;
+    cep: string;
+    referencia?: string;
+  }>(),
+  
+  // Dados complementares
+  estadoCivil: varchar("estado_civil"), // SOLTEIRO, CASADO, DIVORCIADO, VIUVO, UNIAO_ESTAVEL
+  profissao: varchar("profissao"),
+  rendaMensal: decimal("renda_mensal", { precision: 15, scale: 2 }),
+  
+  // Relacionamentos familiares
+  nomePai: varchar("nome_pai"),
+  nomeMae: varchar("nome_mae"),
+  
+  // Observações e notas
+  observacoes: text("observacoes"),
+  
+  // Tags para segmentação
+  tags: jsonb("tags").$type<string[]>(),
+  
+  // Status
+  ativo: boolean("ativo").notNull().default(true),
+  
+  // Auditoria
+  createdBy: text("created_by").references(() => user.id),
+  updatedBy: text("updated_by").references(() => user.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  // CONSTRAINT: Unique CPF por organização
+  uniqueIndex("idx_pessoa_cpf_org").on(table.organizationId, table.cpfHash),
+  index("idx_pessoa_org").on(table.organizationId),
+  index("idx_pessoa_nome").on(table.nome),
+]);
+
+// Papéis da pessoa (Cliente pode ser Comprador E Proprietário)
+export const pessoaPapel = pgTable("pessoa_papel", {
+  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  pessoaId: text("pessoa_id").notNull().references(() => pessoa.id, { onDelete: "cascade" }),
+  
+  tipo: varchar("tipo").notNull(), // COMPRADOR, PROPRIETARIO, INQUILINO, LOCADOR, FIADOR
+  
+  // Dados específicos do papel
+  dadosEspecificos: jsonb("dados_especificos").$type<{
+    // Para COMPRADOR
+    preAprovacao?: {
+      valor: number;
+      banco: string;
+      validade: string;
+    };
+    
+    // Para PROPRIETARIO
+    percentualPropriedade?: number;
+    tipoPropriedade?: 'UNICO' | 'COMPARTILHADO' | 'INVENTARIO';
+    
+    // Para INQUILINO/LOCADOR
+    historicoLocacao?: Array<{
+      endereco: string;
+      valor: number;
+      periodo: { inicio: string; fim: string };
+    }>;
+  }>(),
+  
+  // Status
+  ativo: boolean("ativo").notNull().default(true),
+  
+  // Auditoria
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_pessoa_papel_org").on(table.organizationId),
+  index("idx_pessoa_papel_pessoa").on(table.pessoaId),
+]);
+
+// Imóveis - Multi-tenant (melhoria das properties existentes)
+export const imovel = pgTable("imovel", {
+  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  
+  // Proprietário(s)
+  proprietarioPrincipalId: text("proprietario_principal_id").references(() => pessoa.id),
+  
+  // Localização
+  endereco: jsonb("endereco").$type<{
+    logradouro: string;
+    numero: string;
+    complemento?: string;
+    bairro: string;
+    cidade: string;
+    estado: string;
+    cep: string;
+    referencia?: string;
+  }>().notNull(),
+  
+  // Geolocalização
+  geo: jsonb("geo").$type<{
+    lat: number;
+    lng: number;
+    precisao?: 'EXATA' | 'APROXIMADA';
+  }>(),
+  
+  // Tipologia
+  tipologia: jsonb("tipologia").$type<{
+    tipo: 'APARTAMENTO' | 'CASA' | 'COBERTURA' | 'STUDIO' | 'LOFT' | 'TERRENO' | 'SALA_COMERCIAL' | 'LOJA' | 'GALPAO';
+    subtipo?: string; // Ex: "Apartamento Garden", "Casa de Condomínio"
+    
+    // Características
+    quartos?: number;
+    suites?: number;
+    banheiros?: number;
+    salas?: number;
+    cozinhas?: number;
+    varandas?: number;
+    garagem?: number;
+    
+    // Metragens
+    areaTotal?: number; // m²
+    areaPrivativa?: number; // m²
+    areaTerreno?: number; // m² (para casas/terrenos)
+    
+    // Características especiais
+    mobiliado?: boolean;
+    petFriendly?: boolean;
+    acessibilidade?: boolean;
+  }>().notNull(),
+  
+  // Valores
+  preco: decimal("preco", { precision: 15, scale: 2 }).notNull(),
+  precoCondominio: decimal("preco_condominio", { precision: 10, scale: 2 }),
+  precoIPTU: decimal("preco_iptu", { precision: 10, scale: 2 }),
+  
+  // Disponibilidade
+  finalidade: varchar("finalidade").notNull(), // VENDA, LOCACAO, VENDA_LOCACAO
+  disponivel: boolean("disponivel").notNull().default(true),
+  motivoIndisponivel: varchar("motivo_indisponivel"), // VENDIDO, ALUGADO, RETIRADO, MANUTENCAO
+  
+  // Descrição e Marketing
+  titulo: varchar("titulo"),
+  descricao: text("descricao"),
+  descricaoIA: text("descricao_ia"), // Gerada por IA
+  pontosFortes: jsonb("pontos_fortes").$type<string[]>(), // ["Localização privilegiada", "Vista para o mar"]
+  
+  // Mídia
+  fotos: jsonb("fotos").$type<Array<{
+    url: string;
+    descricao?: string;
+    ordem: number;
+    principal: boolean;
+  }>>(),
+  videos: jsonb("videos").$type<Array<{
+    url: string;
+    tipo: 'TOUR_VIRTUAL' | 'VIDEO_PROMOCIONAL';
+    descricao?: string;
+  }>>(),
+  
+  // Documentação
+  documentos: jsonb("documentos").$type<{
+    escritura?: string; // URL
+    iptu?: string; // URL
+    condominio?: string; // URL
+    planta?: string; // URL
+    memorial?: string; // URL
+    outros?: Array<{ nome: string; url: string }>;
+  }>(),
+  
+  // Status do Pipeline (8 estágios)
+  statusCaptacao: varchar("status_captacao").notNull().default('CAPTACAO'), // CAPTACAO, DILIGENCIA, MERCADO, PROPOSTA, CONTRATO, FINANCIAMENTO, INSTRUMENTO, CONCLUIDO
+  estagioAtual: integer("estagio_atual").notNull().default(1), // 1-8
+  
+  // Exclusividade
+  exclusividade: jsonb("exclusividade").$type<{
+    ativa: boolean;
+    dataInicio?: string;
+    dataFim?: string;
+    condicoesEspeciais?: string;
+  }>(),
+  
+  // Métricas e Analytics
+  visualizacoes: integer("visualizacoes").default(0),
+  interessados: integer("interessados").default(0),
+  visitas: integer("visitas").default(0),
+  
+  // Auditoria
+  createdBy: text("created_by").references(() => user.id),
+  updatedBy: text("updated_by").references(() => user.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_imovel_org").on(table.organizationId),
+  index("idx_imovel_status").on(table.statusCaptacao),
+  index("idx_imovel_disponivel").on(table.disponivel),
+  index("idx_imovel_finalidade").on(table.finalidade),
+]);
+
+// Propostas - Multi-tenant (melhoria das proposals existentes)
+export const proposta = pgTable("proposta", {
+  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  
+  // Relacionamentos
+  imovelId: text("imovel_id").references(() => imovel.id),
+  compradorPessoaId: text("comprador_pessoa_id").references(() => pessoa.id),
+  proprietarioPessoaId: text("proprietario_pessoa_id").references(() => pessoa.id),
+  
+  // Termos da proposta
+  termos: jsonb("termos").$type<{
+    // Valores
+    valorProposto: number;
+    valorVenal: number;
+    valorFinanciamento?: number;
+    valorEntrada?: number;
+    
+    // Prazo e condições
+    prazoPagamento?: number; // dias
+    condicoesPagamento?: string;
+    
+    // Financiamento
+    financiamento?: {
+      banco?: string;
+      preAprovado: boolean;
+      valorAprovado?: number;
+      taxa?: number;
+      prazo?: number; // meses
+    };
+    
+    // Condições especiais
+    condicoesEspeciais?: string[];
+    observacoes?: string;
+    
+    // Documentação necessária
+    documentosNecessarios?: string[];
+  }>().notNull(),
+  
+  valor: decimal("valor", { precision: 15, scale: 2 }).notNull(),
+  
+  // Status e Workflow
+  status: varchar("status").notNull().default('PENDENTE'), // PENDENTE, ACEITA, REJEITADA, NEGOCIANDO, CONTRAPROPOSTA, EXPIRADA
+  
+  // Histórico de negociação
+  historicoNegociacao: jsonb("historico_negociacao").$type<Array<{
+    data: string;
+    tipo: 'PROPOSTA_INICIAL' | 'CONTRAPROPOSTA' | 'ACEITE' | 'REJEICAO' | 'OBSERVACAO';
+    valor?: number;
+    observacao?: string;
+    autor: string; // user.id
+  }>>(),
+  
+  // Documentação
+  documentoPdfId: text("documento_pdf_id"), // Referência ao PDF gerado
+  documentosAnexos: jsonb("documentos_anexos").$type<Array<{
+    nome: string;
+    url: string;
+    tipo: string;
+    uploadedAt: string;
+  }>>(),
+  
+  // Prazos
+  prazoValidade: timestamp("prazo_validade"),
+  prazoResposta: timestamp("prazo_resposta"),
+  
+  // Auditoria
+  createdBy: text("created_by").references(() => user.id),
+  updatedBy: text("updated_by").references(() => user.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_proposta_org").on(table.organizationId),
+  index("idx_proposta_imovel").on(table.imovelId),
+  index("idx_proposta_status").on(table.status),
+]);
+
+// Acompanhamento de Eventos - Multi-tenant (Timeline Universal)
+export const acompanhamentoEvento = pgTable("acompanhamento_evento", {
+  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  
+  // Subject genérico (Polimórfico)
+  subjectType: varchar("subject_type").notNull(), // IMOVEL, PROPOSTA, CLIENTE, CONTRATO
+  subjectId: text("subject_id").notNull(),
+  
+  // Etapa e Status
+  etapa: varchar("etapa").notNull(), // CAPTACAO, DILIGENCIA, MERCADO, etc.
+  status: varchar("status").notNull(), // PENDENTE, EM_ANDAMENTO, CONCLUIDO, BLOQUEADO
+  
+  // Detalhes do evento
+  titulo: varchar("titulo").notNull(),
+  descricao: text("descricao"),
+  
+  // Metadados específicos por tipo
+  metadata: jsonb("metadata").$type<{
+    // Para IMOVEL
+    documentosEnviados?: string[];
+    valorAtualizado?: number;
+    statusAnterior?: string;
+    
+    // Para PROPOSTA
+    valorProposta?: number;
+    contraPropostaValor?: number;
+    documentosPendentes?: string[];
+    
+    // Para CLIENTE
+    contatoRealizado?: boolean;
+    proximoAgendamento?: string;
+    observacoesContato?: string;
+    
+    // Para CONTRATO
+    clausulasAlteradas?: string[];
+    assinaturasColetadas?: string[];
+    vencimentosPendentes?: string[];
+  }>(),
+  
+  // Quem fez a ação
+  actorUserId: text("actor_user_id").references(() => user.id),
+  
+  // Prazo e lembretes
+  prazoLimite: timestamp("prazo_limite"),
+  lembrete: jsonb("lembrete").$type<{
+    ativo: boolean;
+    dataLembrete: string;
+    tipoLembrete: 'EMAIL' | 'SMS' | 'PUSH' | 'WHATSAPP';
+    mensagem?: string;
+  }>(),
+  
+  // Auditoria
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_evento_org").on(table.organizationId),
+  index("idx_evento_subject").on(table.subjectType, table.subjectId),
+  index("idx_evento_status").on(table.status),
+  index("idx_evento_etapa").on(table.etapa),
+]);
+
+// Embeddings para RAG/Busca Semântica - Multi-tenant
+export const embedding = pgTable("embedding", {
+  id: text("id").primaryKey().$defaultFn(() => randomUUID()),
+  organizationId: text("organization_id").notNull().references(() => organization.id, { onDelete: "cascade" }),
+  
+  // Subject do embedding
+  subjectType: varchar("subject_type").notNull(), // IMOVEL, PROPOSTA, CLIENTE, ANUNCIO
+  subjectId: text("subject_id").notNull(),
+  chunkId: varchar("chunk_id"), // Para documentos grandes divididos em chunks
+  
+  // Conteúdo (SEM PII)
+  content: text("content").notNull(), // Conteúdo mascarado/anonimizado
+  contentType: varchar("content_type").notNull(), // DESCRICAO, TITULO, CARACTERISTICAS, OBSERVACOES
+  
+  // Vector embedding (OpenAI text-embedding-3-small = 1536 dimensões)
+  // embedding: vector("embedding", { dimensions: 1536 }).notNull(), // Uncomment when pgvector is available
+  embedding: text("embedding").notNull(), // Temporário: armazenar como JSON string
+  
+  // Metadados para filtragem
+  metadata: jsonb("metadata").$type<{
+    // Para IMOVEL
+    tipo?: string;
+    bairro?: string;
+    cidade?: string;
+    faixaPreco?: string; // "0-500k", "500k-1M", etc.
+    finalidade?: string; // VENDA, LOCACAO
+    
+    // Para PROPOSTA
+    statusProposta?: string;
+    faixaValor?: string;
+    
+    // Para busca
+    tags?: string[];
+    categoria?: string;
+  }>(),
+  
+  // Auditoria
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_embedding_org").on(table.organizationId),
+  index("idx_embedding_subject").on(table.subjectType, table.subjectId),
+  index("idx_embedding_type").on(table.contentType),
+  // Índice para busca por similaridade de vetor
+  index("idx_embedding_vector").using("ivfflat", table.embedding),
+]);
+
+// Relations para as novas tabelas
+export const organizationRelations = relations(organization, ({ one, many }) => ({
+  owner: one(user, {
+    fields: [organization.ownerUserId],
+    references: [user.id],
+  }),
+  memberships: many(membership),
+  pessoas: many(pessoa),
+  imoveis: many(imovel),
+  propostas: many(proposta),
+  eventos: many(acompanhamentoEvento),
+  embeddings: many(embedding),
+}));
+
+export const membershipRelations = relations(membership, ({ one }) => ({
+  organization: one(organization, {
+    fields: [membership.organizationId],
+    references: [organization.id],
+  }),
+  user: one(user, {
+    fields: [membership.userId],
+    references: [user.id],
+  }),
+  supervisor: one(user, {
+    fields: [membership.supervisorId],
+    references: [user.id],
+  }),
+}));
+
+export const pessoaRelations = relations(pessoa, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [pessoa.organizationId],
+    references: [organization.id],
+  }),
+  papeis: many(pessoaPapel),
+  imoveisProprietario: many(imovel, {
+    relationName: "proprietario",
+  }),
+  propostasComprador: many(proposta, {
+    relationName: "comprador",
+  }),
+  propostasProprietario: many(proposta, {
+    relationName: "proprietario",
+  }),
+}));
+
+export const imovelRelations = relations(imovel, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [imovel.organizationId],
+    references: [organization.id],
+  }),
+  proprietarioPrincipal: one(pessoa, {
+    fields: [imovel.proprietarioPrincipalId],
+    references: [pessoa.id],
+    relationName: "proprietario",
+  }),
+  propostas: many(proposta),
+  eventos: many(acompanhamentoEvento),
+}));
+
+export const propostaRelations = relations(proposta, ({ one, many }) => ({
+  organization: one(organization, {
+    fields: [proposta.organizationId],
+    references: [organization.id],
+  }),
+  imovel: one(imovel, {
+    fields: [proposta.imovelId],
+    references: [imovel.id],
+  }),
+  comprador: one(pessoa, {
+    fields: [proposta.compradorPessoaId],
+    references: [pessoa.id],
+    relationName: "comprador",
+  }),
+  proprietario: one(pessoa, {
+    fields: [proposta.proprietarioPessoaId],
+    references: [pessoa.id],
+    relationName: "proprietario",
+  }),
+  eventos: many(acompanhamentoEvento),
+}));
+
+// Schema validation para as novas tabelas
+export const insertOrganizationSchema = createInsertSchema(organization);
+export const insertMembershipSchema = createInsertSchema(membership);
+export const insertPessoaSchema = createInsertSchema(pessoa);
+export const insertImovelSchema = createInsertSchema(imovel);
+export const insertPropostaSchema = createInsertSchema(proposta);
+export const insertEventoSchema = createInsertSchema(acompanhamentoEvento);
+export const insertEmbeddingSchema = createInsertSchema(embedding);
+
+export type Organization = typeof organization.$inferSelect;
+export type Membership = typeof membership.$inferSelect;
+export type Pessoa = typeof pessoa.$inferSelect;
+export type Imovel = typeof imovel.$inferSelect;
+export type Proposta = typeof proposta.$inferSelect;
+export type AcompanhamentoEvento = typeof acompanhamentoEvento.$inferSelect;
+
 // Adicionar relação inversa de properties para registros
 export const propertiesRegistrosRelations = relations(properties, ({ many }) => ({
   registros: many(registros),
@@ -392,6 +1012,40 @@ const validateCPF = (cpf: string): boolean => {
   // Verifica se os dígitos calculados conferem
   return firstDigit === parseInt(cleanCPF.charAt(9)) && 
          secondDigit === parseInt(cleanCPF.charAt(10));
+};
+
+// Validação de CNPJ
+const validateCNPJ = (cnpj: string): boolean => {
+  // Remove caracteres não numéricos
+  const cleanCNPJ = cnpj.replace(/\D/g, '');
+  
+  // Verifica se tem 14 dígitos
+  if (cleanCNPJ.length !== 14) return false;
+  
+  // Verifica se não são todos iguais
+  if (/^(\d)\1{13}$/.test(cleanCNPJ)) return false;
+  
+  // Calcula primeiro dígito verificador
+  let sum = 0;
+  const weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  for (let i = 0; i < 12; i++) {
+    sum += parseInt(cleanCNPJ.charAt(i)) * weights1[i];
+  }
+  let remainder = sum % 11;
+  const firstDigit = remainder < 2 ? 0 : 11 - remainder;
+  
+  // Calcula segundo dígito verificador
+  sum = 0;
+  const weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+  for (let i = 0; i < 13; i++) {
+    sum += parseInt(cleanCNPJ.charAt(i)) * weights2[i];
+  }
+  remainder = sum % 11;
+  const secondDigit = remainder < 2 ? 0 : 11 - remainder;
+  
+  // Verifica se os dígitos calculados conferem
+  return firstDigit === parseInt(cleanCNPJ.charAt(12)) && 
+         secondDigit === parseInt(cleanCNPJ.charAt(13));
 };
 
 
@@ -651,47 +1305,6 @@ export const notificationAnalytics = pgTable("notification_analytics", {
   index("notification_analytics_channel_idx").on(table.channel),
 ]);
 
-// User settings table (enhanced for notifications)
-export const userSettings = pgTable("user_settings", {
-  id: serial("id").primaryKey(),
-  userId: text("user_id").notNull(), // Temporarily remove FK constraint
-  theme: varchar("theme").default("light"), // 'light', 'dark', 'system'
-  language: varchar("language").default("pt-BR"),
-  timezone: varchar("timezone").default("America/Sao_Paulo"),
-  
-  // Notification channel preferences
-  emailNotifications: boolean("email_notifications").default(true),
-  pushNotifications: boolean("push_notifications").default(true),
-  smsNotifications: boolean("sms_notifications").default(false),
-  
-  // Notification frequency preferences
-  emailFrequency: varchar("email_frequency").default("immediate"), // 'immediate', 'daily', 'weekly', 'never'
-  pushFrequency: varchar("push_frequency").default("immediate"),
-  smsFrequency: varchar("sms_frequency").default("never"),
-  
-  // Priority thresholds (1=Critical, 2=High, 3=Normal, 4=Low, 5=Info)
-  minInAppPriority: integer("min_inapp_priority").default(1),
-  minEmailPriority: integer("min_email_priority").default(2),
-  minPushPriority: integer("min_push_priority").default(2),
-  minSmsPriority: integer("min_sms_priority").default(1),
-  
-  // Quiet hours settings
-  quietHoursEnabled: boolean("quiet_hours_enabled").default(false),
-  quietHoursStart: varchar("quiet_hours_start").default("22:00"), // HH:MM format
-  quietHoursEnd: varchar("quiet_hours_end").default("08:00"),
-  
-  // Weekend settings
-  enableWeekendsNotifications: boolean("enable_weekends_notifications").default(true),
-  
-  // Legacy settings
-  marketingEmails: boolean("marketing_emails").default(false),
-  weeklyReports: boolean("weekly_reports").default(true),
-  reminderDeadlines: boolean("reminder_deadlines").default(true),
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
 // Activity logs table
 export const activityLogs = pgTable("activity_logs", {
   id: serial("id").primaryKey(),
@@ -835,7 +1448,6 @@ export const userRelations = relations(user, ({ many }) => ({
   properties: many(properties),
   registros: many(registros),
   notifications: many(notifications),
-  userSettings: many(userSettings),
   activityLogs: many(activityLogs),
   clients: many(clients),
   clientNotes: many(clientNotes),
@@ -1267,6 +1879,203 @@ export const clientDocuments = pgTable("client_documents", {
   index("idx_client_documents_uploaded_by").on(table.uploadedBy),
   index("idx_client_documents_uploaded_at").on(table.uploadedAt),
 ]);
+
+// ======================================
+// MASTER ADMIN SYSTEM
+// ======================================
+
+// Master Admin Sessions - Separate authentication for super admins
+export const masterAdminSessions = pgTable("master_admin_sessions", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminId: text("admin_id").notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  lastUsedAt: timestamp("last_used_at").defaultNow(),
+  isActive: boolean("is_active").default(true),
+}, (table) => [
+  index("idx_master_session_admin").on(table.adminId),
+  index("idx_master_session_token").on(table.token),
+  index("idx_master_session_expires").on(table.expiresAt),
+]);
+
+// Admin Activity Logs - Audit trail for administrative actions
+export const adminActivityLogs = pgTable("admin_activity_logs", {
+  id: serial("id").primaryKey(),
+  adminId: text("admin_id").notNull(),
+  action: varchar("action").notNull(), // CREATE_USER, UPDATE_USER, DELETE_USER, LOGIN, LOGOUT
+  targetType: varchar("target_type"), // USER, ORGANIZATION, SYSTEM
+  targetId: text("target_id"), // ID of the affected resource
+  targetDetails: jsonb("target_details").$type<{
+    email?: string;
+    name?: string;
+    userType?: string;
+    organizationName?: string;
+    previousValues?: Record<string, any>;
+    newValues?: Record<string, any>;
+  }>(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  sessionId: text("session_id"),
+  metadata: jsonb("metadata").$type<{
+    reason?: string; // Reason for the action
+    duration?: number; // For session-related actions
+    errorDetails?: string; // If action failed
+    additionalData?: Record<string, any>;
+  }>(),
+  status: varchar("status").default('SUCCESS'), // SUCCESS, FAILED, PARTIAL
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_admin_logs_admin").on(table.adminId),
+  index("idx_admin_logs_action").on(table.action),
+  index("idx_admin_logs_target").on(table.targetType, table.targetId),
+  index("idx_admin_logs_created").on(table.createdAt),
+  index("idx_admin_logs_status").on(table.status),
+]);
+
+// User Creation Requests - Track B2B user creation process
+export const userCreationRequests = pgTable("user_creation_requests", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminId: text("admin_id").notNull(),
+  requestData: jsonb("request_data").$type<{
+    name: string;
+    email: string;
+    userType: 'CORRETOR_AUTONOMO' | 'IMOBILIARIA';
+    organizationName?: string;
+    creci?: string;
+    cnpj?: string;
+    cpf?: string;
+    phone?: string;
+    address?: string;
+    notes?: string;
+  }>().notNull(),
+  status: varchar("status").default('PENDING'), // PENDING, APPROVED, REJECTED, COMPLETED, FAILED
+  createdUserId: text("created_user_id"), // ID of the created user (when completed)
+  approvedBy: text("approved_by"), // Admin who approved (if applicable)
+  rejectedBy: text("rejected_by"), // Admin who rejected (if applicable)
+  rejectionReason: text("rejection_reason"),
+  processingNotes: text("processing_notes"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_user_requests_admin").on(table.adminId),
+  index("idx_user_requests_status").on(table.status),
+  index("idx_user_requests_created").on(table.createdAt),
+  index("idx_user_requests_user").on(table.createdUserId),
+]);
+
+// Master Admin Configuration - System settings and configurations
+export const masterAdminConfig = pgTable("master_admin_config", {
+  id: serial("id").primaryKey(),
+  configKey: varchar("config_key").notNull().unique(),
+  configValue: jsonb("config_value").$type<{
+    // User Creation Settings
+    requireApproval?: boolean;
+    defaultPermissions?: string[];
+    maxUsersPerOrganization?: number;
+    
+    // Security Settings
+    sessionTimeout?: number; // minutes
+    requireTwoFactor?: boolean;
+    allowedIpRanges?: string[];
+    
+    // Notification Settings
+    emailNotifications?: boolean;
+    notificationChannels?: string[];
+    
+    // System Settings
+    maintenanceMode?: boolean;
+    maxLoginAttempts?: number;
+    lockoutDuration?: number; // minutes
+    
+    // Feature Flags
+    enableFeatures?: string[];
+    disableFeatures?: string[];
+    
+    // Custom settings
+    [key: string]: any;
+  }>().notNull(),
+  description: text("description"),
+  category: varchar("category").default('GENERAL'), // GENERAL, SECURITY, USERS, NOTIFICATIONS, FEATURES
+  isEditable: boolean("is_editable").default(true),
+  lastModifiedBy: text("last_modified_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => [
+  index("idx_admin_config_key").on(table.configKey),
+  index("idx_admin_config_category").on(table.category),
+]);
+
+// ======================================
+// MASTER ADMIN VALIDATION SCHEMAS
+// ======================================
+
+// Master Admin Login Schema
+export const masterAdminLoginSchema = z.object({
+  username: z.string().min(3, "Username deve ter pelo menos 3 caracteres"),
+  password: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
+});
+
+// B2B User Creation Schema
+export const createB2BUserSchema = z.object({
+  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  email: z.string().email("Email inválido"),
+  userType: z.enum(['CORRETOR_AUTONOMO', 'IMOBILIARIA'], {
+    required_error: "Tipo de usuário é obrigatório",
+  }),
+  organizationName: z.string().optional(),
+  creci: z.string().optional(),
+  cnpj: z.string().optional().refine((val) => {
+    if (!val) return true;
+    return validateCNPJ(val);
+  }, "CNPJ inválido"),
+  cpf: z.string().optional().refine((val) => {
+    if (!val) return true;
+    return validateCPF(val);
+  }, "CPF inválido"),
+  phone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos").optional(),
+  address: z.string().optional(),
+  notes: z.string().optional(),
+}).refine((data) => {
+  // Validate required fields based on user type
+  if (data.userType === 'CORRETOR_AUTONOMO') {
+    return data.creci && data.cpf;
+  }
+  if (data.userType === 'IMOBILIARIA') {
+    return data.organizationName && data.cnpj;
+  }
+  return true;
+}, {
+  message: "Campos obrigatórios não preenchidos conforme tipo de usuário",
+  path: ["userType"],
+});
+
+// Admin Activity Log Schema
+export const createAdminLogSchema = z.object({
+  adminId: z.string(),
+  action: z.string(),
+  targetType: z.string().optional(),
+  targetId: z.string().optional(),
+  targetDetails: z.record(z.any()).optional(),
+  metadata: z.record(z.any()).optional(),
+  status: z.enum(['SUCCESS', 'FAILED', 'PARTIAL']).default('SUCCESS'),
+});
+
+// ======================================
+// MASTER ADMIN TYPES
+// ======================================
+
+export type MasterAdminSession = typeof masterAdminSessions.$inferSelect;
+export type AdminActivityLog = typeof adminActivityLogs.$inferSelect;
+export type UserCreationRequest = typeof userCreationRequests.$inferSelect;
+export type MasterAdminConfig = typeof masterAdminConfig.$inferSelect;
+
+export type CreateB2BUser = z.infer<typeof createB2BUserSchema>;
+export type MasterAdminLogin = z.infer<typeof masterAdminLoginSchema>;
+export type CreateAdminLog = z.infer<typeof createAdminLogSchema>;
 
 // TIPOS PARA AUDITORIA E NOTIFICAÇÕES
 export type CreateAuditLog = z.infer<typeof createAuditLogSchema>;

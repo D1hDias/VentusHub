@@ -176,10 +176,10 @@ export default function FinalInstrument() {
 
   const statsData = {
     total: mockInstruments.length,
-    preparing: mockInstruments.filter(i => i.status === "preparing").length,
-    ready: mockInstruments.filter(i => i.status === "ready_for_registry").length,
-    inRegistry: mockInstruments.filter(i => i.status === "sent_to_registry").length,
-    completed: mockInstruments.filter(i => i.status === "completed").length,
+    preparing: mockInstruments.filter((i: any) => i.status === "preparing").length,
+    ready: mockInstruments.filter((i: any) => i.status === "ready_for_registry").length,
+    inRegistry: mockInstruments.filter((i: any) => i.status === "sent_to_registry").length,
+    completed: mockInstruments.filter((i: any) => i.status === "completed").length,
   };
 
   if (isLoading) {

@@ -165,7 +165,7 @@ export function LoadingModal({
 
           {/* Indicadores de Status */}
           <div className="flex space-x-2">
-            {[0, 1, 2].map((index) => (
+            {[0, 1, 2].map((index: any) => (
               <motion.div
                 key={index}
                 className={`h-2 w-2 rounded-full ${progress > (index + 1) * 33

@@ -43,10 +43,18 @@ interface Notification {
   userId: string;
   type: 'info' | 'warning' | 'error' | 'success' | 'urgent';
   category: 'property' | 'client' | 'document' | 'system' | 'reminder' | 'pendency';
+  subcategory?: string;
   title: string;
   message: string;
   isRead: boolean;
   priority: number;
+  severity?: 'low' | 'medium' | 'high' | 'critical';
+  isPinned?: boolean;
+  richContent?: {
+    html?: string;
+    links?: Array<{ text: string; url: string }>;
+    attachments?: Array<{ name: string; url: string; type: string }>;
+  };
   createdAt: string;
   actionUrl?: string;
   actionLabel?: string;
@@ -200,7 +208,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       exit={{ opacity: 0, y: -20 }}
       className={cn(
         "p-4 border-l-4 transition-all cursor-pointer hover:bg-muted/30",
-        getSeverityStyles(notification.severity),
+        getSeverityStyles(notification.severity || 'medium'),
         !notification.isRead && "bg-muted/20"
       )}
       onClick={handleClick}
@@ -208,7 +216,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <NotificationIcon type={notification.type} severity={notification.severity} />
+            <NotificationIcon type={notification.type} severity={notification.severity || 'medium'} />
             <CategoryIcon category={notification.category} />
             
             <Badge variant="outline" className="text-xs">
@@ -369,7 +377,7 @@ export const EnhancedNotificationCenter: React.FC<EnhancedNotificationCenterProp
   } = useNotifications();
 
   // Filter notifications based on search and active tab
-  const filteredNotifications = notifications.filter(notification => {
+  const filteredNotifications = notifications.filter((notification: any) => {
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       if (!notification.title.toLowerCase().includes(query) && 
@@ -438,7 +446,7 @@ export const EnhancedNotificationCenter: React.FC<EnhancedNotificationCenterProp
           <Button
             variant="outline"
             size="sm"
-            onClick={refetch}
+            onClick={() => refetch()}
             disabled={isLoading}
           >
             <RefreshCw className={cn("h-4 w-4 mr-2", isLoading && "animate-spin")} />
@@ -484,7 +492,7 @@ export const EnhancedNotificationCenter: React.FC<EnhancedNotificationCenterProp
             <div className="flex gap-2">
               <Select
                 value={filters.category || ''}
-                onValueChange={(value) => setFilters(prev => ({ ...prev, category: value || undefined }))}
+                onValueChange={(value: any) => setFilters(prev => ({ ...prev, category: value || undefined }))}
               >
                 <SelectTrigger className="w-32">
                   <SelectValue placeholder="Categoria" />
@@ -500,7 +508,7 @@ export const EnhancedNotificationCenter: React.FC<EnhancedNotificationCenterProp
               
               <Select
                 value={filters.type || ''}
-                onValueChange={(value) => setFilters(prev => ({ ...prev, type: value || undefined }))}
+                onValueChange={(value: any) => setFilters(prev => ({ ...prev, type: value || undefined }))}
               >
                 <SelectTrigger className="w-28">
                   <SelectValue placeholder="Tipo" />
@@ -544,7 +552,7 @@ export const EnhancedNotificationCenter: React.FC<EnhancedNotificationCenterProp
             <div className="p-6 text-center">
               <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
               <p className="text-destructive">Erro ao carregar notificações</p>
-              <Button variant="outline" size="sm" onClick={refetch} className="mt-2">
+              <Button variant="outline" size="sm" onClick={() => refetch()} className="mt-2">
                 Tentar novamente
               </Button>
             </div>
@@ -567,7 +575,7 @@ export const EnhancedNotificationCenter: React.FC<EnhancedNotificationCenterProp
             <ScrollArea className="h-[600px]" onScrollCapture={handleScroll}>
               <div className="divide-y">
                 <AnimatePresence>
-                  {filteredNotifications.map((notification) => (
+                  {filteredNotifications.map((notification: any) => (
                     <NotificationItem
                       key={notification.id}
                       notification={notification}

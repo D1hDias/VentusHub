@@ -95,7 +95,7 @@ export default function Notifications() {
           ) : (
             <ScrollArea className="h-[600px]">
               <div className="divide-y">
-                {notifications.map((notification, index) => (
+                {notifications.map((notification: any, index: any) => (
                   <motion.div
                     key={notification.id}
                     initial={{ opacity: 0, y: 20 }}

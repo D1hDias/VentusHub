@@ -149,14 +149,14 @@ export async function seedCartorios() {
       try {
         await db.insert(cartorios).values(cartorio).onConflictDoNothing();
         console.log(`✅ Cartório ${cartorio.nome} inserido/verificado`);
-      } catch (error) {
+      } catch (error: any) {
         console.log(`⚠️ Cartório ${cartorio.nome} já existe ou erro:`, error);
       }
     }
     
     console.log('🎉 Seed da tabela cartórios concluído com sucesso!');
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Erro ao executar seed da tabela cartórios:', error);
     return false;
   }
@@ -170,7 +170,7 @@ export async function listarCartorios() {
     const todosCartorios = await db.select().from(cartorios);
     console.log('📋 Cartórios cadastrados:', todosCartorios.length);
     return todosCartorios;
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Erro ao listar cartórios:', error);
     return [];
   }

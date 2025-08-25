@@ -1,6 +1,8 @@
 import React, { useState, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+// import { useOrganization } from "@/hooks/useOrganization";
+// import { OrganizationSelector, NoOrganizationSelected } from "@/components/OrganizationSelector";
 import logoImage from "@/assets/logo.png";
 import { BottomNavigation, useMobileNavigation } from "@/components/responsive/MobileNavigation";
 import { useResponsive } from "@/hooks/useMediaQuery";
@@ -76,6 +78,9 @@ const navigationItems = [
   { href: "/registro", label: "Registro", icon: FileSearch },
   { href: "/timeline", label: "Acompanhamento", icon: Clock },
 ];
+
+// Admin navigation items removed - functionalities not needed
+
 
 // Lista completa de simuladores com suas configurações
 const simulatorsConfig = [
@@ -333,6 +338,7 @@ export default function Layout({ children }: LayoutProps) {
   const [showCreditoHorizontalNav, setShowCreditoHorizontalNav] = useState(false);
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
+  // const { currentOrganization } = useOrganization();
   const { unreadCount, hasUnread, hasUrgent } = useNotifications();
   const [isSimulatorsOpen, setIsSimulatorsOpen] = useState(false);
   const { isMobile, isSmallMobile, isTouchDevice } = useDeviceInfo();
@@ -350,7 +356,7 @@ export default function Layout({ children }: LayoutProps) {
     try {
       const data = localStorage.getItem(getUsageKey());
       return data ? JSON.parse(data) : {};
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao carregar dados de uso:', error);
       return {};
     }
@@ -360,7 +366,7 @@ export default function Layout({ children }: LayoutProps) {
   const saveUsageData = (usageData: Record<string, any>) => {
     try {
       localStorage.setItem(getUsageKey(), JSON.stringify(usageData));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao salvar dados de uso:', error);
     }
   };
@@ -641,7 +647,7 @@ export default function Layout({ children }: LayoutProps) {
   const handleLogout = async () => {
     try {
       await logout();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error logging out:", error);
     }
   };
@@ -664,12 +670,16 @@ export default function Layout({ children }: LayoutProps) {
       return { title: "Detalhes do Imóvel", class: getTitleClass("Detalhes do Imóvel") };
     }
 
+
     // Primeiro, verificar se é uma rota do navigationItems
-    const navItem = navigationItems.find(item => item.href === location);
+    const navItem = navigationItems.find((item: any) => item.href === location);
     if (navItem) return { title: navItem.label, class: getTitleClass(navItem.label) };
 
+    // Admin routes removed
+
+
     // Se não, verificar se é um simulador
-    const simulator = simulatorsConfig.find(sim => sim.href === location);
+    const simulator = simulatorsConfig.find((sim: any) => sim.href === location);
     if (simulator) return { title: simulator.label, class: getTitleClass(simulator.label) };
 
     // Default para Dashboard
@@ -877,6 +887,9 @@ export default function Layout({ children }: LayoutProps) {
                 </Link>
               );
             })}
+
+            {/* Admin Section removed - functionalities not needed */}
+
           </div>
         </nav>
 
@@ -1085,7 +1098,7 @@ export default function Layout({ children }: LayoutProps) {
               </Button>
 
               {/* Mobile Notification Center */}
-              <NotificationCenter 
+              <NotificationCenter
                 trigger={
                   <Button
                     variant="ghost"
@@ -1102,6 +1115,16 @@ export default function Layout({ children }: LayoutProps) {
                 }
               />
             </div>
+
+            {/* Organization Selector - Temporarily disabled */}
+            {/* <div className="hidden lg:block">
+              <OrganizationSelector 
+                variant="dropdown"
+                showRole={true}
+                showPlan={false}
+                className="h-9 text-white border-white/20 hover:bg-white/10"
+              />
+            </div> */}
 
             {/* Documentos Úteis Button */}
             <div className="hidden lg:block">
@@ -1128,7 +1151,7 @@ export default function Layout({ children }: LayoutProps) {
 
             {/* Desktop Notifications */}
             <div className="hidden lg:block">
-              <NotificationCenter 
+              <NotificationCenter
                 trigger={
                   <Button
                     variant="ghost"
@@ -1338,6 +1361,12 @@ export default function Layout({ children }: LayoutProps) {
         showBottomNav ? "pb-20" : ""
       )}>
         <div className={isMobile ? "mobile-bottom-safe" : ""}>
+          {/* Verificar se tem organização selecionada - Temporarily disabled */}
+          {/* {!currentOrganization ? (
+            <NoOrganizationSelected />
+          ) : (
+            children
+          )} */}
           {children}
         </div>
       </main>
@@ -1352,6 +1381,7 @@ export default function Layout({ children }: LayoutProps) {
           <BottomNavigation />
         </motion.div>
       )}
+
     </div>
   );
 }

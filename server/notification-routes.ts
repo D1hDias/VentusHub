@@ -1,5 +1,5 @@
 /**
- * NOTIFICATION API ROUTES
+ * NOTIFICATION API ROUTES - Enhanced with robust error handling
  * 
  * RESTful API endpoints for notification management
  * Supports CRUD operations, real-time updates, and user preferences
@@ -7,18 +7,17 @@
 
 import { Router } from 'express';
 import { z } from 'zod';
-import { db, isDBHealthy, reconnectDB } from './db.js';
+import { db, safeQuery, checkDatabaseHealth } from './db.js';
 import { 
   notifications, 
   notificationTemplates,
   notificationRules,
   notificationSubscriptions,
-  notificationAnalytics,
-  userSettings
+  notificationAnalytics
 } from '../shared/schema.js';
 import { eq, and, desc, count, sql, gte, lte, inArray, or, isNull, asc } from 'drizzle-orm';
 import { getNotificationService } from './notification-service.js';
-import { isAuthenticated } from './auth.js';
+import { isAuthenticated, type AuthenticatedRequest } from './auth-middleware.js';
 
 const router = Router();
 
@@ -26,21 +25,20 @@ const router = Router();
 // MIDDLEWARE
 // ======================================
 
-// Database health check middleware
+// Enhanced database health check middleware
 const dbHealthCheck = async (req: any, res: any, next: any) => {
   try {
-    const isHealthy = await isDBHealthy();
-    if (!isHealthy) {
-      console.warn('⚠️ Database unhealthy, attempting reconnection...');
-      const reconnected = await reconnectDB();
-      if (!reconnected) {
-        return res.status(503).json({ 
-          error: 'Database temporarily unavailable',
-          code: 'DB_UNAVAILABLE',
-          retry: true
-        });
-      }
+    const healthCheck = await checkDatabaseHealth();
+    
+    if (!healthCheck.healthy) {
+      console.warn('⚠️ Database unhealthy:', healthCheck.error);
+      return res.status(503).json({ 
+        error: 'Database temporarily unavailable',
+        code: 'DB_UNAVAILABLE',
+        retry: true
+      });
     }
+    
     next();
   } catch (error: any) {
     console.error('❌ Database health check failed:', error.message);
@@ -124,7 +122,7 @@ router.use(async (req, res, next) => {
       await service.initialize();
     }
     next();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to initialize notification service:', error);
     res.status(500).json({ error: 'Notification service unavailable' });
   }
@@ -196,10 +194,12 @@ router.get('/', async (req, res) => {
 
     const results = await query;
 
-    // Get total count for pagination
-    const [{ totalCount }] = await db.select({ totalCount: count() })
-      .from(notifications)
-      .where(and(...conditions));
+    // Get total count for pagination with retry logic
+    const [{ totalCount }] = await safeQuery(async () => {
+      return await db.select({ totalCount: count() })
+        .from(notifications)
+        .where(and(...conditions));
+    });
 
     res.json({
       notifications: results,
@@ -211,7 +211,7 @@ router.get('/', async (req, res) => {
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching notifications:', error);
     res.status(500).json({ error: 'Failed to fetch notifications' });
   }
@@ -230,16 +230,18 @@ router.get('/debug', async (req, res) => {
 
     const userIdString = String(userId);
     
-    const notificationsData = await db.select()
-      .from(notifications)
-      .where(eq(notifications.userId, userIdString))
-      .limit(5);
+    const notificationsData = await safeQuery(async () => {
+      return await db.select()
+        .from(notifications)
+        .where(eq(notifications.userId, userIdString))
+        .limit(5);
+    });
 
     res.json({
       userId,
       userIdType: typeof userId,
       userIdString,
-      notifications: notificationsData.map(n => ({
+      notifications: notificationsData.map((n: any) => ({
         id: n.id,
         userId: n.userId,
         userIdType: typeof n.userId,
@@ -248,7 +250,7 @@ router.get('/debug', async (req, res) => {
       }))
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Debug error:', error);
     res.status(500).json({ error: 'Debug failed' });
   }
@@ -258,23 +260,23 @@ router.get('/debug', async (req, res) => {
  * GET /api/notifications/summary
  * Get notification summary and counts
  */
-router.get('/summary', dbHealthCheck, async (req, res) => {
+router.get('/summary', dbHealthCheck, async (req: AuthenticatedRequest, res) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = req.user?.id;
     console.log('📊 Summary request:', { 
       hasReqUser: !!req.user,
       userId, 
       userIdType: typeof userId,
-      sessionUser: (req.session as any)?.user?.id,
-      sessionUserType: typeof (req.session as any)?.user?.id
+      userName: req.user?.name,
+      userEmail: req.user?.email
     });
     
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Convert userId to string to match database schema
-    const userIdString = String(userId);
+    // userId is already a string from our auth middleware
+    const userIdString = userId;
     
     // Get counts by status
     const summary = await db.select({
@@ -312,7 +314,7 @@ router.get('/summary', dbHealthCheck, async (req, res) => {
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching notification summary:', error);
     res.status(500).json({ error: 'Failed to fetch notification summary' });
   }
@@ -347,7 +349,7 @@ router.get('/:id', async (req, res) => {
 
     res.json(notification[0]);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching notification:', error);
     res.status(500).json({ error: 'Failed to fetch notification' });
   }
@@ -369,12 +371,12 @@ router.post('/', async (req, res) => {
     
     const notificationId = await getNotificationService().createNotification({
       userId: userIdString,
+      ...payload,
       type: payload.type || 'info',
       title: payload.title || '',
       message: payload.message || '',
       category: payload.category || 'system',
       priority: payload.priority || 3,
-      ...payload,
       scheduledFor: payload.scheduledFor ? new Date(payload.scheduledFor) : undefined,
       expiresAt: payload.expiresAt ? new Date(payload.expiresAt) : undefined
     });
@@ -384,7 +386,7 @@ router.post('/', async (req, res) => {
       message: 'Notification created successfully' 
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating notification:', error);
     
     if (error instanceof z.ZodError) {
@@ -465,7 +467,7 @@ router.patch('/:id', async (req, res) => {
 
     res.json({ message: 'Notification updated successfully' });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error updating notification:', error);
     
     if (error instanceof z.ZodError) {
@@ -509,7 +511,7 @@ router.post('/mark-all-read', async (req, res) => {
 
     res.json({ message: 'All notifications marked as read' });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error marking notifications as read:', error);
     res.status(500).json({ error: 'Failed to mark notifications as read' });
   }
@@ -554,7 +556,7 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ message: 'Notification deleted successfully' });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting notification:', error);
     res.status(500).json({ error: 'Failed to delete notification' });
   }
@@ -582,7 +584,7 @@ router.get('/subscriptions', async (req, res) => {
 
     res.json(subscriptions);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching subscriptions:', error);
     res.status(500).json({ error: 'Failed to fetch subscriptions' });
   }
@@ -631,7 +633,7 @@ router.post('/subscriptions', async (req, res) => {
 
     res.json({ message: 'Subscription updated successfully' });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating subscription:', error);
     
     if (error instanceof z.ZodError) {
@@ -680,7 +682,7 @@ router.get('/analytics', async (req, res) => {
 
     res.json(analytics);
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching analytics:', error);
     res.status(500).json({ error: 'Failed to fetch analytics' });
   }
@@ -711,7 +713,7 @@ router.post('/webhooks/property-stage-advanced', async (req, res) => {
 
     res.json({ message: 'Event processed successfully' });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error processing property stage advancement:', error);
     res.status(500).json({ error: 'Failed to process event' });
   }
@@ -738,7 +740,7 @@ router.post('/webhooks/pendency-created', async (req, res) => {
 
     res.json({ message: 'Event processed successfully' });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error processing pendency creation:', error);
     res.status(500).json({ error: 'Failed to process event' });
   }
@@ -765,7 +767,7 @@ router.post('/webhooks/client-note-reminder', async (req, res) => {
 
     res.json({ message: 'Event processed successfully' });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error processing client note reminder:', error);
     res.status(500).json({ error: 'Failed to process event' });
   }

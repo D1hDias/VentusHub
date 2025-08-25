@@ -13,13 +13,13 @@ import {
   notificationSubscriptions,
   notificationDeliveryLog,
   notificationAnalytics,
-  userSettings,
-  users,
   properties,
   clients,
   clientNotes,
   scheduledNotifications
 } from '../shared/schema.js';
+// Legacy userSettings and users tables removed - using Better Auth
+import { user } from '../shared/better-auth-schema.js';
 import { eq, and, desc, count, sql, gte, lte, inArray } from 'drizzle-orm';
 import { notificationProviderManager, type NotificationPayload as ProviderPayload } from './notification-providers.js';
 
@@ -115,7 +115,7 @@ export class NotificationService {
       // Simplified initialization - no complex templates/rules needed
       this.isInitialized = true;
       console.log('✅ Notification Service initialized successfully (simplified)');
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed to initialize Notification Service:', error);
       throw error;
     }
@@ -124,7 +124,7 @@ export class NotificationService {
   private async loadTemplates(): Promise<void> {
     const templates = await db.select().from(notificationTemplates).where(eq(notificationTemplates.isActive, true));
     
-    templates.forEach(template => {
+    templates.forEach((template: any) => {
       this.templates.set(template.templateKey, template);
     });
 
@@ -134,7 +134,7 @@ export class NotificationService {
   private async loadRules(): Promise<void> {
     const rules = await db.select().from(notificationRules).where(eq(notificationRules.isActive, true));
     
-    rules.forEach(rule => {
+    rules.forEach((rule: any) => {
       this.rules.set(rule.ruleKey, rule);
     });
 
@@ -203,7 +203,7 @@ export class NotificationService {
       console.log(`📢 Notification created: ${notificationId} for user ${payload.userId}`);
       return notificationId;
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error creating notification:', error);
       throw error;
     }
@@ -252,7 +252,7 @@ export class NotificationService {
     console.log(`🎯 Processing event: ${event.event} for ${event.entityType}:${event.entityId}`);
 
     // Find matching rules
-    const matchingRules = Array.from(this.rules.values()).filter(rule => {
+    const matchingRules = Array.from(this.rules.values()).filter((rule: any) => {
       const triggerEvents = rule.triggerEvents.split(',').map((e: string) => e.trim());
       const entityTypes = rule.entityTypes ? rule.entityTypes.split(',').map((e: string) => e.trim()) : ['*'];
       
@@ -263,7 +263,7 @@ export class NotificationService {
     for (const rule of matchingRules) {
       try {
         await this.executeRule(rule, event);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`❌ Error executing rule ${rule.ruleKey}:`, error);
       }
     }
@@ -355,7 +355,7 @@ export class NotificationService {
     for (const channel of channels) {
       try {
         await this.deliverToChannel(notificationId, channel.trim(), notif.userId);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`❌ Delivery failed for channel ${channel}:`, error);
       }
     }
@@ -401,7 +401,7 @@ export class NotificationService {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       await db.insert(notificationDeliveryLog).values({
         ...deliveryLog,
         status: 'failed',
@@ -442,7 +442,7 @@ export class NotificationService {
         externalId: emailResult.providerId ? `${emailResult.providerId}_${notificationId}_${Date.now()}` : undefined,
         failureReason: emailResult.error
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Email delivery failed for notification ${notificationId}:`, error);
       return {
         success: false,
@@ -485,7 +485,7 @@ export class NotificationService {
         externalId: smsResult.providerId ? `${smsResult.providerId}_${notificationId}_${Date.now()}` : undefined,
         failureReason: smsResult.error
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error(`SMS delivery failed for notification ${notificationId}:`, error);
       return {
         success: false,
@@ -509,18 +509,14 @@ export class NotificationService {
         )
       );
 
-    // If no specific subscription found, check for default preferences
+    // If no specific subscription found, default to allowing notifications
     if (!subscriptions.length) {
-      const userPrefs = await db.select().from(userSettings)
-        .where(eq(userSettings.userId, userId))
-        .limit(1);
-
-      // Default to allowing notifications if no preferences set
-      return userPrefs.length ? userPrefs[0].pushNotifications ?? true : true;
+      // Legacy userSettings removed - default to true for all notifications
+      return true;
     }
 
     // Check if any subscription allows this notification
-    return subscriptions.some(sub => {
+    return subscriptions.some((sub: any) => {
       if (subcategory && sub.subcategory && sub.subcategory !== subcategory) {
         return false;
       }
@@ -668,7 +664,7 @@ export class NotificationService {
           updatedAt: new Date()
         }
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating analytics:', error);
     }
   }
@@ -686,10 +682,10 @@ export class NotificationService {
     notification: any
   ): Promise<{ success: boolean; error?: string; providerId?: string }> {
     try {
-      // Get user email from users table
-      const [userRecord] = await db.select({ email: users.email })
-        .from(users)
-        .where(eq(users.id, parseInt(userId)))
+      // Get user email from Better Auth user table
+      const [userRecord] = await db.select({ email: user.email })
+        .from(user)
+        .where(eq(user.id, userId))
         .limit(1);
 
       if (!userRecord?.email) {
@@ -716,7 +712,7 @@ export class NotificationService {
       }
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending email notification:', error);
       return { 
         success: false, 
@@ -733,36 +729,10 @@ export class NotificationService {
     notification: any
   ): Promise<{ success: boolean; error?: string; providerId?: string }> {
     try {
-      // Get user phone from users table
-      const [userRecord] = await db.select({ phone: users.phone })
-        .from(users)
-        .where(eq(users.id, parseInt(userId)))
-        .limit(1);
-
-      if (!userRecord?.phone) {
-        return { success: false, error: 'User phone not found' };
-      }
-
-      const smsPayload: ProviderPayload = {
-        to: userRecord.phone,
-        message: notification.shortMessage || notification.message,
-        priority: this.mapPriorityToProvider(notification.priority),
-        metadata: {
-          notificationId: notification.id,
-          userId: userId,
-          category: notification.category,
-          type: notification.type
-        }
-      };
-
-      const result = await notificationProviderManager.sendSMS(smsPayload);
-      
-      if (result.success) {
-        console.log(`📱 SMS sent successfully via ${result.providerId} for notification ${notification.id}`);
-      }
-
-      return result;
-    } catch (error) {
+      // SMS notifications currently not available - Better Auth user table doesn't include phone
+      // TODO: Add phone field to user profile or use separate phone storage
+      return { success: false, error: 'SMS notifications not available - phone number not stored in user profile' };
+    } catch (error: any) {
       console.error('Error sending SMS notification:', error);
       return { 
         success: false, 
@@ -787,7 +757,7 @@ export class NotificationService {
   public async testProviders(testEmail?: string, testPhone?: string) {
     console.log('🧪 Testing notification providers...');
     
-    const results = await notificationProviderManager.testProviders(testEmail, testPhone);
+    const results = await notificationProviderManager.testProviders(testEmail || '', testPhone || '');
     
     console.log('📊 Provider test results:', results);
     
@@ -827,7 +797,7 @@ export class NotificationService {
         if (pendingNotifications.length > 0) {
           console.log(`📤 Processed ${pendingNotifications.length} scheduled notifications`);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error processing scheduled notifications:', error);
       }
     }, 60000); // Every minute
