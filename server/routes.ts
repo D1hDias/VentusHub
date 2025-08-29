@@ -3048,5 +3048,61 @@ export function registerApiRoutes(app: Express): void {
     }
   });
 
+  // Rota de teste para verificar tenant
+  app.get("/api/tenant-info", (req: any, res: any) => {
+    res.json({
+      tenantType: req.tenantType,
+      host: req.get('host'),
+      header: req.headers['x-tenant-type'],
+      message: req.tenantType === 'b2b' ? 'Você está no ambiente B2B' : 'Você está no ambiente B2C',
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // Rota de teste para Resend (TEMPORÁRIA)
+  app.post("/api/test-email", async (req: any, res: any) => {
+    try {
+      const { sendB2BCredentials } = await import("./email-service.js");
+      
+      const { email, name = "Teste B2B" } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: "Email é obrigatório" });
+      }
+
+      console.log(`📧 Testando envio de email para: ${email}`);
+
+      const result = await sendB2BCredentials({
+        email,
+        name,
+        tempPassword: "TESTE123",
+        userType: "CORRETOR_AUTONOMO",
+        businessName: "Imobiliária Teste"
+      });
+
+      if (result.success) {
+        res.json({
+          success: true,
+          message: "Email enviado com sucesso!",
+          tenantType: req.tenantType
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: result.error,
+          message: "Erro ao enviar email"
+        });
+      }
+
+    } catch (error: any) {
+      console.error("❌ Erro no teste de email:", error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        message: "Erro interno do servidor"
+      });
+    }
+  });
+
   // Removido createServer pois não é necessário aqui
 }

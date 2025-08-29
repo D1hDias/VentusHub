@@ -12,7 +12,8 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Email configuration
 const EMAIL_CONFIG = {
-  from: `${process.env.RESEND_FROM_NAME || 'VentusHub'} <${process.env.RESEND_FROM_EMAIL || 'noreply@ventushub.com.br'}>`,
+  // Use verified B2B subdomain for sending emails
+  from: `${process.env.RESEND_FROM_NAME || 'VentusHub'} <noreply@app.ventushub.com.br>`,
   replyTo: process.env.RESEND_REPLY_TO || 'contato@ventushub.com.br'
 };
 
@@ -35,90 +36,360 @@ export async function sendB2BCredentials(data: B2BCredentialsEmailData): Promise
     }
 
     const userTypeLabel = data.userType === 'CORRETOR_AUTONOMO' ? 'Corretor Autônomo' : 'Imobiliária';
-    const businessInfo = data.businessName ? `<p><strong>Empresa:</strong> ${data.businessName}</p>` : '';
+    const businessInfo = data.businessName ? `<p style="margin: 15px 0;"><strong>Empresa:</strong> ${data.businessName}</p>` : '';
 
     const emailResult = await resend.emails.send({
       from: EMAIL_CONFIG.from,
       to: [data.email],
       replyTo: EMAIL_CONFIG.replyTo,
-      subject: `🎉 Bem-vindo ao VentusHub - Portal de Parceiros`,
+      subject: `🎉 Bem-vindo à Ventus - Portal de Parceiros`,
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Bem-vindo à Ventus - Portal de Parceiros</title>
           <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #001f3f 0%, #004286 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: white; padding: 30px; border: 1px solid #e1e5e9; }
-            .credentials { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
-            .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0; }
-            .button { display: inline-block; background: #007bff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-            .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; border-radius: 0 0 8px 8px; }
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body { 
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+              line-height: 1.6; 
+              color: #333333; 
+              background-color: #f5f5f5;
+              margin: 0;
+              padding: 0;
+            }
+            
+            .email-container { 
+              max-width: 600px; 
+              margin: 20px auto; 
+              background: white; 
+              border-radius: 12px; 
+              overflow: hidden;
+              box-shadow: 0 4px 20px rgba(0, 31, 63, 0.15);
+            }
+            
+            .header { 
+              background: linear-gradient(135deg, #001f3f 0%, #003366 100%); 
+              color: white; 
+              padding: 40px 30px; 
+              text-align: center;
+              position: relative;
+            }
+            
+            .logo-section {
+              margin-bottom: 20px;
+            }
+            
+            .company-name {
+              font-size: 32px;
+              font-weight: 700;
+              margin: 0;
+              letter-spacing: -1px;
+            }
+            
+            .tagline {
+              font-size: 16px;
+              opacity: 0.9;
+              margin: 8px 0 0 0;
+              font-weight: 400;
+            }
+            
+            .welcome-title {
+              font-size: 20px;
+              margin: 25px 0 0 0;
+              font-weight: 600;
+            }
+            
+            .content { 
+              background: white; 
+              padding: 40px 30px; 
+            }
+            
+            .greeting {
+              font-size: 18px;
+              margin-bottom: 20px;
+              color: #001f3f;
+              font-weight: 600;
+            }
+            
+            .intro-text {
+              margin-bottom: 30px;
+              font-size: 16px;
+              line-height: 1.7;
+            }
+            
+            .credentials-box { 
+              background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%); 
+              border: 2px solid #001f3f;
+              padding: 25px; 
+              border-radius: 10px; 
+              margin: 25px 0;
+            }
+            
+            .credentials-title {
+              color: #001f3f;
+              margin-bottom: 15px;
+              font-size: 18px;
+              font-weight: 600;
+            }
+            
+            .credential-item {
+              margin: 12px 0;
+              font-size: 16px;
+            }
+            
+            .password-code {
+              background: #001f3f; 
+              color: white; 
+              padding: 8px 12px; 
+              border-radius: 6px; 
+              font-family: 'Courier New', monospace;
+              font-weight: 600;
+              font-size: 18px;
+              letter-spacing: 1px;
+            }
+            
+            .warning-box { 
+              background: linear-gradient(135deg, #fff8e1 0%, #fff3c4 100%); 
+              border-left: 4px solid #fdd700; 
+              padding: 20px; 
+              border-radius: 8px; 
+              margin: 25px 0;
+            }
+            
+            .warning-title {
+              color: #e65100;
+              margin-bottom: 12px;
+              font-weight: 600;
+              font-size: 16px;
+            }
+            
+            .warning-list {
+              margin: 0;
+              padding-left: 20px;
+            }
+            
+            .warning-list li {
+              margin: 8px 0;
+              color: #bf360c;
+            }
+            
+            .cta-section { 
+              text-align: center; 
+              margin: 35px 0;
+            }
+            
+            .cta-button { 
+              display: inline-block; 
+              background: linear-gradient(135deg, #001f3f 0%, #003366 100%);
+              color: white; 
+              padding: 16px 40px; 
+              text-decoration: none; 
+              border-radius: 8px; 
+              font-weight: 600;
+              font-size: 16px;
+              transition: transform 0.2s ease;
+            }
+            
+            .cta-button:hover {
+              transform: translateY(-2px);
+            }
+            
+            .features-section {
+              margin: 35px 0;
+            }
+            
+            .features-title {
+              color: #001f3f;
+              margin-bottom: 20px;
+              font-size: 18px;
+              font-weight: 600;
+            }
+            
+            .features-list {
+              list-style: none;
+              padding: 0;
+              margin: 0;
+            }
+            
+            .features-list li {
+              padding: 8px 0;
+              border-bottom: 1px solid #f0f0f0;
+              font-size: 15px;
+            }
+            
+            .features-list li:last-child {
+              border-bottom: none;
+            }
+            
+            .divider {
+              height: 1px;
+              background: linear-gradient(90deg, transparent 0%, #e0e0e0 50%, transparent 100%);
+              margin: 40px 0;
+              border: none;
+            }
+            
+            .support-section {
+              background: #f8f9fa;
+              padding: 25px;
+              border-radius: 8px;
+              margin: 30px 0;
+            }
+            
+            .support-title {
+              color: #001f3f;
+              margin-bottom: 15px;
+              font-weight: 600;
+            }
+            
+            .contact-item {
+              margin: 12px 0;
+              font-size: 15px;
+            }
+            
+            .contact-item a {
+              color: #001f3f;
+              text-decoration: none;
+              font-weight: 600;
+            }
+            
+            .footer { 
+              background: linear-gradient(135deg, #001f3f 0%, #003366 100%); 
+              color: white; 
+              padding: 30px;
+              text-align: center;
+            }
+            
+            .footer-company {
+              font-size: 18px;
+              font-weight: 600;
+              margin-bottom: 8px;
+            }
+            
+            .footer-address {
+              font-size: 14px;
+              opacity: 0.9;
+              margin: 15px 0;
+              line-height: 1.5;
+            }
+            
+            .footer-links {
+              margin-top: 20px;
+              font-size: 12px;
+            }
+            
+            .footer-links a {
+              color: white;
+              text-decoration: none;
+              margin: 0 10px;
+              opacity: 0.8;
+            }
+            
+            .footer-links a:hover {
+              opacity: 1;
+            }
+            
+            @media only screen and (max-width: 600px) {
+              .email-container { margin: 0; border-radius: 0; }
+              .content, .header, .footer { padding: 25px 20px; }
+              .company-name { font-size: 28px; }
+              .credentials-box, .warning-box, .support-section { margin: 20px 0; padding: 20px; }
+            }
           </style>
         </head>
         <body>
-          <div class="container">
+          <div class="email-container">
             <div class="header">
-              <h1>🏢 VentusHub</h1>
-              <h2>Portal de Parceiros</h2>
-              <p>Bem-vindo(a), ${data.name}!</p>
+              <div class="logo-section">
+                <h1 class="company-name">Ventus</h1>
+                <p class="tagline">Assessoria de Crédito</p>
+              </div>
+              <h2 class="welcome-title">Portal de Parceiros</h2>
             </div>
             
             <div class="content">
-              <h3>🎉 Sua conta foi criada com sucesso!</h3>
+              <div class="greeting">🎉 Sua conta foi criada com sucesso!</div>
               
-              <p>Olá <strong>${data.name}</strong>,</p>
-              
-              <p>Seja muito bem-vindo(a) ao <strong>VentusHub Portal de Parceiros</strong>! Sua conta como <strong>${userTypeLabel}</strong> foi criada e está pronta para uso.</p>
+              <p class="intro-text">
+                Olá <strong>${data.name}</strong>,<br><br>
+                Seja muito bem-vindo(a) ao <strong>Portal de Parceiros da Ventus</strong>! 
+                Sua conta como <strong>${userTypeLabel}</strong> foi criada e está pronta para uso.
+              </p>
               
               ${businessInfo}
               
-              <div class="credentials">
-                <h4>🔐 Suas credenciais de acesso:</h4>
-                <p><strong>Email:</strong> ${data.email}</p>
-                <p><strong>Senha temporária:</strong> <code style="background: #e9ecef; padding: 4px 8px; border-radius: 4px; font-family: monospace;">${data.tempPassword}</code></p>
+              <div class="credentials-box">
+                <h4 class="credentials-title">🔐 Suas credenciais de acesso</h4>
+                <div class="credential-item"><strong>Email:</strong> ${data.email}</div>
+                <div class="credential-item">
+                  <strong>Senha temporária:</strong> 
+                  <span class="password-code">${data.tempPassword}</span>
+                </div>
               </div>
               
-              <div class="warning">
-                <h4>⚠️ IMPORTANTE - Segurança</h4>
-                <ul>
-                  <li><strong>Altere sua senha</strong> no primeiro acesso</li>
-                  <li><strong>Não compartilhe</strong> essas credenciais</li>
-                  <li><strong>Guarde em local seguro</strong> essas informações</li>
+              <div class="warning-box">
+                <h4 class="warning-title">⚠️ IMPORTANTE - Segurança da sua conta</h4>
+                <ul class="warning-list">
+                  <li><strong>Altere sua senha</strong> no primeiro acesso por segurança</li>
+                  <li><strong>Não compartilhe</strong> essas credenciais com terceiros</li>
+                  <li><strong>Guarde em local seguro</strong> essas informações de acesso</li>
                 </ul>
               </div>
               
-              <div style="text-align: center;">
-                <a href="https://ventushub.com.br/b2b" class="button">🚀 Acessar Plataforma</a>
+              <div class="cta-section">
+                <a href="https://app.ventushub.com.br" class="cta-button">🚀 Acessar Plataforma Agora</a>
               </div>
               
-              <h4>📋 O que você pode fazer na plataforma:</h4>
-              <ul>
-                <li>📊 Acompanhar seus imóveis e negociações</li>
-                <li>💰 Utilizar simuladores financeiros</li>
-                <li>📋 Gerenciar clientes e propostas</li>
-                <li>📈 Acompanhar comissões e metas</li>
-                <li>📄 Gerar relatórios personalizados</li>
-              </ul>
+              <div class="features-section">
+                <h4 class="features-title">📋 Recursos disponíveis na plataforma</h4>
+                <ul class="features-list">
+                  <li>📊 Acompanhar seus imóveis e negociações em tempo real</li>
+                  <li>💰 Utilizar mais de 15 simuladores financeiros especializados</li>
+                  <li>📋 Gerenciar clientes, propostas e documentos</li>
+                  <li>📈 Acompanhar comissões, metas e performance</li>
+                  <li>📄 Gerar relatórios personalizados e análises</li>
+                  <li>🤝 Acesso a parcerias e oportunidades de negócio</li>
+                </ul>
+              </div>
               
-              <hr style="margin: 30px 0; border: none; border-top: 1px solid #e1e5e9;">
+              <hr class="divider">
               
-              <p><strong>Precisa de ajuda?</strong></p>
-              <p>Nossa equipe está aqui para ajudar: <a href="mailto:suporte@ventushub.com.br">suporte@ventushub.com.br</a></p>
-              <p>WhatsApp: <a href="https://wa.me/5511999999999">(11) 99999-9999</a></p>
+              <div class="support-section">
+                <h4 class="support-title">💬 Precisa de ajuda ou suporte?</h4>
+                <div class="contact-item">
+                  📧 Email: <a href="mailto:contato@ventushub.com.br">contato@ventushub.com.br</a>
+                </div>
+                <div class="contact-item">
+                  📱 WhatsApp: <a href="https://wa.me/5521998060863" target="_blank">(21) 99806-0863</a>
+                </div>
+                <div class="contact-item">
+                  🕒 Horário de atendimento: Segunda a Sexta, 9h às 20h
+                </div>
+                <div class="contact-item">
+                  📱 Instagram: <a href="https://instagram.com/ventushub" target="_blank">@ventushub</a>
+                </div>
+              </div>
             </div>
             
             <div class="footer">
-              <p><strong>VentusHub - Portal de Parceiros</strong></p>
-              <p>Sistema completo de gestão imobiliária</p>
-              <p>© ${new Date().getFullYear()} VentusHub. Todos os direitos reservados.</p>
-              <p style="margin-top: 15px;">
-                <a href="#">Política de Privacidade</a> | 
-                <a href="#">Termos de Uso</a> | 
-                <a href="#">Suporte</a>
-              </p>
+              <div class="footer-company">Ventus - Assessoria de Crédito</div>
+              <div class="footer-address">
+                Avenida Embaixador Abelardo Bueno, 8500, sala 820<br>
+                Barra Olímpica - Rio de Janeiro/RJ
+              </div>
+              <div class="footer-address">
+                🌐 <a href="http://www.ventushub.com.br" style="color: white;">www.ventushub.com.br</a>
+              </div>
+              <div style="margin: 15px 0; font-size: 12px; opacity: 0.8;">
+                © ${new Date().getFullYear()} Ventus. Todos os direitos reservados.
+              </div>
+              <div class="footer-links">
+                <a href="https://app.ventushub.com.br/privacy">Política de Privacidade</a>
+                <a href="https://app.ventushub.com.br/terms">Termos de Uso</a>
+                <a href="mailto:contato@ventushub.com.br">Suporte</a>
+              </div>
             </div>
           </div>
         </body>

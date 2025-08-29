@@ -12,6 +12,7 @@ import { initCRMServices } from "./crm-service.js";
 import notificationRoutes from "./notification-routes.js";
 import healthRoutes from "./health-routes.js";
 import masterAdminRoutes from "./master-admin-routes.js";
+import tenantMiddleware, { TenantRequest } from "./tenant-middleware.js";
 // Vite imports condicionais
 
 // Função de log simples
@@ -49,7 +50,9 @@ log(`
   const allowedOrigins = [
     'https://www.ventushub.com.br',
     'https://ventushub.com.br',
-    'http://localhost:5000',
+    'http://localhost:5000', // B2C Local
+    'http://localhost:5001', // B2B Local
+    'https://app.ventushub.com.br', // B2B Produção
     'https://ventus-hub.onrender.com'
   ];
 
@@ -66,6 +69,10 @@ log(`
 
   app.use(cors(corsOptions));
   log("✅ CORS configurado");
+
+  // 2.1. Middleware de detecção de tenant (após CORS, antes das rotas)
+  app.use(tenantMiddleware);
+  log("✅ Middleware de tenant configurado");
 
   // 3. Note: Session/Auth now handled by Better Auth
 
