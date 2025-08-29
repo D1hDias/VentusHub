@@ -62,7 +62,7 @@ export function setupBetterAuthRoutes(app: Express) {
           sessionToken = sessionData.session?.session?.token;
           console.log('✅ Found Better Auth session data, token:', sessionToken?.substring(0, 10) + '...');
         } catch (error) {
-          console.log('❌ Failed to parse Better Auth session data:', error.message);
+          console.log('❌ Failed to parse Better Auth session data:', error instanceof Error ? error.message : String(error));
         }
       }
       
@@ -172,7 +172,7 @@ export function setupBetterAuthRoutes(app: Express) {
       });
       
     } catch (error) {
-      console.error('❌ Session temp error:', error);
+      console.error('❌ Session temp error:', error instanceof Error ? error.message : String(error));
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -195,8 +195,7 @@ export function setupBetterAuthRoutes(app: Express) {
       await db
         .update(user)
         .set({ 
-          role: 'ADMIN',
-          updatedAt: new Date()
+          role: 'ADMIN'
         })
         .where(eq(user.id, userId));
       
@@ -204,7 +203,7 @@ export function setupBetterAuthRoutes(app: Express) {
       res.json({ success: true, message: "User promoted to admin" });
       
     } catch (error) {
-      console.error('❌ Error making user admin:', error);
+      console.error('❌ Error making user admin:', error instanceof Error ? error.message : String(error));
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -244,7 +243,7 @@ export function setupBetterAuthRoutes(app: Express) {
       res.json({ success: true, message: "Logged out successfully" });
       
     } catch (error) {
-      console.error('❌ Logout error:', error);
+      console.error('❌ Logout error:', error instanceof Error ? error.message : String(error));
       
       // Fallback em caso de erro: limpar cookies
       res.clearCookie('better-auth.session_data');
@@ -331,7 +330,7 @@ export function setupBetterAuthRoutes(app: Express) {
       });
 
     } catch (error) {
-      console.error('Debug B2B users error:', error);
+      console.error('Debug B2B users error:', error instanceof Error ? error.message : String(error));
       res.status(500).json({
         success: false,
         error: error.message,
@@ -421,7 +420,7 @@ export function setupBetterAuthRoutes(app: Express) {
       });
 
     } catch (error) {
-      console.error('Test login error:', error);
+      console.error('Test login error:', error instanceof Error ? error.message : String(error));
       res.status(500).json({
         success: false,
         error: error.message,
@@ -467,6 +466,13 @@ export function setupBetterAuthRoutes(app: Express) {
 
       const b2bData = existingB2B[0].b2b_user_profiles;
       const userData = existingB2B[0].user;
+      
+      if (!userData) {
+        return res.status(404).json({
+          success: false,
+          error: 'User data not found'
+        });
+      }
       
       console.log(`✅ Found B2B user: ${userData.name} (${userData.email})`);
 
@@ -538,7 +544,6 @@ export function setupBetterAuthRoutes(app: Express) {
           neighborhood: b2bData.neighborhood,
           city: b2bData.city,
           state: b2bData.state,
-          isActive: true,
           permissions: b2bData.permissions
         });
 
@@ -562,7 +567,7 @@ export function setupBetterAuthRoutes(app: Express) {
       }
 
     } catch (error) {
-      console.error('Recreate B2B user error:', error);
+      console.error('Recreate B2B user error:', error instanceof Error ? error.message : String(error));
       res.status(500).json({
         success: false,
         error: error.message,
@@ -635,12 +640,12 @@ export function setupBetterAuthRoutes(app: Express) {
         debug: {
           url: signUpUrl,
           status: result.status,
-          headers: Object.fromEntries(result.headers)
+          headers: Array.from(result.headers.entries())
         }
       });
       
     } catch (error) {
-      console.error('❌ Error creating Diego user:', error);
+      console.error('❌ Error creating Diego user:', error instanceof Error ? error.message : String(error));
       res.status(500).json({
         success: false,
         message: 'Failed to create Diego user',

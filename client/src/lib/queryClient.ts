@@ -78,15 +78,4 @@ export const queryClient = new QueryClient({
       retry: false,
     },
   },
-  logger: {
-    log: console.log,
-    warn: console.warn,
-    error: (message) => {
-      // Don't log 401 errors to console (they're expected when not logged in)
-      if (typeof message === 'string' && message.includes('401')) {
-        return;
-      }
-      console.error(message);
-    },
-  },
 });

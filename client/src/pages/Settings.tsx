@@ -73,7 +73,7 @@ export default function Settings() {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { user, updateProfile, uploadAvatar, updateSettings } = useAuth();
+  const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   const { getListVariants, getListItemVariants } = useSmoothtTransitions();
@@ -82,13 +82,13 @@ export default function Settings() {
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      firstName: user?.firstName || "",
-      lastName: user?.lastName || "",
+      firstName: user?.name?.split(' ')[0] || "",
+      lastName: user?.name?.split(' ').slice(1).join(' ') || "",
       email: user?.email || "",
-      phone: user?.phone || "",
-      cpf: user?.cpf || "",
-      creci: user?.creci || "",
-      bio: user?.bio || "",
+      phone: "",
+      cpf: "",
+      creci: "",
+      bio: "",
     },
   });
 

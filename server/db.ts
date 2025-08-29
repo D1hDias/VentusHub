@@ -14,9 +14,8 @@ if (!DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is required');
 }
 
-// Enhanced connection with timeout and retry configuration
+// Enhanced connection with timeout configuration
 const sql = neon(DATABASE_URL, {
-  fetchConnectionCache: true,
   connectionTimeoutMillis: 30000, // 30 seconds timeout
 });
 

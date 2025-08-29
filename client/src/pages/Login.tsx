@@ -185,7 +185,7 @@ export default function Login() {
                     <div
                       className="ml-2 flex items-center"
                       style={{ height: '20px' }}
-                      onClick={() => document.getElementById('remember').click()}
+                      onClick={() => document.getElementById('remember')?.click()}
                       dangerouslySetInnerHTML={{
                         __html: `
                         <style>

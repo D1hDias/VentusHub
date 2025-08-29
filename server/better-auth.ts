@@ -90,12 +90,9 @@ export const auth = betterAuth({
     requireEmailVerification: process.env.NODE_ENV === 'production',
     minPasswordLength: 8,
     maxPasswordLength: 128,
-    // Stronger password requirements
+    // Password configuration
     password: {
-      requireLowercase: true,
-      requireUppercase: true,
-      requireNumbers: true,
-      requireSpecialCharacters: false, // Optional for better UX
+      // Use default password hashing and verification
     },
     // Configure password reset emails
     sendResetPassword: async ({ user, url, token }, request) => {
@@ -180,8 +177,7 @@ export const auth = betterAuth({
       );
     },
     sendOnSignUp: process.env.NODE_ENV === 'production',
-    autoSignInAfterVerification: true,
-    verificationTokenExpiresIn: 24 * 60 * 60, // 24 hours
+    autoSignInAfterVerification: true
   },
   session: {
     expiresIn: 7 * 24 * 60 * 60, // 7 days

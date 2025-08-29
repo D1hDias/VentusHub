@@ -401,23 +401,18 @@ export const storage = {
       const limit = options?.limit || 50;
       const offset = (page - 1) * limit;
       
-      let query = db.select().from(clients).where(eq(clients.userId, userId));
-      
-      // Aplicar filtros
+      // Build conditions
       const conditions = [eq(clients.userId, userId)];
       
       if (options?.search) {
         const searchTerm = `%${options.search}%`;
-        // Buscar por nome, email, CPF ou telefone
         const searchCondition = or(
           ilike(clients.fullName, searchTerm),
           ilike(clients.email, searchTerm),
           ilike(clients.cpf, searchTerm),
           ilike(clients.phonePrimary, searchTerm)
         );
-        if (searchCondition) {
-          conditions.push(searchCondition);
-        }
+        conditions.push(searchCondition);
       }
       
       if (options?.maritalStatus) {
@@ -432,30 +427,27 @@ export const storage = {
         conditions.push(eq(clients.addressState, options.state));
       }
       
-      // Aplicar todas as condições
-      if (conditions.length > 1) {
-        query = query.where(and(...conditions));
-      }
-      
-      // Ordenação
+      // Build order by clause
+      let orderBy;
       if (options?.orderBy === 'name') {
-        query = query.orderBy(
-          options?.orderDirection === 'desc' ? desc(clients.fullName) : clients.fullName
-        );
+        orderBy = options?.orderDirection === 'desc' ? desc(clients.fullName) : clients.fullName;
       } else {
-        query = query.orderBy(
-          options?.orderDirection === 'asc' ? clients.createdAt : desc(clients.createdAt)
-        );
+        orderBy = options?.orderDirection === 'asc' ? clients.createdAt : desc(clients.createdAt);
       }
       
-      // Paginação
-      query = query.limit(limit).offset(offset);
+      const clientsList = await db
+        .select()
+        .from(clients)
+        .where(and(...conditions))
+        .orderBy(orderBy)
+        .limit(limit)
+        .offset(offset);
       
-      const clientsList = await query;
-      
-      // Contar total para paginação
-      const totalQuery = db.select({ count: count() }).from(clients).where(and(...conditions));
-      const [{ count: total }] = await totalQuery;
+      // Count total for pagination
+      const [{ count: total }] = await db
+        .select({ count: count() })
+        .from(clients)
+        .where(and(...conditions));
       
       return {
         clients: clientsList,
@@ -492,13 +484,16 @@ export const storage = {
 
   async getClientByEmail(email: string, excludeId?: number) {
     return withTimeout(async () => {
-      let query = db.select().from(clients).where(eq(clients.email, email.toLowerCase()));
+      const conditions = [eq(clients.email, email.toLowerCase())];
       
       if (excludeId) {
-        query = query.where(and(eq(clients.email, email.toLowerCase()), ne(clients.id, excludeId)));
+        conditions.push(ne(clients.id, excludeId));
       }
       
-      const [client] = await query;
+      const [client] = await db
+        .select()
+        .from(clients)
+        .where(and(...conditions));
       return client;
     });
   },

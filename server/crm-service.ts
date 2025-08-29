@@ -159,7 +159,8 @@ export class NotificationService {
             title: notification.title,
             message: notification.message,
             category: 'crm',
-            relatedId: notification.relatedId,
+            relatedEntityId: notification.relatedId?.toString(),
+            relatedEntityType: notification.relatedType,
             isRead: false,
             createdAt: new Date()
           });

@@ -214,7 +214,10 @@ export default function Dashboard() {
   // Mutation para deletar propriedade
   const deletePropertyMutation = useMutation({
     mutationFn: async (propertyId: string) => {
-      const result = await api.delete(`/imoveis/${propertyId}`);
+      const response = await fetch(`/api/imoveis/${propertyId}`, {
+        method: 'DELETE'
+      });
+      const result = await response.json();
       if (!result.success) {
         throw new Error(result.error || 'Erro ao excluir propriedade');
       }
@@ -241,7 +244,7 @@ export default function Dashboard() {
     e.stopPropagation();
 
     // Verificar permissão de exclusão
-    if (!hasPermission('imoveis', 'delete')) {
+    if (!hasPermission('imoveis')) {
       toast({
         title: "Sem permissão",
         description: "Você não tem permissão para excluir propriedades.",

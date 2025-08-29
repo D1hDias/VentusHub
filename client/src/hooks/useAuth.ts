@@ -129,7 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const organization = user?.organizationId ? {
     id: user.organizationId,
     nome: 'Dias Consultor Imobiliário',
-    tipo: 'IMOBILIARIA',
+    tipo: 'IMOBILIARIA' as const,
     ativo: true,
     settings: { theme: 'default', locale: 'pt-BR' }
   } : null;

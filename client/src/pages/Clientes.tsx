@@ -227,7 +227,7 @@ export default function Clientes() {
 
   // Função para editar cliente
   const handleEditClient = (client: Client) => {
-    if (!hasPermission('clientes', 'write')) {
+    if (!hasPermission('clientes')) {
       toast({
         title: 'Sem permissão',
         description: 'Você não tem permissão para editar clientes.',
@@ -242,7 +242,7 @@ export default function Clientes() {
 
   // Função para criar novo cliente
   const handleNewClient = () => {
-    if (!hasPermission('clientes', 'write')) {
+    if (!hasPermission('clientes')) {
       toast({
         title: 'Sem permissão',
         description: 'Você não tem permissão para criar clientes.',
@@ -295,9 +295,9 @@ export default function Clientes() {
         <div className="flex items-center gap-3">
           <Button
             onClick={handleNewClient}
-            disabled={!hasPermission('clientes', 'write')}
+            disabled={!hasPermission('clientes')}
             className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            title={hasPermission('clientes', 'write') ? "Novo Cliente" : "Sem permissão para criar clientes"}
+            title={hasPermission('clientes') ? "Novo Cliente" : "Sem permissão para criar clientes"}
           >
             <Plus className="h-4 w-4" />
             {!isMobile && "Novo Cliente"}
@@ -676,7 +676,7 @@ export default function Clientes() {
                         <ClientActions
                           client={client}
                           onEdit={handleEditClient}
-                          canEdit={hasPermission('clientes', 'write')}
+                          canEdit={hasPermission('clientes')}
                         />
                       </TableCell>
                     </TableRow>

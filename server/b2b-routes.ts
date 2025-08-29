@@ -54,7 +54,6 @@ export function setupB2BRoutes(app: Express) {
           id: crypto.randomUUID(),
           name,
           email,
-          emailVerified: false,
           role: 'B2B_USER'
         })
         .returning();
@@ -71,8 +70,7 @@ export function setupB2BRoutes(app: Express) {
           document,
           creci,
           tradeName,
-          phone,
-          isActive: true
+          phone
         })
         .returning();
 
@@ -83,8 +81,7 @@ export function setupB2BRoutes(app: Express) {
           name: newUser.name,
           businessName,
           userType,
-          loginUrl: `${process.env.FRONTEND_URL || 'https://app.ventushub.com.br'}/login`,
-          temporaryPassword: 'Temp123456' // In real implementation, generate secure temp password
+          tempPassword: 'Temp123456' // In real implementation, generate secure temp password
         });
       } catch (emailError) {
         console.error('Failed to send B2B credentials email:', emailError);
@@ -224,8 +221,7 @@ export function setupB2BRoutes(app: Express) {
           .update(user)
           .set({
             ...(updates.name && { name: updates.name }),
-            ...(updates.email && { email: updates.email }),
-            updatedAt: new Date()
+            ...(updates.email && { email: updates.email })
           })
           .where(eq(user.id, id));
       }
@@ -240,8 +236,7 @@ export function setupB2BRoutes(app: Express) {
             ...(updates.document && { document: updates.document }),
             ...(updates.creci && { creci: updates.creci }),
             ...(updates.tradeName && { tradeName: updates.tradeName }),
-            ...(updates.phone && { phone: updates.phone }),
-            updatedAt: new Date()
+            ...(updates.phone && { phone: updates.phone })
           })
           .where(eq(b2bUserProfiles.userId, id));
       }
@@ -265,20 +260,11 @@ export function setupB2BRoutes(app: Express) {
     try {
       const { id } = req.params;
 
-      // Deactivate instead of delete
-      await db
-        .update(user)
-        .set({
-          isActive: false,
-          updatedAt: new Date()
-        })
-        .where(eq(user.id, id));
-
+      // Deactivate the B2B profile (user table doesn't have isActive field)
       await db
         .update(b2bUserProfiles)
         .set({
-          isActive: false,
-          updatedAt: new Date()
+          isActive: false
         })
         .where(eq(b2bUserProfiles.userId, id));
 
