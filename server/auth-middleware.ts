@@ -6,7 +6,7 @@
  */
 
 import { db, safeQuery } from './db.js';
-import { user } from '../shared/better-auth-schema.js';
+import { user } from '../shared/schema.js';
 import { eq } from 'drizzle-orm';
 import type { Request, Response, NextFunction } from 'express';
 

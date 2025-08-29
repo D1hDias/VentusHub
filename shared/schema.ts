@@ -25,6 +25,10 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").$defaultFn(() => false).notNull(),
   image: text("image"),
+  role: text("role").default("USER"),
+  permissions: text("permissions").default("[]"),
+  isActive: boolean("is_active").default(true),
+  organizationId: text("organization_id"),
   createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
   updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).notNull(),
 });

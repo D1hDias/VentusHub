@@ -2993,7 +2993,7 @@ export function registerApiRoutes(app: Express): void {
   app.get("/api/setup/is-first-user", async (req: any, res) => {
     try {
       // Import user schema
-      const { user } = await import('../shared/better-auth-schema.js');
+      const { user } = await import('../shared/schema.js');
       
       // Check if any users exist
       const userCount = await db.select({ count: count() }).from(user);
@@ -3019,7 +3019,7 @@ export function registerApiRoutes(app: Express): void {
       }
       
       // Import user schema
-      const { user } = await import('../shared/better-auth-schema.js');
+      const { user } = await import('../shared/schema.js');
       
       // Check if any users have MASTER_ADMIN role
       const adminUsers = await db.select()

@@ -1,9 +1,30 @@
 export interface User {
   id: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
+  role?: string;
+  permissions?: string[];
+  isActive?: boolean;
+  organizationId?: string;
+  emailVerified?: boolean;
+  image?: string;
+  // B2B Profile data (if exists)
+  b2bProfile?: {
+    id: string;
+    userType: string;
+    businessName: string;
+    document: string;
+    creci?: string;
+    tradeName?: string;
+    phone?: string;
+    isActive: boolean;
+    permissions?: string[];
+  };
+  // Legacy fields for backwards compatibility
+  firstName?: string;
+  lastName?: string;
   creci?: string;
+  avatarUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 }

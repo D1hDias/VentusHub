@@ -36,7 +36,7 @@ export function setupBetterAuthRoutes(app: Express) {
     try {
       // Import database
       const { db } = await import('./db.js');
-      const { user, session } = await import('../shared/better-auth-schema.js');
+      const { user, session } = await import('../shared/schema.js');
       const { eq, and } = await import('drizzle-orm');
       
       // Debug cookies
@@ -188,7 +188,7 @@ export function setupBetterAuthRoutes(app: Express) {
       
       // Import database
       const { db } = await import('./db.js');
-      const { user } = await import('../shared/better-auth-schema.js');
+      const { user } = await import('../shared/schema.js');
       const { eq } = await import('drizzle-orm');
       
       // Update user role to ADMIN (não MASTER_ADMIN pois isso é feito no registro)
@@ -291,7 +291,7 @@ export function setupBetterAuthRoutes(app: Express) {
   app.get("/api/debug/b2b-users", async (req, res) => {
     try {
       const { db } = await import('./db.js');
-      const { user } = await import('../shared/better-auth-schema.js');
+      const { user } = await import('../shared/schema.js');
       const { b2bUserProfiles } = await import('../shared/schema.js');
       const { eq } = await import('drizzle-orm');
 
@@ -356,7 +356,7 @@ export function setupBetterAuthRoutes(app: Express) {
 
       // Import database
       const { db } = await import('./db.js');
-      const { user } = await import('../shared/better-auth-schema.js');
+      const { user } = await import('../shared/schema.js');
       const { eq } = await import('drizzle-orm');
 
       // Check if user exists
@@ -446,7 +446,7 @@ export function setupBetterAuthRoutes(app: Express) {
 
       // Import database
       const { db } = await import('./db.js');
-      const { user } = await import('../shared/better-auth-schema.js');
+      const { user } = await import('../shared/schema.js');
       const { b2bUserProfiles } = await import('../shared/schema.js');
       const { eq } = await import('drizzle-orm');
 

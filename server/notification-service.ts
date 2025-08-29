@@ -19,7 +19,7 @@ import {
   scheduledNotifications
 } from '../shared/schema.js';
 // Legacy userSettings and users tables removed - using Better Auth
-import { user } from '../shared/better-auth-schema.js';
+import { user } from '../shared/schema.js';
 import { eq, and, desc, count, sql, gte, lte, inArray } from 'drizzle-orm';
 import { notificationProviderManager, type NotificationPayload as ProviderPayload } from './notification-providers.js';
 
