@@ -13,6 +13,11 @@ export interface User {
   role?: 'ADMIN' | 'MANAGER' | 'AGENT' | 'CLIENT';
   organizationId?: string;
   permissions?: string[];
+  // Legacy fields for backwards compatibility
+  firstName?: string;
+  lastName?: string;
+  creci?: string;
+  avatarUrl?: string;
   // Campos B2B
   b2bProfile?: {
     id: string;

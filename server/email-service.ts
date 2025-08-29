@@ -516,4 +516,100 @@ export async function testEmailService(): Promise<{ success: boolean; error?: st
   }
 }
 
-export default { sendB2BCredentials, sendPasswordReset, testEmailService };
+/**
+ * Send B2B password reset email (specific to B2B users)
+ */
+export async function sendB2BPasswordEmail(email: string, resetToken: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      console.error('❌ RESEND_API_KEY not configured');
+      return { success: false, error: 'Email service not configured' };
+    }
+
+    const resetUrl = `https://app.ventushub.com.br/reset-password?token=${resetToken}`;
+
+    const emailResult = await resend.emails.send({
+      from: EMAIL_CONFIG.from,
+      to: [email],
+      replyTo: EMAIL_CONFIG.replyTo,
+      subject: '🔐 VentusHub B2B - Redefinição de Senha',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #001f3f; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+            .content { background: white; padding: 30px; border: 1px solid #e1e5e9; }
+            .button { display: inline-block; background: #001f3f; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+            .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0; }
+            .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; border-radius: 0 0 8px 8px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🔐 Redefinição de Senha B2B</h1>
+              <p>VentusHub Portal de Parceiros</p>
+            </div>
+            
+            <div class="content">
+              <h3>Solicitação de redefinição de senha - Conta B2B</h3>
+              
+              <p>Você solicitou a redefinição da sua senha no VentusHub Portal de Parceiros B2B.</p>
+              
+              <div style="text-align: center;">
+                <a href="${resetUrl}" class="button">🔄 Redefinir Senha B2B</a>
+              </div>
+              
+              <div class="warning">
+                <h4>⚠️ Informações importantes:</h4>
+                <ul>
+                  <li>Este link é válido por <strong>1 hora</strong></li>
+                  <li>Se você não solicitou, ignore este email</li>
+                  <li>Sua senha atual continua válida até você alterá-la</li>
+                  <li>Esta solicitação é específica para contas B2B</li>
+                </ul>
+              </div>
+              
+              <p>Se o botão não funcionar, copie e cole este link no seu navegador:</p>
+              <p style="word-break: break-all; background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px;">
+                ${resetUrl}
+              </p>
+            </div>
+            
+            <div class="footer">
+              <p><strong>VentusHub - Portal de Parceiros B2B</strong></p>
+              <p>© ${new Date().getFullYear()} VentusHub. Todos os direitos reservados.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    });
+
+    if (emailResult.error) {
+      console.error('❌ Resend B2B reset email error:', emailResult.error);
+      return { success: false, error: emailResult.error.message };
+    }
+
+    console.log('✅ B2B password reset email sent:', emailResult.data?.id);
+    return { success: true };
+
+  } catch (error: any) {
+    console.error('❌ B2B password reset email error:', error);
+    return { success: false, error: error.message || 'Failed to send B2B reset email' };
+  }
+}
+
+// Export emailService object
+export const emailService = {
+  sendB2BCredentials,
+  sendPasswordReset,
+  sendB2BPasswordEmail,
+  testEmailService
+};
+
+export default { sendB2BCredentials, sendPasswordReset, sendB2BPasswordEmail, testEmailService };

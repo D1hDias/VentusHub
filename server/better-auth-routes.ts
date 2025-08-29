@@ -146,7 +146,7 @@ export function setupBetterAuthRoutes(app: Express) {
       // Adicionar perfil B2B se existir
       if (b2bProfiles.length > 0) {
         const b2bProfile = b2bProfiles[0];
-        userResponse.b2bProfile = {
+        (userResponse as any).b2bProfile = {
           id: b2bProfile.id,
           userType: b2bProfile.userType,
           businessName: b2bProfile.businessName,
@@ -227,11 +227,11 @@ export function setupBetterAuthRoutes(app: Express) {
       // Se o Better Auth funcionar, usar sua resposta
       if (response.ok) {
         // Copiar headers do Better Auth
-        for (const [key, value] of response.headers.entries()) {
+        response.headers.forEach((value, key) => {
           if (!['content-encoding', 'transfer-encoding'].includes(key.toLowerCase())) {
             res.setHeader(key, value);
           }
-        }
+        });
         
         const body = await response.text();
         return res.status(response.status).send(body);
@@ -635,7 +635,7 @@ export function setupBetterAuthRoutes(app: Express) {
         debug: {
           url: signUpUrl,
           status: result.status,
-          headers: [...result.headers.entries()]
+          headers: Object.fromEntries(result.headers)
         }
       });
       
@@ -699,12 +699,12 @@ export function setupBetterAuthRoutes(app: Express) {
       console.log(`✅ Better Auth response: ${response.status}`);
       
       // Copy response headers to Express response
-      for (const [key, value] of response.headers.entries()) {
+      response.headers.forEach((value, key) => {
         // Skip headers that Express handles automatically
         if (!['content-encoding', 'transfer-encoding'].includes(key.toLowerCase())) {
           res.setHeader(key, value);
         }
-      }
+      });
       
       // Set status
       res.status(response.status);

@@ -6,6 +6,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 // Legacy auth removed - using Better Auth only
 import { setupBetterAuthRoutes } from "./better-auth-routes.js";
+import { setupB2BRoutes } from "./b2b-routes.js";
 import { registerApiRoutes } from "./routes.js"; // Renomeado para maior clareza
 import { initializeDB } from "./db.js";
 import { initCRMServices } from "./crm-service.js";
@@ -110,6 +111,9 @@ log(`
   // 5.1. Better Auth routes (handles /api/auth/sign-in/email, etc.)
   setupBetterAuthRoutes(app);
   
+  // 5.1.1. B2B routes (handles /api/b2b/users, etc.)
+  setupB2BRoutes(app);
+  log("✅ Rotas B2B registradas");
   
   // 5.2. Other API routes
   registerApiRoutes(app);
