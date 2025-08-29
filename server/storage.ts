@@ -379,7 +379,8 @@ export const storage = {
   // Método para simular consulta externa de status do cartório
   async updateRegistroMockStatus(id: number, mockData: any) {
     const [registro] = await db.update(registros).set({
-      mockStatus: mockData,
+      // TODO: Add mockStatus field to schema if needed
+      // mockStatus: mockData,
       updatedAt: new Date()
     }).where(eq(registros.id, id)).returning();
     return registro;
@@ -471,13 +472,16 @@ export const storage = {
   async getClientByCPF(cpf: string, excludeId?: number) {
     return withTimeout(async () => {
       const cleanCPF = cpf.replace(/\D/g, ''); // Remove caracteres não numéricos
-      let query = db.select().from(clients).where(eq(clients.cpf, cleanCPF));
+      const conditions = [eq(clients.cpf, cleanCPF)];
       
       if (excludeId) {
-        query = query.where(and(eq(clients.cpf, cleanCPF), ne(clients.id, excludeId)));
+        conditions.push(ne(clients.id, excludeId));
       }
       
-      const [client] = await query;
+      const [client] = await db
+        .select()
+        .from(clients)
+        .where(and(...conditions));
       return client;
     });
   },

@@ -53,8 +53,7 @@ export function setupB2BRoutes(app: Express) {
         .values({
           id: crypto.randomUUID(),
           name,
-          email,
-          role: 'B2B_USER'
+          email
         })
         .returning();
 
