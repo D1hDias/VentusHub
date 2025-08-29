@@ -46,6 +46,9 @@ import Clientes from "./pages/Clientes";
 import DocumentosUteis from "./pages/DocumentosUteis";
 import MasterAdminLogin from "./pages/MasterAdminLogin";
 import MasterAdmin from "./pages/MasterAdmin";
+import B2BLogin from "./pages/B2BLogin";
+import Equipe from "./pages/Equipe";
+import Relatorios from "./pages/Relatorios";
 
 // Components
 import Layout from "./components/Layout";
@@ -107,6 +110,13 @@ function AppRoutes() {
       <Route path="/reset-password">
         <PublicRoute>
           <ResetPassword />
+        </PublicRoute>
+      </Route>
+
+      {/* B2B Partner Login */}
+      <Route path="/b2b">
+        <PublicRoute>
+          <B2BLogin />
         </PublicRoute>
       </Route>
 
@@ -238,6 +248,19 @@ function AppRoutes() {
       <Route path="/timeline">
         <ProtectedRoute>
           <Timeline />
+        </ProtectedRoute>
+      </Route>
+
+      {/* Rotas específicas para Imobiliárias */}
+      <Route path="/equipe">
+        <ProtectedRoute>
+          <Equipe />
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/relatorios">
+        <ProtectedRoute>
+          <Relatorios />
         </ProtectedRoute>
       </Route>
 

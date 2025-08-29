@@ -327,7 +327,12 @@ export default function Proposals() {
       </motion.div>
 
       {/* Search and Filters */}
-      <Card>
+      <motion.div
+        variants={getListItemVariants()}
+        initial="hidden"
+        animate="visible"
+      >
+        <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
@@ -346,8 +351,14 @@ export default function Proposals() {
           </div>
           </CardContent>
         </Card>
+      </motion.div>
 
       {/* Proposals Table */}
+      <motion.div
+        variants={getListItemVariants()}
+        initial="hidden"
+        animate="visible"
+      >
       <Card>
         <CardHeader>
           <CardTitle>Propostas Recebidas ({filteredProposals.length})</CardTitle>
@@ -456,6 +467,7 @@ export default function Proposals() {
           )}
         </CardContent>
       </Card>
+      </motion.div>
 
       {/* Proposal Details Modal */}
       <Dialog open={showProposalModal} onOpenChange={setShowProposalModal}>

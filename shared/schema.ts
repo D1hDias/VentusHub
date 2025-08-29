@@ -70,7 +70,7 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updated_at").$defaultFn(() => new Date()),
 });
 
-// B2B User Profiles - Separate table for business data
+// B2B User Profiles - Refatorado com campos híbridos
 export const b2bUserProfiles = pgTable("b2b_user_profiles", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
@@ -78,24 +78,48 @@ export const b2bUserProfiles = pgTable("b2b_user_profiles", {
   // Business Type
   userType: text("user_type").notNull(), // CORRETOR_AUTONOMO, IMOBILIARIA
   
-  // Organization Info
-  organizationName: text("organization_name"), // Nome da imobiliária/empresa
-  organizationId: text("organization_id"),
+  // Campos Híbridos - Unificados
+  businessName: text("business_name").notNull(), // Nome Completo (PF) ou Razão Social (PJ)
+  document: text("document").notNull(), // CPF (PF) ou CNPJ (PJ) - campo híbrido
   
-  // Professional Data
-  creci: text("creci"), // CRECI para corretores
-  cnpj: text("cnpj"), // CNPJ para imobiliárias
-  cpf: text("cpf"), // CPF para corretores autônomos
+  // Campos Específicos
+  creci: text("creci"), // CRECI - Universal (PF e PJ)
+  tradeName: text("trade_name"), // Nome Fantasia - Só para PJ (opcional)
   
   // Contact Info
   phone: text("phone"), // Telefone de contato
-  address: text("address"), // Endereço completo
+  
+  // Informações Financeiras
+  bank: text("bank"), // Nome do banco
+  agency: text("agency"), // Agência
+  account: text("account"), // Número da conta
+  pixKey: text("pix_key"), // Chave PIX
+  
+  // Campos de Endereço Modernos
+  cep: text("cep"), // CEP
+  street: text("street"), // Logradouro
+  number: text("number"), // Número
+  complement: text("complement"), // Complemento (opcional)
+  neighborhood: text("neighborhood"), // Bairro
+  city: text("city"), // Cidade
+  state: text("state"), // UF
+  
+  // Campos legados (manter compatibilidade temporária)
+  address: text("address"), // DEPRECATED - Endereço completo
+  organizationName: text("organization_name"), // DEPRECATED - Usar businessName
+  organizationId: text("organization_id"), // DEPRECATED
+  cnpj: text("cnpj"), // DEPRECATED - Usar document
+  cpf: text("cpf"), // DEPRECATED - Usar document
   
   // System Data
   permissions: text("permissions").default('[]'), // JSON array as text
   isActive: boolean("is_active").default(true),
   createdBy: text("created_by"), // ID do admin que criou o usuário
   notes: text("notes"), // Observações administrativas
+  
+  // Security Fields
+  mustChangePassword: boolean("must_change_password").default(true), // Force password change on first login
+  lastPasswordChange: timestamp("last_password_change"), // Track password changes
   
   // Timestamps
   createdAt: timestamp("created_at").default(sql`now()`).notNull(),
@@ -2019,38 +2043,61 @@ export const masterAdminLoginSchema = z.object({
   password: z.string().min(8, "Senha deve ter pelo menos 8 caracteres"),
 });
 
-// B2B User Creation Schema
+// B2B User Creation Schema - Atualizado para campos híbridos
 export const createB2BUserSchema = z.object({
-  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  // Campos básicos
+  businessName: z.string().min(2, "Nome/Razão Social deve ter pelo menos 2 caracteres"),
   email: z.string().email("Email inválido"),
   userType: z.enum(['CORRETOR_AUTONOMO', 'IMOBILIARIA'], {
     required_error: "Tipo de usuário é obrigatório",
   }),
-  organizationName: z.string().optional(),
-  creci: z.string().optional(),
-  cnpj: z.string().optional().refine((val) => {
-    if (!val) return true;
-    return validateCNPJ(val);
-  }, "CNPJ inválido"),
-  cpf: z.string().optional().refine((val) => {
-    if (!val) return true;
-    return validateCPF(val);
-  }, "CPF inválido"),
-  phone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos").optional(),
-  address: z.string().optional(),
+  
+  // Campos híbridos e específicos
+  document: z.string().min(11, "CPF/CNPJ é obrigatório"),
+  creci: z.string().min(1, "CRECI é obrigatório"),
+  tradeName: z.string().optional(),
+  
+  // Contato
+  phone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos"),
+  
+  // Informações Financeiras (opcionais)
+  bank: z.string().optional(),
+  agency: z.string().optional(),
+  account: z.string().optional(),
+  pixKey: z.string().optional(),
+  
+  // Endereço moderno - todos obrigatórios exceto complemento
+  cep: z.string().min(8, "CEP é obrigatório").max(9, "CEP inválido"),
+  street: z.string().min(1, "Logradouro é obrigatório"),
+  number: z.string().min(1, "Número é obrigatório"),
+  complement: z.string().optional(),
+  neighborhood: z.string().min(1, "Bairro é obrigatório"),
+  city: z.string().min(1, "Cidade é obrigatória"),
+  state: z.string().min(2, "UF é obrigatória").max(2, "UF deve ter 2 caracteres"),
+  
+  // Opcional
   notes: z.string().optional(),
 }).refine((data) => {
-  // Validate required fields based on user type
+  // Validate document format based on user type
+  const cleanDocument = data.document.replace(/\D/g, '');
+  
   if (data.userType === 'CORRETOR_AUTONOMO') {
-    return data.creci && data.cpf;
+    return cleanDocument.length === 11;
+  } else if (data.userType === 'IMOBILIARIA') {
+    return cleanDocument.length === 14;
   }
-  if (data.userType === 'IMOBILIARIA') {
-    return data.organizationName && data.cnpj;
-  }
+  
   return true;
 }, {
-  message: "Campos obrigatórios não preenchidos conforme tipo de usuário",
-  path: ["userType"],
+  message: "CPF deve ter 11 dígitos ou CNPJ deve ter 14 dígitos",
+  path: ["document"]
+}).refine((data) => {
+  // Validate CEP format
+  const cleanCEP = data.cep.replace(/\D/g, '');
+  return cleanCEP.length === 8;
+}, {
+  message: "CEP deve ter 8 dígitos",
+  path: ["cep"]
 });
 
 // Admin Activity Log Schema

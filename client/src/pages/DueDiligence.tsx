@@ -12,6 +12,7 @@ import { useResponsive } from "@/hooks/useMediaQuery";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import React from "react";
+import { PageLoader } from "@/components/PageLoader";
 
 import {
   DropdownMenu,
@@ -429,10 +430,8 @@ export default function DueDiligence() {
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
-              <div className="space-y-4 p-4">
-                {[...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-48 w-full" />
-                ))}
+              <div className="min-h-[400px] flex items-center justify-center">
+                <PageLoader size="lg" message="Carregando due diligence..." />
               </div>
             ) : currentProperties.length > 0 ? (
               <div className="space-y-6 p-6">

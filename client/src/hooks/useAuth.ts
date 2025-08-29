@@ -13,6 +13,22 @@ export interface User {
   role?: 'ADMIN' | 'MANAGER' | 'AGENT' | 'CLIENT';
   organizationId?: string;
   permissions?: string[];
+  // Campos B2B
+  b2bProfile?: {
+    id: string;
+    userType: 'CORRETOR_AUTONOMO' | 'IMOBILIARIA';
+    businessName: string;
+    document: string;
+    creci?: string;
+    tradeName?: string;
+    phone?: string;
+    bank?: string;
+    agency?: string;
+    account?: string;
+    pixKey?: string;
+    isActive: boolean;
+    permissions?: string[];
+  };
 }
 
 export interface Organization {
@@ -34,6 +50,11 @@ export interface AuthContextType {
   hasPermission: (permission: string) => boolean;
   isAdmin: boolean;
   isManager: boolean;
+  // B2B methods
+  isB2BUser: boolean;
+  isCorretor: boolean;
+  isImobiliaria: boolean;
+  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
@@ -246,7 +267,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['auth'] });
-      window.location.href = '/login';
+      
+      // Verificar de onde veio o login para redirecionar corretamente
+      const loginSource = localStorage.getItem('loginSource');
+      
+      // Limpar o localStorage
+      localStorage.removeItem('loginSource');
+      
+      // Redirecionar para a página de login apropriada
+      if (loginSource === 'b2b') {
+        window.location.href = '/b2b';
+      } else {
+        window.location.href = '/login';
+      }
     },
   });
 
@@ -265,6 +298,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = user?.role === 'ADMIN';
   const isManager = user?.role === 'MANAGER' || isAdmin;
   const isAuthenticated = !!user;
+  
+  // B2B helper functions
+  const isB2BUser = !!user?.b2bProfile;
+  const isCorretor = user?.b2bProfile?.userType === 'CORRETOR_AUTONOMO';
+  const isImobiliaria = user?.b2bProfile?.userType === 'IMOBILIARIA';
+
+  // B2B signIn method (returns success/error)
+  const signIn = async (email: string, password: string) => {
+    try {
+      await loginMutation.mutateAsync({ email, password });
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Erro ao fazer login' 
+      };
+    }
+  };
 
   const authContextValue = React.useMemo(() => ({
     user,
@@ -273,7 +324,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAuthenticated,
     isAdmin,
     isManager,
+    isB2BUser,
+    isCorretor,
+    isImobiliaria,
     hasPermission,
+    signIn,
     login: async (email: string, password: string) => {
       await loginMutation.mutateAsync({ email, password });
     },
@@ -283,7 +338,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout: async () => {
       await logoutMutation.mutateAsync();
     },
-  }), [user, organization, isLoading, isAuthenticated, isAdmin, isManager, hasPermission, loginMutation, registerMutation, logoutMutation]);
+  }), [user, organization, isLoading, isAuthenticated, isAdmin, isManager, isB2BUser, isCorretor, isImobiliaria, hasPermission, loginMutation, registerMutation, logoutMutation]);
 
   return React.createElement(AuthContext.Provider, { value: authContextValue }, children);
 }

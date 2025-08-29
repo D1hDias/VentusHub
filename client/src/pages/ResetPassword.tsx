@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useSearch } from 'wouter';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Building2, Eye, EyeOff, Loader2, Mail, Lock, ArrowLeft, CheckCircle } from 'lucide-react';
+import { motion } from "framer-motion";
+import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
+import { useResponsive } from "@/hooks/useMediaQuery";
 
 export default function ResetPassword() {
   const [, setLocation] = useLocation();
   const searchParams = useSearch();
   const token = new URLSearchParams(searchParams).get('token');
+  const { toast } = useToast();
+  const { getListVariants, getListItemVariants } = useSmoothtTransitions();
+  const { isMobile } = useResponsive();
 
   const [step, setStep] = useState<'request' | 'reset'>(!token ? 'request' : 'reset');
   const [email, setEmail] = useState('');
@@ -47,9 +54,25 @@ export default function ResetPassword() {
       }
 
       setSuccess(true);
+      
+      // Toast de sucesso
+      toast({
+        title: "Link enviado com sucesso! 📧",
+        description: `Verifique seu email (${email}) e clique no link para redefinir sua senha`,
+        variant: "success" as any,
+      });
+      
     } catch (err: any) {
       console.error('Password reset request error:', err);
-      setError(err.message || 'Erro ao solicitar redefinição de senha');
+      const errorMessage = err.message || 'Erro ao solicitar redefinição de senha';
+      setError(errorMessage);
+      
+      // Toast de erro
+      toast({
+        title: "Erro ao enviar email",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -61,13 +84,27 @@ export default function ResetPassword() {
 
     // Validate passwords match
     if (password !== confirmPassword) {
-      setError('As senhas não coincidem');
+      const errorMessage = 'As senhas não coincidem';
+      setError(errorMessage);
+      
+      toast({
+        title: "Erro na validação",
+        description: errorMessage,
+        variant: "destructive",
+      });
       return;
     }
 
     // Validate password requirements
     if (!passwordRequirements.every(req => req.met)) {
-      setError('A senha não atende aos requisitos mínimos');
+      const errorMessage = 'A senha não atende aos requisitos mínimos';
+      setError(errorMessage);
+      
+      toast({
+        title: "Senha inválida",
+        description: errorMessage,
+        variant: "destructive",
+      });
       return;
     }
 
@@ -86,13 +123,29 @@ export default function ResetPassword() {
       }
 
       setSuccess(true);
+      
+      // Toast de sucesso
+      toast({
+        title: "Senha redefinida com sucesso! 🔐",
+        description: "Sua nova senha foi definida. Redirecionando para o login...",
+        variant: "success" as any,
+      });
+      
       // Redirect to login after 3 seconds
       setTimeout(() => {
         setLocation('/login?password-reset=true');
       }, 3000);
     } catch (err: any) {
       console.error('Password reset error:', err);
-      setError(err.message || 'Erro ao redefinir senha');
+      const errorMessage = err.message || 'Erro ao redefinir senha';
+      setError(errorMessage);
+      
+      // Toast de erro
+      toast({
+        title: "Erro ao redefinir senha",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +164,12 @@ export default function ResetPassword() {
         </div>
 
         {/* Reset Password Card */}
-        <Card className="shadow-xl border-0">
+        <motion.div
+          variants={getListItemVariants()}
+          initial="hidden"
+          animate="visible"
+        >
+          <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
               {step === 'request' ? 'Recuperar Senha' : 'Nova Senha'}
@@ -297,7 +355,8 @@ export default function ResetPassword() {
               </Link>
             </div>
           </CardFooter>
-        </Card>
+          </Card>
+        </motion.div>
 
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">

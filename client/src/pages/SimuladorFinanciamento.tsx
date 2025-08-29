@@ -275,12 +275,12 @@ const BANCOS_CONFIG = {
     },
     seguros: {
       mip: [
-        { idadeMin: 18, idadeMax: 35, aliquota: 0.0004367 }, // Ajustado para R$ 183,60 na simulação oficial
-        { idadeMin: 36, idadeMax: 50, aliquota: 0.000515 },
+        { idadeMin: 18, idadeMax: 35, aliquota: 0.000234 }, // Ajustado conforme tabela oficial Caixa
+        { idadeMin: 36, idadeMax: 50, aliquota: 0.000265 }, // Ajustado para aproximar R$ 7.760 (650k x 0.000127 = R$ 82,55)
         { idadeMin: 51, idadeMax: 60, aliquota: 0.001015 },
         { idadeMin: 61, idadeMax: 80, aliquota: 0.003402 }
       ],
-      dfi: { residencial: 0.000043, comercial: 0.000043 } // R$ 18,00 mensal conforme simulação oficial
+      dfi: { residencial: 0.0000277, comercial: 0.0000277 } // Ajustado para aproximar valores oficiais (1M x 0.0000277 = R$ 27,70)
     },
     regrasEspeciais: {
       SAC_TR: { financiamentoMax: 0.70 },
@@ -337,7 +337,7 @@ const BANCOS_CONFIG = {
       mip: [
         // Calibrado conforme simulação oficial para R$ 960k financiado
         { idadeMin: 18, idadeMax: 35, aliquota: 0.0001746 }, // R$ 167,62 para R$ 960k financiado (24 anos)
-        { idadeMin: 36, idadeMax: 55, aliquota: 0.000378 }, // Ajustado proporcionalmente
+        { idadeMin: 36, idadeMax: 55, aliquota: 0.000285 }, // Ajustado proporcionalmente
         { idadeMin: 56, idadeMax: 65, aliquota: 0.000984 }, // Ajustado proporcionalmente  
         { idadeMin: 66, idadeMax: 80, aliquota: 0.002342 }  // Ajustado proporcionalmente
       ],
@@ -602,19 +602,19 @@ export default function SimuladorComparativo() {
     if (idade >= 45) {
       // Calcular data exata quando completará 80 anos
       const data80Anos = new Date(nascimento.getFullYear() + idadeMaximaQuitacao, nascimento.getMonth(), nascimento.getDate());
-      
+
       // Calcular diferença em meses até completar 80 anos
       const diffAnos = data80Anos.getFullYear() - hoje.getFullYear();
       const diffMeses = data80Anos.getMonth() - hoje.getMonth();
       const diffDias = data80Anos.getDate() - hoje.getDate();
-      
+
       let mesesRestantes = diffAnos * 12 + diffMeses;
-      
+
       // Se ainda não passou do dia de aniversário no mês atual, conta o mês completo
       if (diffDias < 0) {
         mesesRestantes--;
       }
-      
+
       // O prazo máximo é o menor entre: meses até 80 anos, limite do banco, e prazo padrão
       const prazoMaximo = Math.min(mesesRestantes, limiteBB, prazoMaximoPadrao);
       return { idade, prazoMaximo: Math.max(2, prazoMaximo) };
@@ -663,7 +663,7 @@ export default function SimuladorComparativo() {
     const valorFinanciamento = parseFloat(formData.valorFinanciamento.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     const rendaFamiliar = parseFloat(formData.rendaBrutaFamiliar.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     const prazo = parseInt(formData.prazoDesejado);
-    
+
     return valorImovel > 0 && valorFinanciamento > 0 && rendaFamiliar > 0 && prazo > 0 && !isNaN(prazo);
   };
 
@@ -757,24 +757,24 @@ export default function SimuladorComparativo() {
 
   const calcularFinanciamentoBanco = (codigoBanco: any) => {
     console.log(`🏦 Calculando ${codigoBanco} com IPCA:`, incluirPrevisaoIPCA);
-    
+
     // Validações iniciais para evitar erros
     if (!codigoBanco) {
       console.error('❌ Código do banco não fornecido');
       return { aprovado: false, erro: 'Código do banco inválido' };
     }
-    
+
     const configBanco = (getBancosConfig() as any)[codigoBanco];
     if (!configBanco) {
       console.error(`❌ Configuração não encontrada para banco: ${codigoBanco}`);
       return { aprovado: false, erro: 'Banco não configurado' };
     }
-    
+
     const valorImovel = parseFloat(formData.valorImovel.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     let valorFinanciamento = parseFloat(formData.valorFinanciamento.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     const rendaFamiliar = parseFloat(formData.rendaBrutaFamiliar.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
     const prazo = parseInt(formData.prazoDesejado);
-    
+
     // Validar dados essenciais (sem log de erro desnecessário)
     if (!valorImovel || !valorFinanciamento || !rendaFamiliar || !prazo || isNaN(prazo)) {
       // Apenas log de debug se estivermos no modo de desenvolvimento
@@ -923,7 +923,7 @@ export default function SimuladorComparativo() {
         // 3.2) Juros do mês: Juros_m = SD_tilde_m * j
         const juros = saldoCorrigido * taxaMensal;
         const seguroMIP = saldoCorrigido * aliquotaMIP;
-        
+
         // 3.3) Prestação: Parcela_m = A + Juros_m
         const prestacao = amortizacaoMensal + juros + seguroMIP + seguroDFI;
 
@@ -1565,48 +1565,64 @@ export default function SimuladorComparativo() {
           fontSize: 7,
           fontStyle: 'bold',
           halign: 'center',
+          valign: 'middle',
           minCellHeight: 18
         },
         bodyStyles: {
           fontSize: 6,
           halign: 'center',
+          valign: 'middle',
           textColor: 50
         },
         alternateRowStyles: { fillColor: '#f8f9fa' },
         columnStyles: {
-          0: { halign: 'left', fontStyle: 'bold', fillColor: [230, 230, 230] }
+          0: { 
+            halign: 'left', 
+            fontStyle: 'bold', 
+            fillColor: [230, 230, 230],
+            cellWidth: 65 // Largura fixa da primeira coluna
+          },
+          // Definir larguras iguais para colunas dos bancos
+          ...Object.fromEntries(
+            Array.from({ length: bancosAprovados.length }, (_, i) => [
+              i + 1, 
+              { 
+                halign: 'center',
+                valign: 'middle',
+                cellWidth: (pageWidth - 80) / bancosAprovados.length
+              }
+            ])
+          )
         },
         styles: {
           fontSize: 7,
           cellPadding: 4,
           lineColor: [200, 200, 200],
-          lineWidth: 0.1
+          lineWidth: 0.1,
+          overflow: 'linebreak'
         },
         margin: { left: 5, right: 5 }
       });
 
-      // Adicionar logos dos bancos manualmente - posicionamento direto nas colunas
-      const totalTableWidth = pageWidth - 10; // Largura total da tabela (margens 5px cada lado)
-      const firstColumnWidth = 70; // Largura estimada da primeira coluna "Bancos" (ajuste fino)
-      const bankColumnsWidth = totalTableWidth - firstColumnWidth; // Largura restante para bancos
-      const singleBankColumnWidth = bankColumnsWidth / bancosAprovados.length; // Largura de cada coluna de banco
+      // Adicionar logos dos bancos manualmente - posicionamento alinhado com as configurações da tabela
+      const tableMarginLeft = 5; // Margem esquerda da tabela
+      const firstColumnWidth = 65; // Largura da primeira coluna (mesmo valor usado na tabela)
+      const singleBankColumnWidth = (pageWidth - 80) / bancosAprovados.length; // Largura de cada coluna de banco (mesmo cálculo da tabela)
 
       bancosAprovados.forEach(([codigoBanco, resultado], index) => {
         if (logosCarregados[codigoBanco]) {
-          // Definir tamanho da logo do banco (menor que a do header)
-          const bankLogoHeight = 10; // Altura menor para as logos dos bancos
-          const bankLogoWidth = bankLogoHeight * logosCarregados[codigoBanco].aspectRatio;
+          // Definir tamanho da logo do banco (proporcional e adequado)
+          const bankLogoHeight = 10; // Altura otimizada para as logos dos bancos
+          const bankLogoWidth = Math.min(bankLogoHeight * logosCarregados[codigoBanco].aspectRatio, singleBankColumnWidth - 8); // Limitar largura máxima
 
-          // Calcular posição centralizada na coluna do banco (ajuste para margens menores)
-          const columnStartX = 5 + firstColumnWidth + (index * singleBankColumnWidth);
-          const centerX = columnStartX + (singleBankColumnWidth / 2) - (bankLogoWidth / 2) + 1;
-          const logoY = currentY + 4; // Posição Y dentro da célula do cabeçalho
+          // Calcular posição X centralizada exatamente na coluna correspondente
+          const columnStartX = tableMarginLeft + firstColumnWidth + (index * singleBankColumnWidth);
+          const centerX = columnStartX + (singleBankColumnWidth / 2) - (bankLogoWidth / 2);
+          const centerY = currentY + 9 - (bankLogoHeight / 2); // Centralizar verticalmente na célula (altura 18px)
 
           // Validar coordenadas antes de adicionar a imagem
-          if (centerX >= 0 && logoY >= 0 && bankLogoWidth > 0 && bankLogoHeight > 0) {
-            doc.addImage(logosCarregados[codigoBanco].dataUrl, 'PNG', centerX, logoY, bankLogoWidth, bankLogoHeight);
-          } else {
-            console.warn(`Coordenadas inválidas para logo ${(resultado as any).banco}:`, { centerX, logoY, bankLogoWidth, bankLogoHeight });
+          if (centerX >= tableMarginLeft && centerY >= 0 && bankLogoWidth > 0 && bankLogoHeight > 0) {
+            doc.addImage(logosCarregados[codigoBanco].dataUrl, 'PNG', centerX, centerY, bankLogoWidth, bankLogoHeight);
           }
         }
       });
@@ -1669,43 +1685,65 @@ export default function SimuladorComparativo() {
           textColor: 255,
           fontSize: 6,
           fontStyle: 'bold',
-          halign: 'center'
+          halign: 'center',
+          valign: 'middle',
+          minCellHeight: 16
         },
         bodyStyles: {
           fontSize: 5,
           halign: 'center',
+          valign: 'middle',
           textColor: 50
         },
         alternateRowStyles: { fillColor: '#f8f9fa' },
         columnStyles: {
-          0: { halign: 'center', fontStyle: 'bold', fillColor: [240, 240, 240] }
+          0: { 
+            halign: 'center', 
+            fontStyle: 'bold', 
+            fillColor: [240, 240, 240],
+            cellWidth: 35 // Largura fixa da primeira coluna "Parcela"
+          },
+          // Definir larguras iguais para colunas dos bancos na segunda página
+          ...Object.fromEntries(
+            Array.from({ length: bancosAprovados.length }, (_, i) => [
+              i + 1, 
+              { 
+                halign: 'center',
+                valign: 'middle',
+                cellWidth: (pageWidth - 50) / bancosAprovados.length
+              }
+            ])
+          )
         },
         styles: {
           fontSize: 6,
           cellPadding: 3,
           lineColor: [200, 200, 200],
-          lineWidth: 0.1
+          lineWidth: 0.1,
+          overflow: 'linebreak'
         },
         margin: { left: 5, right: 5 }
       });
 
-      // Adicionar logos dos bancos na segunda página
+      // Adicionar logos dos bancos na segunda página - posicionamento centralizado
       const tableStartY = currentY;
-      const tableStartX = 5;
-      const firstColWidth = 35; // Largura da coluna "Parcela"
-      const remainingWidth = pageWidth - 10 - firstColWidth;
-      const bankColWidth = remainingWidth / bancosAprovados.length;
+      const page2MarginLeft = 5;
+      const firstColWidth = 35; // Largura da coluna "Parcela" (igual ao configurado na tabela)
+      const bankColWidth = (pageWidth - 50) / bancosAprovados.length; // Largura de cada coluna de banco
 
       bancosAprovados.forEach(([codigoBanco, resultado], index) => {
         if (logosCarregados[codigoBanco]) {
-          const logoHeight = 8;
-          const logoWidth = logoHeight * logosCarregados[codigoBanco].aspectRatio;
+          // Definir tamanho da logo (menor para a segunda página)
+          const logoHeight = 9;
+          const logoWidth = Math.min(logoHeight * logosCarregados[codigoBanco].aspectRatio, bankColWidth - 6);
 
-          const colCenterX = tableStartX + firstColWidth + (index * bankColWidth) + (bankColWidth / 2) - (logoWidth / 2);
-          const logoY = tableStartY + 3;
+          // Calcular posição centralizada na coluna correspondente
+          const columnStartX = page2MarginLeft + firstColWidth + (index * bankColWidth);
+          const centerX = columnStartX + (bankColWidth / 2) - (logoWidth / 2);
+          const centerY = tableStartY + 8 - (logoHeight / 2); // Centralizar verticalmente na célula
 
-          if (colCenterX >= 0 && logoY >= 0 && logoWidth > 0 && logoHeight > 0) {
-            doc.addImage(logosCarregados[codigoBanco].dataUrl, 'PNG', colCenterX, logoY, logoWidth, logoHeight);
+          if (centerX >= page2MarginLeft && centerY >= 0 && logoWidth > 0 && logoHeight > 0) {
+            doc.addImage(logosCarregados[codigoBanco].dataUrl, 'PNG', centerX, centerY, logoWidth, logoHeight);
           }
         }
       });

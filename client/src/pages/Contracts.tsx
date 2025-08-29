@@ -357,6 +357,11 @@ export default function Contracts() {
       </motion.div>
 
       {/* Search and Filters */}
+      <motion.div
+        variants={getListItemVariants()}
+        initial="hidden"
+        animate="visible"
+      >
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -376,8 +381,14 @@ export default function Contracts() {
           </div>
         </CardContent>
       </Card>
+      </motion.div>
 
       {/* Contracts Table */}
+      <motion.div
+        variants={getListItemVariants()}
+        initial="hidden"
+        animate="visible"
+      >
       <Card>
         <CardHeader>
           <CardTitle>Contratos Ativos ({filteredContracts.length})</CardTitle>
@@ -489,6 +500,7 @@ export default function Contracts() {
           )}
         </CardContent>
       </Card>
+      </motion.div>
 
       {/* Contract Details Modal */}
       <Dialog open={showContractModal} onOpenChange={setShowContractModal}>

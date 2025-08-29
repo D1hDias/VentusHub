@@ -3,6 +3,15 @@ import { auth } from "./better-auth.js";
 
 export function setupBetterAuthRoutes(app: Express) {
   
+  // Test if routes are being registered at all
+  app.get("/api/test-route-registration", (req, res) => {
+    res.json({ 
+      success: true, 
+      message: "Routes are being registered properly",
+      timestamp: new Date().toISOString()
+    });
+  });
+
   // Debug endpoint para verificar configuração
   app.get("/api/auth-debug", (req, res) => {
     res.json({
@@ -116,16 +125,46 @@ export function setupBetterAuthRoutes(app: Express) {
       
       const userData = users[0];
       
+      // Buscar perfil B2B se existir
+      const { b2bUserProfiles } = await import('../shared/schema.js');
+      const b2bProfiles = await db
+        .select()
+        .from(b2bUserProfiles)
+        .where(eq(b2bUserProfiles.userId, userData.id))
+        .limit(1);
+      
+      const userResponse = {
+        id: userData.id,
+        email: userData.email,
+        name: userData.name,
+        role: userData.role,
+        permissions: userData.permissions ? JSON.parse(userData.permissions) : [],
+        isActive: userData.isActive,
+        emailVerified: userData.emailVerified
+      };
+      
+      // Adicionar perfil B2B se existir
+      if (b2bProfiles.length > 0) {
+        const b2bProfile = b2bProfiles[0];
+        userResponse.b2bProfile = {
+          id: b2bProfile.id,
+          userType: b2bProfile.userType,
+          businessName: b2bProfile.businessName,
+          document: b2bProfile.document,
+          creci: b2bProfile.creci,
+          tradeName: b2bProfile.tradeName,
+          phone: b2bProfile.phone,
+          bank: b2bProfile.bank,
+          agency: b2bProfile.agency,
+          account: b2bProfile.account,
+          pixKey: b2bProfile.pixKey,
+          isActive: b2bProfile.isActive,
+          permissions: b2bProfile.permissions ? JSON.parse(b2bProfile.permissions) : []
+        };
+      }
+      
       res.json({
-        user: {
-          id: userData.id,
-          email: userData.email,
-          name: userData.name,
-          role: userData.role,
-          permissions: userData.permissions ? JSON.parse(userData.permissions) : [],
-          isActive: userData.isActive,
-          emailVerified: userData.emailVerified
-        },
+        user: userResponse,
         session: {
           token: sessionToken,
           expiresAt: userSession.expiresAt
@@ -248,6 +287,290 @@ export function setupBetterAuthRoutes(app: Express) {
     }
   });
   
+  // Debug endpoint para verificar usuários B2B
+  app.get("/api/debug/b2b-users", async (req, res) => {
+    try {
+      const { db } = await import('./db.js');
+      const { user } = await import('../shared/better-auth-schema.js');
+      const { b2bUserProfiles } = await import('../shared/schema.js');
+      const { eq } = await import('drizzle-orm');
+
+      // Buscar todos os usuários B2B
+      const b2bUsers = await db
+        .select({
+          userId: b2bUserProfiles.userId,
+          userType: b2bUserProfiles.userType,
+          businessName: b2bUserProfiles.businessName,
+          document: b2bUserProfiles.document,
+          isActive: b2bUserProfiles.isActive,
+          // Dados do usuário do Better Auth
+          userName: user.name,
+          userEmail: user.email,
+          userEmailVerified: user.emailVerified
+        })
+        .from(b2bUserProfiles)
+        .leftJoin(user, eq(b2bUserProfiles.userId, user.id));
+
+      // Buscar também usuários do Better Auth que não têm perfil B2B
+      const allUsers = await db
+        .select({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          emailVerified: user.emailVerified,
+          createdAt: user.createdAt
+        })
+        .from(user);
+
+      res.json({
+        success: true,
+        b2bUsers,
+        allUsers,
+        totalB2BUsers: b2bUsers.length,
+        totalUsers: allUsers.length
+      });
+
+    } catch (error) {
+      console.error('Debug B2B users error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+    }
+  });
+
+  // Test login endpoint
+  app.post("/api/debug/test-login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Email e senha são obrigatórios'
+        });
+      }
+
+      console.log(`🔍 Testing login for: ${email} with password: ${password}`);
+
+      // Import database
+      const { db } = await import('./db.js');
+      const { user } = await import('../shared/better-auth-schema.js');
+      const { eq } = await import('drizzle-orm');
+
+      // Check if user exists
+      const existingUser = await db
+        .select()
+        .from(user)
+        .where(eq(user.email, email))
+        .limit(1);
+
+      if (existingUser.length === 0) {
+        return res.json({
+          success: false,
+          error: 'Usuário não encontrado',
+          userExists: false
+        });
+      }
+
+      const userData = existingUser[0];
+      console.log(`✅ User found: ${userData.name} (${userData.email})`);
+
+      // Try Better Auth sign in
+      const signInUrl = `${req.protocol}://${req.get('host')}/api/auth/sign-in/email`;
+      
+      const signInRequest = new Request(signInUrl, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
+      });
+
+      const result = await auth.handler(signInRequest);
+      const resultText = await result.text();
+      
+      console.log('Better Auth result status:', result.status);
+      console.log('Better Auth response:', resultText);
+
+      let responseData = null;
+      try {
+        responseData = resultText ? JSON.parse(resultText) : null;
+      } catch (e) {
+        console.log('Could not parse response as JSON');
+      }
+
+      res.json({
+        success: result.status < 400,
+        userExists: true,
+        userData: {
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          emailVerified: userData.emailVerified,
+          createdAt: userData.createdAt
+        },
+        authResponse: {
+          status: result.status,
+          body: responseData || resultText,
+        }
+      });
+
+    } catch (error) {
+      console.error('Test login error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+    }
+  });
+
+  // Recreate B2B user with correct password "123456"
+  app.post("/api/debug/recreate-b2b-user", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          error: 'Email é obrigatório'
+        });
+      }
+
+      console.log(`🔄 Recreating B2B user: ${email}`);
+
+      // Import database
+      const { db } = await import('./db.js');
+      const { user } = await import('../shared/better-auth-schema.js');
+      const { b2bUserProfiles } = await import('../shared/schema.js');
+      const { eq } = await import('drizzle-orm');
+
+      // Get existing B2B profile data before deleting
+      const existingB2B = await db
+        .select()
+        .from(b2bUserProfiles)
+        .leftJoin(user, eq(b2bUserProfiles.userId, user.id))
+        .where(eq(user.email, email))
+        .limit(1);
+
+      if (existingB2B.length === 0) {
+        return res.json({
+          success: false,
+          error: 'Usuário B2B não encontrado'
+        });
+      }
+
+      const b2bData = existingB2B[0].b2b_user_profiles;
+      const userData = existingB2B[0].user;
+      
+      console.log(`✅ Found B2B user: ${userData.name} (${userData.email})`);
+
+      try {
+        // 1. Delete existing B2B profile
+        await db.delete(b2bUserProfiles).where(eq(b2bUserProfiles.userId, userData.id));
+        console.log('✅ Deleted existing B2B profile');
+
+        // 2. Delete existing Better Auth user
+        await db.delete(user).where(eq(user.id, userData.id));
+        console.log('✅ Deleted existing Better Auth user');
+
+        // 3. Create new user via Better Auth signup
+        const signUpUrl = `${req.protocol}://${req.get('host')}/api/auth/sign-up/email`;
+        
+        const signUpRequest = new Request(signUpUrl, {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: userData.email,
+            password: "Temp123456",
+            name: userData.name
+          })
+        });
+
+        const signUpResult = await auth.handler(signUpRequest);
+        const signUpText = await signUpResult.text();
+        
+        console.log('Better Auth signup result:', signUpResult.status);
+        console.log('Better Auth signup response:', signUpText);
+
+        if (signUpResult.status >= 400) {
+          throw new Error(`Sign up failed: ${signUpText}`);
+        }
+
+        // 4. Get the new user ID
+        const newUsers = await db
+          .select()
+          .from(user)
+          .where(eq(user.email, email))
+          .limit(1);
+
+        if (newUsers.length === 0) {
+          throw new Error('New user not found after signup');
+        }
+
+        const newUser = newUsers[0];
+        console.log('✅ New user created:', newUser.id);
+
+        // 5. Recreate B2B profile with same data
+        await db.insert(b2bUserProfiles).values({
+          userId: newUser.id,
+          userType: b2bData.userType,
+          businessName: b2bData.businessName,
+          document: b2bData.document,
+          creci: b2bData.creci,
+          tradeName: b2bData.tradeName,
+          phone: b2bData.phone,
+          bank: b2bData.bank,
+          agency: b2bData.agency,
+          account: b2bData.account,
+          pixKey: b2bData.pixKey,
+          cep: b2bData.cep,
+          street: b2bData.street,
+          number: b2bData.number,
+          complement: b2bData.complement,
+          neighborhood: b2bData.neighborhood,
+          city: b2bData.city,
+          state: b2bData.state,
+          isActive: true,
+          permissions: b2bData.permissions
+        });
+
+        console.log('✅ B2B profile recreated');
+
+        res.json({
+          success: true,
+          message: 'Usuário B2B recriado com senha "Temp123456" com sucesso',
+          oldUserId: userData.id,
+          newUserId: newUser.id,
+          email: newUser.email
+        });
+
+      } catch (recreateError) {
+        console.error('Recreation error:', recreateError);
+        res.json({
+          success: false,
+          error: 'Erro ao recriar usuário',
+          details: recreateError.message
+        });
+      }
+
+    } catch (error) {
+      console.error('Recreate B2B user error:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+    }
+  });
+
   // Endpoint temporário para criar o usuário Diego
   app.post("/api/create-diego", async (req, res) => {
     try {

@@ -48,6 +48,11 @@
   
   /* Fluid Typography Scale */
   --step--2: clamp(0.69rem, 0.66rem + 0.18vw, 0.83rem);
+  
+  /* Enhanced Sidebar Animation Variables */
+  --sidebar-transition-duration: 400ms;
+  --sidebar-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-content-delay: 100ms;
   --step--1: clamp(0.83rem, 0.78rem + 0.29vw, 1.04rem);
   --step-0: clamp(1rem, 0.93rem + 0.43vw, 1.30rem);
   --step-1: clamp(1.20rem, 1.10rem + 0.63vw, 1.62rem);
@@ -480,15 +485,29 @@
     margin-left: 60px;
   }
 
-  /* Sidebar smooth transitions */
-  .sidebar-smooth-transition {
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Optimized Sidebar Transitions - Performance Focused */
+  .sidebar-optimized {
+    /* GPU-accelerated transitions for 60fps performance */
+    transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateZ(0); /* Force hardware acceleration */
+    will-change: width;
+    backface-visibility: hidden;
   }
 
-  .sidebar-smooth-transition-fast {
-    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Sidebar content fade transitions */
+  .sidebar-content-fade {
+    transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1),
+                width 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateZ(0);
+    will-change: opacity, width;
+  }
+
+  /* Smooth icon transitions */
+  .sidebar-icon-smooth {
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
+                margin 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateZ(0);
   }
 
   /* Mobile sidebar transitions */
@@ -499,7 +518,14 @@
     }
   }
 
-  /* Elementos internos da sidebar */
+  /* Enhanced Sidebar Internal Content Transitions */
+  .sidebar-content-spring {
+    /* Natural spring motion for internal elements */
+    transition: padding 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
   .sidebar-content-transition {
     transition: padding 0.6s cubic-bezier(0.4, 0, 0.2, 1),
                 opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -524,7 +550,16 @@
                 transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Header and main content transitions */
+  /* Enhanced Layout Transitions with Spring Physics */
+  .layout-spring {
+    transition: left 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                margin-left 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                width 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: translateZ(0); /* Hardware acceleration */
+    will-change: left, margin-left, width;
+    backface-visibility: hidden;
+  }
+
   .layout-transition {
     transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1),
                 margin-left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
@@ -533,6 +568,35 @@
   .layout-transition-fast {
     transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1),
                 margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Sidebar Menu Item Animation Classes */
+  .sidebar-item-enter {
+    animation: sidebarItemSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .sidebar-item-exit {
+    animation: sidebarItemSlideOut 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Framer Motion Performance Optimization */
+  .motion-optimized {
+    transform: translateZ(0);
+    will-change: transform, opacity, width;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  .motion-sidebar {
+    will-change: width;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+  }
+
+  .motion-content {
+    will-change: margin-left;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
   }
   
   /* Custom gradient backgrounds */
@@ -603,6 +667,64 @@
   
   .dark .status-completed {
     @apply bg-blue-500/20 text-blue-400 border-blue-800;
+  }
+  
+  /* Enhanced Sidebar Animation Classes */
+  .sidebar-optimized {
+    will-change: width, transform;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  .sidebar-content-smooth {
+    will-change: opacity, width;
+    contain: layout style;
+  }
+  
+  .sidebar-icon-smooth {
+    will-change: margin, transform;
+    contain: layout style;
+  }
+  
+  .sidebar-text-smooth {
+    will-change: width, opacity;
+    contain: layout style paint;
+  }
+  
+  /* Performance optimized animations */
+  @media (prefers-reduced-motion: no-preference) {
+    .sidebar-optimized {
+      transition: width var(--sidebar-transition-duration) var(--sidebar-easing),
+                  transform 300ms var(--sidebar-easing),
+                  box-shadow 200ms ease-out;
+    }
+    
+    .sidebar-content-smooth {
+      transition: width 350ms var(--sidebar-easing),
+                  opacity 250ms var(--sidebar-easing);
+      transition-delay: var(--sidebar-content-delay);
+    }
+    
+    .sidebar-icon-smooth {
+      transition: margin var(--sidebar-transition-duration) var(--sidebar-easing),
+                  transform 200ms ease-out;
+    }
+    
+    .sidebar-text-smooth {
+      transition: width 350ms var(--sidebar-easing),
+                  opacity 250ms var(--sidebar-easing);
+      transition-delay: var(--sidebar-content-delay);
+    }
+  }
+  
+  /* Fallback for reduced motion users */
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar-optimized,
+    .sidebar-content-smooth,
+    .sidebar-icon-smooth,
+    .sidebar-text-smooth {
+      transition: none;
+    }
   }
   
   /* Modern Interactive Menu Styles */
@@ -889,6 +1011,64 @@
   }
   50% {
     opacity: 0.8;
+  }
+}
+
+/* Sidebar Animation Keyframes */
+@keyframes sidebarItemSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  60% {
+    opacity: 0.8;
+    transform: translateX(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes sidebarItemSlideOut {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+@keyframes sidebarLogoEnter {
+  0% {
+    opacity: 0;
+    scale: 0.8;
+    transform: translateX(-20px);
+  }
+  60% {
+    opacity: 0.8;
+    scale: 1.05;
+    transform: translateX(5px);
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes sidebarLogoExit {
+  0% {
+    opacity: 1;
+    scale: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    scale: 0.8;
+    transform: translateX(-20px);
   }
 }
 

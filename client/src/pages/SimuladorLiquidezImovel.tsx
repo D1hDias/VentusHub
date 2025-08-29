@@ -1,6 +1,9 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
+import { useResponsive } from "@/hooks/useMediaQuery";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +22,9 @@ const BairrosMock = [
 ];
 
 export default function SimuladorLiquidezImovel() {
+  const { getListVariants, getListItemVariants } = useSmoothtTransitions();
+  const { isMobile } = useResponsive();
+  
   const [formData, setFormData] = useState<Partial<LiquidityIndexIn>>({
     preco_anuncio: 1,
     area_m2: 1,
@@ -77,7 +83,12 @@ export default function SimuladorLiquidezImovel() {
 
   return (
     <div className="simulador-container p-6 space-y-6 bg-background min-h-screen">
-      <Card>
+      <motion.div
+        variants={getListItemVariants()}
+        initial="hidden"
+        animate="visible"
+      >
+        <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart className="w-6 h-6 text-primary" />
@@ -89,11 +100,18 @@ export default function SimuladorLiquidezImovel() {
             Estime a probabilidade de venda do seu imóvel e receba recomendações para aumentar a liquidez.
           </p>
         </CardContent>
-      </Card>
+        </Card>
+      </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <motion.div 
+        className="grid grid-cols-1 md:grid-cols-3 gap-6"
+        variants={getListVariants()}
+        initial="hidden"
+        animate="visible"
+      >
         <div className="md:col-span-1 space-y-6">
-          <Card>
+          <motion.div variants={getListItemVariants()}>
+            <Card>
             <CardHeader>
               <CardTitle>Dados do Anúncio</CardTitle>
             </CardHeader>
@@ -124,9 +142,11 @@ export default function SimuladorLiquidezImovel() {
                 <Input id="fotos_urls" type="text" placeholder="https://.../1.jpg,https://.../2.jpg" onChange={(e) => handleInputChange('fotos_urls', e.target.value.split(',').map((url: any) => url.trim()))} />
               </div>
             </CardContent>
-          </Card>
+            </Card>
+          </motion.div>
 
-          <Card>
+          <motion.div variants={getListItemVariants()}>
+            <Card>
             <CardHeader>
               <CardTitle>Configurações</CardTitle>
             </CardHeader>
@@ -136,7 +156,8 @@ export default function SimuladorLiquidezImovel() {
                 <Switch id="toggle_sugestoes_preco" checked={formData.toggle_sugestoes_preco} onCheckedChange={(val) => handleInputChange('toggle_sugestoes_preco', val)} />
               </div>
             </CardContent>
-          </Card>
+            </Card>
+          </motion.div>
 
           <Button onClick={simularLiquidez} disabled={loading} className="w-full">
             {loading ? 'Analisando...' : 'Calcular Liquidez'}
@@ -146,7 +167,8 @@ export default function SimuladorLiquidezImovel() {
         <div className="md:col-span-2">
           {error && <Alert variant="destructive"><AlertTriangle className="h-4 w-4" /><AlertTitle>Erro</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>}
           {resultado && (
-            <Card>
+            <motion.div variants={getListItemVariants()}>
+              <Card>
               <CardHeader>
                 <CardTitle>Resultado da Análise</CardTitle>
               </CardHeader>
@@ -177,10 +199,11 @@ export default function SimuladorLiquidezImovel() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -63,9 +63,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useDeviceInfo } from "@/hooks/use-mobile";
-import { motion, AnimatePresence } from 'framer-motion';
 
-const navigationItems = [
+const baseNavigationItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/clientes", label: "Clientes", icon: Users },
   { href: "/captacao", label: "Captação de Imóveis", icon: Building2 },
@@ -73,10 +72,17 @@ const navigationItems = [
   { href: "/mercado", label: "Imóveis no Mercado", icon: Store },
   { href: "/propostas", label: "Propostas", icon: HandHeart },
   { href: "/contratos", label: "Contratos", icon: FileText },
-  { href: "/credito", label: "Crédito", icon: Calculator },
+  { href: "/credito", label: "Crédito", icon: CreditCard },
+  { href: "/simulacoes", label: "Simulações", icon: Calculator },
   { href: "/instrumento", label: "Instrumento Definitivo", icon: FileCheck },
   { href: "/registro", label: "Registro", icon: FileSearch },
   { href: "/timeline", label: "Acompanhamento", icon: Clock },
+];
+
+// Items específicos para Imobiliárias
+const imobiliariaNavigationItems = [
+  { href: "/equipe", label: "Equipe", icon: Users },
+  { href: "/relatorios", label: "Relatórios", icon: BarChart3 },
 ];
 
 // Admin navigation items removed - functionalities not needed
@@ -335,9 +341,36 @@ export default function Layout({ children }: LayoutProps) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showFinanciamentoSubmenu, setShowFinanciamentoSubmenu] = useState(false);
   const [showCreditoSidebar, setShowCreditoSidebar] = useState(false);
+  const [showSimulacoesSidebar, setShowSimulacoesSidebar] = useState(false);
   const [showCreditoHorizontalNav, setShowCreditoHorizontalNav] = useState(false);
   const [location, setLocation] = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, isImobiliaria } = useAuth();
+  
+  // Determinar itens de navegação baseados no tipo de usuário e origem do login
+  const navigationItems = React.useMemo(() => {
+    // Verificar origem do login
+    const loginSource = localStorage.getItem('loginSource');
+    
+    // Se login foi feito via página padrão (Login.tsx), mostrar apenas Dashboard, Crédito, Simulações e Registro
+    if (loginSource === 'standard') {
+      return baseNavigationItems.filter(item => 
+        item.href === '/dashboard' || 
+        item.href === '/credito' || 
+        item.href === '/simulacoes' || 
+        item.href === '/registro'
+      );
+    }
+    
+    // Para login B2B ou outros, mostrar navegação completa
+    let items = [...baseNavigationItems];
+    
+    // Se for Imobiliária, adicionar itens específicos
+    if (isImobiliaria) {
+      items = [...items, ...imobiliariaNavigationItems];
+    }
+    
+    return items;
+  }, [isImobiliaria]);
   // const { currentOrganization } = useOrganization();
   const { unreadCount, hasUnread, hasUrgent } = useNotifications();
   const [isSimulatorsOpen, setIsSimulatorsOpen] = useState(false);
@@ -696,54 +729,88 @@ export default function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-background flex transition-colors duration-200">
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-[#001f3f] to-[#004286] transform lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } ${sidebarCollapsed ? "w-14 shadow-2xl shadow-black/40" : "w-60 shadow-lg"
-          } ${showCreditoSidebar ? 'sidebar-smooth-transition' : 'sidebar-smooth-transition-fast'}`}
-        style={sidebarCollapsed ? {
-          boxShadow: '6px 0 25px rgba(0, 0, 0, 0.5), 3px 0 15px rgba(0, 0, 0, 0.3), 1px 0 5px rgba(0, 0, 0, 0.2)',
-          zIndex: 60
-        } : {}}
+        className={`fixed inset-y-0 left-0 z-50 bg-gradient-to-b from-[#001f3f] to-[#004286] transform lg:translate-x-0 sidebar-optimized ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } ${
+          sidebarCollapsed ? "w-14 shadow-2xl" : "w-60 shadow-lg"
+        }`}
+        style={{
+          transition: 'width 400ms cubic-bezier(0.4, 0, 0.2, 1), transform 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms ease-out'
+        }}
       >
-        <div className={`flex items-center h-16 border-b border-white/10 ${showCreditoSidebar ? 'sidebar-content-transition' : 'sidebar-content-transition-fast'} ${sidebarCollapsed ? "px-2" : "px-3"}`}>
+        <div 
+          className={`flex items-center ${localStorage.getItem('loginSource') === 'standard' ? 'h-20' : 'h-16'} border-b border-white/10 ${
+            sidebarCollapsed ? "px-2" : localStorage.getItem('loginSource') === 'standard' ? "px-4" : "px-3"
+          }`}
+          style={{
+            transition: 'padding 400ms cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+        >
           <div className={`flex items-center w-full ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
-            {/* Logo - condicional baseado no estado da sidebar */}
-            {!sidebarCollapsed && (
-              <div className="flex items-center">
-                {/* Logo completa - apenas quando sidebar expandida */}
-                <>
-                  {/* Imagem principal */}
-                  <img
-                    src={logoImage}
-                    alt="Ventus Hub"
-                    className="w-[120px] h-auto max-h-12"
-                    title="Ventus Hub"
-                    onLoad={() => console.log('✅ Logo carregada com sucesso')}
-                    onError={(e) => {
-                      console.error('❌ Erro ao carregar logo:', e);
-                    }}
-                  />
-
-                  {/* Fallback texto - sempre presente como backup */}
-                  <div
-                    className="px-3 py-1 bg-white/20 rounded text-white text-sm font-bold opacity-0"
-                    style={{ position: 'absolute', pointerEvents: 'none' }}
-                    title="Ventus Hub"
-                  >
-                    VENTUS HUB
+            {/* Logo - transição suave com CSS */}
+            <div 
+              className={`flex items-center overflow-hidden ${
+                sidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
+              }`}
+              style={{
+                transition: 'width 350ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+                transitionDelay: sidebarCollapsed ? '0ms' : '100ms'
+              }}
+            >
+              <div className="flex flex-col items-start">
+                <img
+                  src={logoImage}
+                  alt="Ventus Hub"
+                  className={`${localStorage.getItem('loginSource') === 'standard' ? 'w-[140px]' : 'w-[120px]'} h-auto max-h-12`}
+                  style={{
+                    transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 200ms ease-out'
+                  }}
+                  title="Ventus Hub"
+                  onLoad={() => console.log('✅ Logo carregada com sucesso')}
+                  onError={(e) => {
+                    console.error('❌ Erro ao carregar logo:', e);
+                  }}
+                />
+                
+                {/* Subtitle para clientes finais */}
+                {localStorage.getItem('loginSource') === 'standard' && !sidebarCollapsed && (
+                  <div className="mt-1 text-xs text-white/60 font-medium">
+                    Sua jornada imobiliária
                   </div>
-                </>
+                )}
               </div>
-            )}
 
-            {/* Hamburger Menu - posição dinâmica: centro quando colapsada, direita quando expandida */}
+              {/* Fallback texto - sempre presente como backup */}
+              <div
+                className="px-3 py-1 bg-white/20 rounded text-white text-sm font-bold opacity-0"
+                style={{ position: 'absolute', pointerEvents: 'none' }}
+                title="Ventus Hub"
+              >
+                VENTUS HUB
+              </div>
+            </div>
+
+            {/* Hamburger Menu - rotação suave com CSS */}
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-white hover:bg-white/10 transition-all duration-200 hidden lg:flex group"
+              className="h-8 w-8 p-0 text-white hover:bg-white/10 hidden lg:flex group"
+              style={{
+                transition: 'background-color 200ms ease-out, transform 150ms cubic-bezier(0.4, 0, 0.2, 1)'
+              }}
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               title={sidebarCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
             >
-              <Menu className="h-4 w-4 transition-colors duration-200 group-hover:text-[#fdd700]" />
+              <Menu 
+                className={`h-4 w-4 group-hover:text-[#fdd700] ${
+                  sidebarCollapsed ? 'rotate-180' : 'rotate-0'
+                }`}
+                style={{
+                  transition: 'transform 350ms cubic-bezier(0.4, 0, 0.2, 1), color 200ms ease-out'
+                }}
+              />
             </Button>
 
             {/* Botão de fechar apenas para mobile */}
@@ -760,24 +827,43 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </div>
 
-        <nav className={`mt-6 ${showCreditoSidebar ? 'sidebar-content-transition' : 'sidebar-content-transition-fast'} ${sidebarCollapsed ? "px-1" : "px-3"}`}>
-          <div className={isMobile ? "space-y-2" : "space-y-1"}>
+        <nav 
+          className={`mt-6 ${
+            sidebarCollapsed ? "px-1" : "px-3"
+          }`}
+          style={{
+            transition: 'padding 400ms cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+        >
+          <div className={`${isMobile ? "space-y-2" : localStorage.getItem('loginSource') === 'standard' ? "space-y-3" : "space-y-1"}`}>
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = location === item.href;
+
+              // Determinar se é cliente final para styling especial
+              const isClienteFinal = localStorage.getItem('loginSource') === 'standard';
 
               // Special handling for Crédito with submenu
               if (item.href === "/credito") {
                 return (
                   <div key={item.href}>
                     <div
-                      className={`flex items-center rounded-md transition-all duration-300 ease-in-out cursor-pointer ${sidebarCollapsed ? "px-2 py-2" : "px-3"} ${isActive || location.startsWith("/credito") || location.includes("simulador-financiamento") || location.includes("simulador-cgi") || location.includes("simulador-credito-pj")
-                        ? "bg-white/20 text-white border-r-2 border-white"
-                        : "text-white/80 hover:bg-white/10 hover:text-white"
-                        } ${sidebarCollapsed ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""} ${isMobile ? "py-3 text-base font-medium" : "py-2 text-sm font-medium"}`}
-                      style={sidebarCollapsed ? {
-                        filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
-                      } : {}}
+                      className={`flex items-center rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] ${
+                        sidebarCollapsed ? "px-2 py-2 justify-center" : "px-4"
+                      } ${
+                        isActive || location.startsWith("/credito") || location.includes("credito-financiamento") || location.includes("credito-cgi") || location.includes("credito-pj")
+                        ? "bg-gradient-to-r from-white/25 to-white/15 text-white border-r-4 border-yellow-400 shadow-lg shadow-white/10"
+                        : "text-white/85 hover:bg-gradient-to-r hover:from-white/15 hover:to-white/10 hover:text-white hover:shadow-md hover:shadow-white/5"
+                      } ${
+                        isMobile 
+                          ? "py-4 text-lg font-semibold" 
+                          : isClienteFinal 
+                            ? "py-4 text-base font-semibold" 
+                            : "py-2 text-sm font-medium"
+                      }`}
+                      style={{
+                        transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1), padding 400ms cubic-bezier(0.4, 0, 0.2, 1)'
+                      }}
                       title={sidebarCollapsed ? item.label : ""}
                       onClick={() => {
                         if (sidebarCollapsed) {
@@ -794,26 +880,42 @@ export default function Layout({ children }: LayoutProps) {
                         }
                       }}
                     >
-                      <Icon className={`h-5 w-5 ${sidebarCollapsed ? "" : "mr-3"}`} />
-                      {!sidebarCollapsed && (
-                        <>
-                          <span className="flex-1">{item.label}</span>
-                          <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${showCreditoSidebar ? 'rotate-180' : ''}`} />
-                        </>
-                      )}
+                      <Icon 
+                        className={`${isClienteFinal ? 'h-6 w-6' : 'h-5 w-5'} ${sidebarCollapsed ? "" : isClienteFinal ? "mr-4" : "mr-3"}`}
+                        style={{
+                          transition: 'margin 400ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms ease-out'
+                        }}
+                      />
+                      <div 
+                        className={`flex items-center flex-1 overflow-hidden ${
+                          sidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
+                        }`}
+                        style={{
+                          transition: 'width 350ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+                          transitionDelay: sidebarCollapsed ? '0ms' : '100ms'
+                        }}
+                      >
+                        <span className="flex-1 whitespace-nowrap">{item.label}</span>
+                        <ChevronDown 
+                          className={`h-4 w-4 ${showCreditoSidebar ? 'rotate-180' : ''}`}
+                          style={{
+                            transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+                          }}
+                        />
+                      </div>
                     </div>
 
                     {/* Submenu de Crédito */}
-                    <AnimatePresence>
-                      {showCreditoSidebar && !sidebarCollapsed && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3, ease: "easeInOut" }}
-                          className="overflow-hidden"
-                        >
-                          <div className="ml-6 mt-2 space-y-1 border-l border-white/20 pl-4">
+                    <div 
+                      className={`overflow-hidden ${
+                        showCreditoSidebar && !sidebarCollapsed ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                      }`}
+                      style={{
+                        transition: 'max-height 400ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                        transitionDelay: showCreditoSidebar ? '50ms' : '0ms'
+                      }}
+                    >
+                      <div className="ml-6 mt-2 space-y-1 border-l border-white/20 pl-4">
                             <Link href="/credito/financiamento">
                               <div className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200 cursor-pointer ${location === "/credito/financiamento" || location === "/simulador-financiamento"
                                 ? "bg-blue-600/20 text-blue-200 border-r-2 border-blue-400"
@@ -853,11 +955,117 @@ export default function Layout({ children }: LayoutProps) {
                                 <span>Crédito PJ</span>
                               </div>
                             </Link>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                        </div>
+                      </div>
+                    </div>
+                );
+              }
+
+              // Special handling for Simulações with submenu
+              if (item.href === "/simulacoes") {
+                return (
+                  <div key={item.href}>
+                    <div
+                      className={`flex items-center rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] ${
+                        sidebarCollapsed ? "px-2 py-2 justify-center" : "px-4"
+                      } ${
+                        isActive || location.startsWith("/simulacoes") || location.includes("simulador-financiamento") || location.includes("simulador-cgi") || location.includes("simulador-consorcio")
+                        ? "bg-gradient-to-r from-white/25 to-white/15 text-white border-r-4 border-yellow-400 shadow-lg shadow-white/10"
+                        : "text-white/85 hover:bg-gradient-to-r hover:from-white/15 hover:to-white/10 hover:text-white hover:shadow-md hover:shadow-white/5"
+                      } ${
+                        isMobile 
+                          ? "py-4 text-lg font-semibold" 
+                          : isClienteFinal 
+                            ? "py-4 text-base font-semibold" 
+                            : "py-2 text-sm font-medium"
+                      }`}
+                      style={{
+                        transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1), padding 400ms cubic-bezier(0.4, 0, 0.2, 1)'
+                      }}
+                      title={sidebarCollapsed ? item.label : ""}
+                      onClick={() => {
+                        if (sidebarCollapsed) {
+                          // Se sidebar está colapsada, expandir primeiro
+                          setSidebarCollapsed(false);
+                        } else {
+                          // Toggle do submenu de simulações
+                          setShowSimulacoesSidebar(!showSimulacoesSidebar);
+                        }
+
+                        // Fechar sidebar no mobile após clicar
+                        if (window.innerWidth < 1024) {
+                          setSidebarOpen(false);
+                        }
+                      }}
+                    >
+                      <Icon 
+                        className={`${isClienteFinal ? 'h-6 w-6' : 'h-5 w-5'} ${sidebarCollapsed ? "" : isClienteFinal ? "mr-4" : "mr-3"}`}
+                        style={{
+                          transition: 'margin 400ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms ease-out'
+                        }}
+                      />
+                      <div 
+                        className={`flex items-center flex-1 overflow-hidden ${
+                          sidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
+                        }`}
+                        style={{
+                          transition: 'width 350ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+                          transitionDelay: sidebarCollapsed ? '0ms' : '100ms'
+                        }}
+                      >
+                        <span className="flex-1 whitespace-nowrap">{item.label}</span>
+                        <ChevronDown 
+                          className={`h-4 w-4 ${showSimulacoesSidebar ? 'rotate-180' : ''}`}
+                          style={{
+                            transition: 'transform 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Submenu de Simulações */}
+                    <div 
+                      className={`overflow-hidden ${
+                        showSimulacoesSidebar && !sidebarCollapsed ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                      }`}
+                      style={{
+                        transition: 'max-height 400ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                        transitionDelay: showSimulacoesSidebar ? '50ms' : '0ms'
+                      }}
+                    >
+                      <div className="ml-6 mt-2 space-y-1 border-l border-white/20 pl-4">
+                            <Link href="/simulador-financiamento">
+                              <div className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200 cursor-pointer ${location === "/simulador-financiamento"
+                                ? "bg-blue-600/20 text-blue-200 border-r-2 border-blue-400"
+                                : "text-white/70 hover:bg-white/10 hover:text-white"
+                                }`}>
+                                <div className="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
+                                <span>Financiamento</span>
+                              </div>
+                            </Link>
+
+                            <Link href="/simulador-cgi">
+                              <div className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200 cursor-pointer ${location === "/simulador-cgi"
+                                ? "bg-emerald-600/20 text-emerald-200 border-r-2 border-emerald-400"
+                                : "text-white/70 hover:bg-white/10 hover:text-white"
+                                }`}>
+                                <div className="w-2 h-2 bg-emerald-400 rounded-full mr-3"></div>
+                                <span>Crédito com Garantia de Imóvel</span>
+                              </div>
+                            </Link>
+
+                            <Link href="/simulador-consorcio">
+                              <div className={`flex items-center px-3 py-2 text-sm rounded-md transition-all duration-200 cursor-pointer ${location === "/simulador-consorcio"
+                                ? "bg-red-600/20 text-red-200 border-r-2 border-red-400"
+                                : "text-white/70 hover:bg-white/10 hover:text-white"
+                                }`}>
+                                <div className="w-2 h-2 bg-red-400 rounded-full mr-3"></div>
+                                <span>Consórcio</span>
+                              </div>
+                            </Link>
+                        </div>
+                      </div>
+                    </div>
                 );
               }
 
@@ -865,14 +1073,22 @@ export default function Layout({ children }: LayoutProps) {
               return (
                 <Link key={item.href} href={item.href}>
                   <div
-                    className={`flex items-center rounded-md transition-all duration-300 ease-in-out cursor-pointer ${sidebarCollapsed ? "px-2 py-2" : "px-3"} ${isActive
-                      ? "bg-white/20 text-white border-r-2 border-white"
-                      : "text-white/80 hover:bg-white/10 hover:text-white"
-                      } ${sidebarCollapsed ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
-                      } ${isMobile ? "py-3 text-base font-medium" : "py-2 text-sm font-medium"}`}
-                    style={sidebarCollapsed ? {
-                      filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
-                    } : {}}
+                    className={`flex items-center rounded-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] ${
+                      sidebarCollapsed ? "px-2 py-2 justify-center" : "px-4"
+                    } ${
+                      isActive
+                      ? "bg-gradient-to-r from-white/25 to-white/15 text-white border-r-4 border-yellow-400 shadow-lg shadow-white/10"
+                      : "text-white/85 hover:bg-gradient-to-r hover:from-white/15 hover:to-white/10 hover:text-white hover:shadow-md hover:shadow-white/5"
+                    } ${
+                      isMobile 
+                        ? "py-4 text-lg font-semibold" 
+                        : isClienteFinal 
+                          ? "py-4 text-base font-semibold" 
+                          : "py-2 text-sm font-medium"
+                    }`}
+                    style={{
+                      transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1), padding 400ms cubic-bezier(0.4, 0, 0.2, 1)'
+                    }}
                     title={sidebarCollapsed ? item.label : ""}
                     onClick={() => {
                       // Fechar sidebar no mobile após clicar
@@ -881,8 +1097,23 @@ export default function Layout({ children }: LayoutProps) {
                       }
                     }}
                   >
-                    <Icon className={`h-5 w-5 ${sidebarCollapsed ? "" : "mr-3"}`} />
-                    {!sidebarCollapsed && item.label}
+                    <Icon 
+                      className={`${isClienteFinal ? 'h-6 w-6' : 'h-5 w-5'} ${sidebarCollapsed ? "" : isClienteFinal ? "mr-4" : "mr-3"}`}
+                      style={{
+                        transition: 'margin 400ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms ease-out'
+                      }}
+                    />
+                    <span 
+                      className={`whitespace-nowrap overflow-hidden ${
+                        sidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
+                      }`}
+                      style={{
+                        transition: 'width 350ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+                        transitionDelay: sidebarCollapsed ? '0ms' : '100ms'
+                      }}
+                    >
+                      {item.label}
+                    </span>
                   </div>
                 </Link>
               );
@@ -893,17 +1124,47 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </nav>
 
-        <div className={`absolute bottom-4 left-0 right-0 ${showCreditoSidebar ? 'sidebar-content-transition' : 'sidebar-content-transition-fast'} ${sidebarCollapsed ? "px-1" : "px-3"}`}>
+        <div 
+          className={`absolute bottom-4 left-0 right-0 ${
+            sidebarCollapsed ? "px-1" : "px-3"
+          }`}
+          style={{
+            transition: 'padding 400ms cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
+        >
           <Link href="/configuracoes">
-            <div className={`flex items-center text-white/80 cursor-pointer hover:bg-white/10 rounded-md transition-all duration-300 ease-in-out ${sidebarCollapsed ? "px-2 py-2" : "px-3"} ${sidebarCollapsed ? "justify-center hover:bg-white/20 hover:shadow-lg" : ""
-              } ${isMobile ? "py-3 text-base" : "py-2 text-sm"}`}
-              style={sidebarCollapsed ? {
-                filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2))'
-              } : {}}
+            <div 
+              className={`flex items-center text-white/85 cursor-pointer hover:bg-gradient-to-r hover:from-white/15 hover:to-white/10 hover:text-white hover:shadow-md hover:shadow-white/5 rounded-xl transition-all duration-300 hover:scale-[1.02] ${
+                sidebarCollapsed ? "px-2 py-2 justify-center" : "px-4"
+              } ${
+                isMobile 
+                  ? "py-4 text-lg font-semibold" 
+                  : localStorage.getItem('loginSource') === 'standard' 
+                    ? "py-4 text-base font-semibold" 
+                    : "py-2 text-sm"
+              }`}
+              style={{
+                transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1), padding 400ms cubic-bezier(0.4, 0, 0.2, 1)'
+              }}
               title={sidebarCollapsed ? "Configurações" : ""}
             >
-              <Settings className={`h-5 w-5 ${sidebarCollapsed ? "" : "mr-3"}`} />
-              {!sidebarCollapsed && "Configurações"}
+              <Settings 
+                className={`${localStorage.getItem('loginSource') === 'standard' ? 'h-6 w-6' : 'h-5 w-5'} ${sidebarCollapsed ? "" : localStorage.getItem('loginSource') === 'standard' ? "mr-4" : "mr-3"}`}
+                style={{
+                  transition: 'margin 400ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms ease-out'
+                }}
+              />
+              <span 
+                className={`whitespace-nowrap overflow-hidden ${
+                  sidebarCollapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'
+                }`}
+                style={{
+                  transition: 'width 350ms cubic-bezier(0.4, 0, 0.2, 1), opacity 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  transitionDelay: sidebarCollapsed ? '0ms' : '100ms'
+                }}
+              >
+                Configurações
+              </span>
             </div>
           </Link>
         </div>
@@ -923,13 +1184,12 @@ export default function Layout({ children }: LayoutProps) {
       <header
         className={cn(
           `fixed top-0 z-40 bg-gradient-to-r from-[#001f3f] to-[#004286] border-b border-white/10 shadow-sm h-16`,
-          'layout-transition-fast',
-          // Mobile: sempre de left-0 a right-0
-          "left-0 right-0",
-          // Desktop: ajuste baseado no estado da sidebar
-          "lg:left-auto lg:right-0",
-          sidebarCollapsed ? "lg:left-14" : "lg:left-60"
+          "right-0",
+          isMobile ? "left-0" : sidebarCollapsed ? "left-14" : "left-60"
         )}
+        style={{
+          transition: 'left 400ms cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
       >
         <div className="flex items-center justify-between h-full px-4 lg:px-6">
           <div className="flex items-center">
@@ -946,6 +1206,8 @@ export default function Layout({ children }: LayoutProps) {
             <div className="lg:hidden w-px h-6 bg-white/20 mx-3"></div>
 
             {(() => {
+              const isClienteFinal = localStorage.getItem('loginSource') === 'standard';
+              
               // Verificar se é uma página de crédito para mostrar título especial
               if (location.startsWith('/credito/') || location.startsWith('/simulador-')) {
                 const theme = getCurrentTheme();
@@ -957,6 +1219,26 @@ export default function Layout({ children }: LayoutProps) {
                         {theme.name}
                       </span>
                     </div>
+                  </div>
+                );
+              }
+
+              // Para clientes finais, mostrar uma saudação mais acolhedora
+              if (isClienteFinal) {
+                const titleInfo = getTitleInfo();
+                return (
+                  <div className="flex flex-col space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                      <h1 className="text-sm font-semibold text-white">
+                        {titleInfo.title}
+                      </h1>
+                    </div>
+                    {user?.firstName && (
+                      <p className="text-xs text-white/70 ml-4">
+                        Olá, {user.firstName}! Bem-vindo(a) ao seu painel
+                      </p>
+                    )}
                   </div>
                 );
               }
@@ -974,88 +1256,73 @@ export default function Layout({ children }: LayoutProps) {
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Simulators Dropdown - Hidden on mobile */}
-            <div
-              className="hidden lg:block"
-              onMouseEnter={() => {
-                // Cancelar timeout se o mouse voltar
-                if (mouseLeaveTimeoutRef.current) {
-                  clearTimeout(mouseLeaveTimeoutRef.current);
-                  mouseLeaveTimeoutRef.current = null;
-                }
-              }}
-              onMouseLeave={() => {
-                // Só fechar se o dropdown estiver aberto, com delay
-                if (isSimulatorsOpen) {
-                  mouseLeaveTimeoutRef.current = setTimeout(() => {
+            {/* Simulators Dropdown - Escondido para clientes finais (login standard) */}
+            {localStorage.getItem('loginSource') !== 'standard' && (
+              <div
+                className="hidden lg:block"
+                onMouseEnter={() => {
+                  // Cancelar timeout se o mouse voltar
+                  if (mouseLeaveTimeoutRef.current) {
+                    clearTimeout(mouseLeaveTimeoutRef.current);
+                    mouseLeaveTimeoutRef.current = null;
+                  }
+                }}
+                onMouseLeave={() => {
+                  // Só fechar se o dropdown estiver aberto, com delay
+                  if (isSimulatorsOpen) {
+                    mouseLeaveTimeoutRef.current = setTimeout(() => {
+                      setIsSimulatorsOpen(false);
+                    }, 800); // 800ms de delay para dar tempo do usuário entrar no menu
+                  }
+                }}
+              >
+                <DropdownMenu open={isSimulatorsOpen} onOpenChange={(open) => {
+                  // Permitir apenas abertura manual via clique do botão
+                  if (!open) {
                     setIsSimulatorsOpen(false);
-                  }, 800); // 800ms de delay para dar tempo do usuário entrar no menu
-                }
-              }}
-            >
-              <DropdownMenu open={isSimulatorsOpen} onOpenChange={(open) => {
-                // Permitir apenas abertura manual via clique do botão
-                if (!open) {
-                  setIsSimulatorsOpen(false);
-                }
-              }}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    ref={calculatorButtonRef}
-                    variant="ghost"
-                    size={isMobile ? "default" : "sm"}
-                    className={`${isMobile ? 'h-10 min-w-[44px]' : 'h-8'} w-auto px-2 text-white hover:bg-white/10 flex items-center gap-2 ${isTouchDevice ? 'touch-target' : ''}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsSimulatorsOpen(!isSimulatorsOpen);
-                    }}
+                  }
+                }}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      ref={calculatorButtonRef}
+                      variant="ghost"
+                      size={isMobile ? "default" : "sm"}
+                      className={`${isMobile ? 'h-10 min-w-[44px]' : 'h-8'} w-auto px-2 text-white hover:bg-white/10 flex items-center gap-2 ${isTouchDevice ? 'touch-target' : ''}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsSimulatorsOpen(!isSimulatorsOpen);
+                      }}
+                    >
+                      <div>
+                        <Calculator className="h-4 w-4" />
+                      </div>
+                      <div>
+                        {isSimulatorsOpen && (
+                          <span
+                            className="text-sm font-medium whitespace-nowrap"
+                          >
+                            SIMULADORES
+                          </span>
+                        )}
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-80 max-h-[600px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 shadow-xl rounded-xl p-1 relative"
                   >
-                    <motion.div layout>
-                      <Calculator className="h-4 w-4" />
-                    </motion.div>
-                    <AnimatePresence>
-                      {isSimulatorsOpen && (
-                        <motion.span
-                          initial={{ opacity: 0, width: 0, marginRight: 0 }}
-                          animate={{ opacity: 1, width: 'auto', marginRight: '8px' }}
-                          exit={{ opacity: 0, width: 0, marginRight: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="text-sm font-medium whitespace-nowrap"
-                        >
-                          SIMULADORES
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-80 max-h-[600px] bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-white/20 dark:border-gray-700/50 shadow-xl rounded-xl p-1 relative"
-                >
-                  {/* Efeito de brilho */}
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none"></div>
+                    {/* Efeito de brilho */}
+                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 via-transparent to-purple-500/10 pointer-events-none"></div>
 
-                  <div className="relative space-y-0.5">
-                    {getSortedSimulators().map((simulator) => {
-                      const Icon = simulator.icon;
-                      return (
-                        <DropdownMenuItem
-                          key={simulator.id}
-                          className="p-0 focus:bg-transparent"
-                          onSelect={(e) => {
-                            e.preventDefault();
-                            handleSimulatorClick(simulator.id);
-                            setIsSimulatorsOpen(false);
-                            // Navegar após fechar
-                            setTimeout(() => {
-                              setLocation(simulator.href);
-                            }, 100);
-                          }}
-                        >
-                          <div className="group w-full"
-                            onClick={(e) => {
+                    <div className="relative space-y-0.5">
+                      {getSortedSimulators().map((simulator) => {
+                        const Icon = simulator.icon;
+                        return (
+                          <DropdownMenuItem
+                            key={simulator.id}
+                            className="p-0 focus:bg-transparent"
+                            onSelect={(e) => {
                               e.preventDefault();
-                              e.stopPropagation();
                               handleSimulatorClick(simulator.id);
                               setIsSimulatorsOpen(false);
                               // Navegar após fechar
@@ -1064,23 +1331,36 @@ export default function Layout({ children }: LayoutProps) {
                               }, 100);
                             }}
                           >
-                            <div className={`flex items-center px-2 py-1.5 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer transform hover:scale-[1.01] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:${simulator.bgColor} dark:hover:${simulator.darkBgColor} hover:${simulator.textColor} dark:hover:${simulator.darkTextColor} hover:shadow-sm`}>
-                              <div className={`p-1 rounded-full ${simulator.iconBg} dark:${simulator.darkIconBg} mr-2 transition-all duration-300 group-hover:${simulator.iconBgHover} dark:group-hover:${simulator.darkIconBgHover}`}>
-                                <Icon className={`h-2.5 w-2.5 ${simulator.iconColor} dark:${simulator.darkIconColor}`} />
-                              </div>
-                              <span className="font-medium text-xs flex-1">{simulator.label}</span>
-                              <div className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                <ChevronRight className="h-2.5 w-2.5" />
+                            <div className="group w-full"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleSimulatorClick(simulator.id);
+                                setIsSimulatorsOpen(false);
+                                // Navegar após fechar
+                                setTimeout(() => {
+                                  setLocation(simulator.href);
+                                }, 100);
+                              }}
+                            >
+                              <div className={`flex items-center px-2 py-1.5 text-sm font-medium rounded-md transition-all duration-300 cursor-pointer transform hover:scale-[1.01] text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:${simulator.bgColor} dark:hover:${simulator.darkBgColor} hover:${simulator.textColor} dark:hover:${simulator.darkTextColor} hover:shadow-sm`}>
+                                <div className={`p-1 rounded-full ${simulator.iconBg} dark:${simulator.darkIconBg} mr-2 transition-all duration-300 group-hover:${simulator.iconBgHover} dark:group-hover:${simulator.darkIconBgHover}`}>
+                                  <Icon className={`h-2.5 w-2.5 ${simulator.iconColor} dark:${simulator.darkIconColor}`} />
+                                </div>
+                                <span className="font-medium text-xs flex-1">{simulator.label}</span>
+                                <div className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                  <ChevronRight className="h-2.5 w-2.5" />
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
 
             {/* Mobile-only icons: Search and Bell */}
             <div className="flex items-center space-x-3 lg:hidden">
@@ -1126,28 +1406,30 @@ export default function Layout({ children }: LayoutProps) {
               />
             </div> */}
 
-            {/* Documentos Úteis Button */}
-            <div className="hidden lg:block">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size={isMobile ? "default" : "sm"}
-                      className={`${isMobile ? 'h-10 w-10 min-w-[44px]' : 'h-8 w-8'} text-white hover:bg-white/10 ${isTouchDevice ? 'touch-target' : ''}`}
-                      onClick={() => {
-                        setLocation('/documentos-uteis');
-                      }}
-                    >
-                      <FileText className="h-5 w-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Documentos Úteis</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+            {/* Documentos Úteis Button - Escondido para clientes finais (login standard) */}
+            {localStorage.getItem('loginSource') !== 'standard' && (
+              <div className="hidden lg:block">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size={isMobile ? "default" : "sm"}
+                        className={`${isMobile ? 'h-10 w-10 min-w-[44px]' : 'h-8 w-8'} text-white hover:bg-white/10 ${isTouchDevice ? 'touch-target' : ''}`}
+                        onClick={() => {
+                          setLocation('/documentos-uteis');
+                        }}
+                      >
+                        <FileText className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Documentos Úteis</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
 
             {/* Desktop Notifications */}
             <div className="hidden lg:block">
@@ -1229,13 +1511,9 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Horizontal Credit Navigation - Compact Design */}
-      <AnimatePresence>
+      <div>
         {showCreditoHorizontalNav && (
-          <motion.nav
-            initial={{ y: -40, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -40, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
+          <nav
             className={cn(
               "fixed z-30 bg-white/97 backdrop-blur-md border-b shadow-sm",
               "left-0 right-0 top-16",
@@ -1260,9 +1538,7 @@ export default function Layout({ children }: LayoutProps) {
 
                       return (
                         <Link key={item.href} href={item.href}>
-                          <motion.div
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.97 }}
+                          <div
                             className={cn(
                               "flex items-center px-2.5 py-1.5 text-xs font-medium rounded-md transition-all duration-200 cursor-pointer whitespace-nowrap group",
                               isActive
@@ -1283,13 +1559,11 @@ export default function Layout({ children }: LayoutProps) {
                             </div>
                             <span className="font-medium text-xs">{item.label}</span>
                             {isActive && (
-                              <motion.div
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
+                              <div
                                 className="w-1 h-1 bg-white rounded-full ml-1.5"
                               />
                             )}
-                          </motion.div>
+                          </div>
                         </Link>
                       );
                     })}
@@ -1305,8 +1579,7 @@ export default function Layout({ children }: LayoutProps) {
 
                       return (
                         <Link key={item.href} href={item.href}>
-                          <motion.div
-                            whileTap={{ scale: 0.96 }}
+                          <div
                             className={cn(
                               "flex items-center px-2 py-2 text-xs font-medium rounded-md transition-all duration-200 cursor-pointer",
                               isActive
@@ -1331,13 +1604,11 @@ export default function Layout({ children }: LayoutProps) {
                             </div>
                             <span className="text-xs font-medium truncate">{item.label}</span>
                             {isActive && (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
+                              <div
                                 className="w-1 h-1 bg-white rounded-full ml-auto"
                               />
                             )}
-                          </motion.div>
+                          </div>
                         </Link>
                       );
                     })}
@@ -1345,21 +1616,24 @@ export default function Layout({ children }: LayoutProps) {
                 </div>
               </div>
             </div>
-          </motion.nav>
+          </nav>
         )}
-      </AnimatePresence>
+      </div>
 
       {/* Page content */}
-      <main className={cn(
-        "flex-1 overflow-auto transition-all duration-300",
-        // Padding-top: base header + compact horizontal nav if visible
-        showCreditoHorizontalNav ? "pt-[88px]" : "pt-16",
-        // Mobile: sem margem lateral, Desktop: margem baseada no estado da sidebar
-        "ml-0",
-        sidebarCollapsed ? "lg:ml-14" : "lg:ml-60",
-        isMobile ? "mobile-padding" : "",
-        showBottomNav ? "pb-20" : ""
-      )}>
+      <main 
+        className={cn(
+          "flex-1 overflow-auto",
+          // Padding-top: base header + compact horizontal nav if visible
+          showCreditoHorizontalNav ? "pt-[88px]" : "pt-16",
+          // Mobile: sem margem lateral, Desktop: margem baseada no estado da sidebar
+          isMobile ? "ml-0 mobile-padding" : sidebarCollapsed ? "ml-14" : "ml-60",
+          showBottomNav ? "pb-20" : ""
+        )}
+        style={{
+          transition: 'margin-left 400ms cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+      >
         <div className={isMobile ? "mobile-bottom-safe" : ""}>
           {/* Verificar se tem organização selecionada - Temporarily disabled */}
           {/* {!currentOrganization ? (
@@ -1373,13 +1647,10 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Mobile Bottom Navigation */}
       {showBottomNav && (
-        <motion.div
-          initial={prefersReducedMotion ? undefined : { y: 100 }}
-          animate={prefersReducedMotion ? undefined : { y: 0 }}
-          transition={prefersReducedMotion ? undefined : { duration: 0.3 }}
+        <div
         >
           <BottomNavigation />
-        </motion.div>
+        </div>
       )}
 
     </div>

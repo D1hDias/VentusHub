@@ -33,6 +33,9 @@ import { Separator } from "@/components/ui/separator";
 import { PropertyModal } from "@/components/PropertyModal";
 import { DueDiligenceModal } from "@/components/DueDiligenceModal";
 import { PageLoader } from "@/components/PageLoader";
+import { motion } from "framer-motion";
+import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
+import { useResponsive } from "@/hooks/useMediaQuery";
 
 interface Property {
   id?: string;
@@ -77,6 +80,8 @@ export default function PropertyDetails() {
   const [refreshKey, setRefreshKey] = useState(0);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { getListVariants, getListItemVariants } = useSmoothtTransitions();
+  const { isMobile } = useResponsive();
 
   const { data: property, isLoading, error } = useQuery({
     queryKey: [`/api/properties/${propertyId}`],
@@ -477,11 +482,17 @@ export default function PropertyDetails() {
           <div className="px-6 py-8">
 
             {/* Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <motion.div 
+              className="grid grid-cols-1 lg:grid-cols-4 gap-8"
+              variants={getListVariants()}
+              initial="hidden"
+              animate="visible"
+            >
               {/* Main Content */}
               <div className="lg:col-span-3 space-y-6">
                 {/* Property Information */}
-                <Card>
+                <motion.div variants={getListItemVariants()}>
+                  <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center text-sm">
                       <Home className="h-4 w-4 mr-2" />
@@ -554,10 +565,12 @@ export default function PropertyDetails() {
                       </>
                     )}
                   </CardContent>
-                </Card>
+                  </Card>
+                </motion.div>
 
                 {/* Owners Information */}
-                <Card>
+                <motion.div variants={getListItemVariants()}>
+                  <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center text-sm">
                       <User className="h-4 w-4 mr-2" />
@@ -591,10 +604,12 @@ export default function PropertyDetails() {
                       <p className="text-sm text-gray-500">Nenhum proprietário cadastrado</p>
                     )}
                   </CardContent>
-                </Card>
+                  </Card>
+                </motion.div>
 
                 {/* Documentation */}
-                <Card>
+                <motion.div variants={getListItemVariants()}>
+                  <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between text-sm">
                       <div className="flex items-center">
@@ -683,13 +698,15 @@ export default function PropertyDetails() {
                       </div>
                     )}
                   </CardContent>
-                </Card>
+                  </Card>
+                </motion.div>
               </div>
 
               {/* Sidebar */}
               <div className="space-y-6">
                 {/* Quick Actions */}
-                <Card>
+                <motion.div variants={getListItemVariants()}>
+                  <Card>
                   <CardHeader>
                     <CardTitle className="text-sm">Ações Rápidas</CardTitle>
                   </CardHeader>
@@ -707,10 +724,12 @@ export default function PropertyDetails() {
                       Editar Informações
                     </Button>
                   </CardContent>
-                </Card>
+                  </Card>
+                </motion.div>
 
                 {/* Timeline */}
-                <Card>
+                <motion.div variants={getListItemVariants()}>
+                  <Card>
                   <CardHeader>
                     <CardTitle className="text-sm">Timeline</CardTitle>
                   </CardHeader>
@@ -738,10 +757,12 @@ export default function PropertyDetails() {
                       )}
                     </div>
                   </CardContent>
-                </Card>
+                  </Card>
+                </motion.div>
 
                 {/* Property Stats */}
-                <Card>
+                <motion.div variants={getListItemVariants()}>
+                  <Card>
                   <CardHeader>
                     <CardTitle className="text-sm">Estatísticas</CardTitle>
                   </CardHeader>
@@ -764,9 +785,10 @@ export default function PropertyDetails() {
                       <span className="text-xs font-medium">{Math.round(progress)}%</span>
                     </div>
                   </CardContent>
-                </Card>
+                  </Card>
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>

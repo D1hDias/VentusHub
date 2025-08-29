@@ -28,6 +28,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { motion } from "framer-motion";
+import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
+import { useResponsive } from "@/hooks/useMediaQuery";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -73,6 +76,8 @@ export default function Settings() {
   const { user, updateProfile, uploadAvatar, updateSettings } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
+  const { getListVariants, getListItemVariants } = useSmoothtTransitions();
+  const { isMobile } = useResponsive();
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -213,9 +218,15 @@ export default function Settings() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <motion.div 
+        className="grid grid-cols-1 lg:grid-cols-4 gap-6"
+        variants={getListVariants()}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Sidebar */}
-        <Card className="lg:col-span-1">
+        <motion.div variants={getListItemVariants()}>
+          <Card className="lg:col-span-1">
           <CardContent className="p-6">
             <nav className="space-y-2">
               {tabs.map((tab) => {
@@ -234,13 +245,15 @@ export default function Settings() {
               })}
             </nav>
           </CardContent>
-        </Card>
+          </Card>
+        </motion.div>
 
         {/* Main Content */}
         <div className="lg:col-span-3 space-y-6">
           {/* Profile Tab */}
           {activeTab === "profile" && (
-            <Card>
+            <motion.div variants={getListItemVariants()}>
+              <Card>
               <CardHeader>
                 <CardTitle>Informações do Perfil</CardTitle>
                 <CardDescription>
@@ -420,17 +433,20 @@ export default function Settings() {
                   </form>
                 </Form>
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
           )}
 
           {/* Notifications Tab */}
           {activeTab === "notifications" && (
-            <NotificationSettings />
+            <motion.div variants={getListItemVariants()}>
+              <NotificationSettings />
+            </motion.div>
           )}
 
           {/* Security Tab */}
           {activeTab === "security" && (
-            <div className="space-y-6">
+            <motion.div variants={getListItemVariants()} className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Segurança da Conta</CardTitle>
@@ -537,12 +553,13 @@ export default function Settings() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </motion.div>
           )}
 
           {/* Appearance Tab */}
           {activeTab === "appearance" && (
-            <Card>
+            <motion.div variants={getListItemVariants()}>
+              <Card>
               <CardHeader>
                 <CardTitle>Aparência</CardTitle>
                 <CardDescription>
@@ -605,12 +622,14 @@ export default function Settings() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
           )}
 
           {/* About Tab */}
           {activeTab === "about" && (
-            <Card>
+            <motion.div variants={getListItemVariants()}>
+              <Card>
               <CardHeader>
                 <CardTitle>Sobre o Sistema</CardTitle>
                 <CardDescription>
@@ -662,10 +681,11 @@ export default function Settings() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

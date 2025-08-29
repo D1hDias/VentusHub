@@ -16,16 +16,17 @@ interface AuthenticatedAdminRequest extends Request {
 
 /**
  * Middleware to validate master admin authentication
+ * Now using secure httpOnly cookies instead of Authorization headers
  */
 async function requireMasterAdmin(req: AuthenticatedAdminRequest, res: Response, next: NextFunction) {
   try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+    // Extract token from httpOnly cookie instead of Authorization header
+    const token = req.cookies?.masterAdminToken;
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        error: "Token de autorização necessário"
+        error: "Sessão de administrador necessária"
       });
     }
 
@@ -111,11 +112,20 @@ router.post('/auth/login', async (req: Request, res: Response) => {
       });
     }
 
+    // Set secure httpOnly cookie instead of returning token in response
+    res.cookie('masterAdminToken', result.sessionToken, {
+      httpOnly: true, // Cannot be accessed via JavaScript
+      secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+      sameSite: 'strict', // CSRF protection
+      maxAge: 8 * 60 * 60 * 1000, // 8 hours (same as session expiry)
+      path: '/' // Available for all paths
+    });
+
     res.json({
       success: true,
-      sessionToken: result.sessionToken,
       adminId: result.adminId,
       message: "Login realizado com sucesso"
+      // Note: sessionToken no longer exposed to client
     });
 
   } catch (error) {
@@ -133,8 +143,8 @@ router.post('/auth/login', async (req: Request, res: Response) => {
  */
 router.post('/auth/logout', requireMasterAdmin, async (req: AuthenticatedAdminRequest, res: Response) => {
   try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.substring(7) || '';
+    // Get token from cookie instead of Authorization header
+    const token = req.cookies?.masterAdminToken || '';
 
     const success = await masterAdminService.logoutSession(token);
     
@@ -147,6 +157,14 @@ router.post('/auth/logout', requireMasterAdmin, async (req: AuthenticatedAdminRe
         metadata: { sessionId: req.sessionId }
       });
     }
+
+    // Clear the secure cookie on logout
+    res.clearCookie('masterAdminToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/'
+    });
 
     res.json({
       success,
@@ -243,6 +261,84 @@ router.get('/users', requireMasterAdmin, async (req: Request, res: Response) => 
 
   } catch (error) {
     console.error("❌ Get B2B users error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erro interno do servidor"
+    });
+  }
+});
+
+/**
+ * PUT /api/master-admin/users/:id
+ * Update B2B user information
+ */
+router.put('/users/:id', requireMasterAdmin, logAdminRequest, async (req: AuthenticatedAdminRequest, res: Response) => {
+  try {
+    const userId = req.params.id;
+    const updateData = req.body;
+
+    // Basic validation
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: "ID do usuário é obrigatório"
+      });
+    }
+
+    const result = await masterAdminService.updateB2BUser(userId, updateData, req.adminId!);
+    
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        error: result.error
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Usuário atualizado com sucesso"
+    });
+
+  } catch (error) {
+    console.error("❌ Update B2B user error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Erro interno do servidor"
+    });
+  }
+});
+
+/**
+ * DELETE /api/master-admin/users/:id
+ * Delete B2B user
+ */
+router.delete('/users/:id', requireMasterAdmin, logAdminRequest, async (req: AuthenticatedAdminRequest, res: Response) => {
+  try {
+    const userId = req.params.id;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: "ID do usuário é obrigatório"
+      });
+    }
+
+    const result = await masterAdminService.deleteB2BUser(userId, req.adminId!);
+    
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        error: result.error
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Usuário excluído com sucesso"
+    });
+
+  } catch (error) {
+    console.error("❌ Delete B2B user error:", error);
     res.status(500).json({
       success: false,
       error: "Erro interno do servidor"

@@ -84,10 +84,11 @@ export async function initializeDB() {
     // Log additional context for debugging
     if (error.cause?.code === 'UND_ERR_CONNECT_TIMEOUT') {
       console.error('💡 Timeout error - check DATABASE_URL and network connectivity');
-      console.error('💡 Consider using fallback database or implementing circuit breaker');
     }
     
-    throw error;
+    console.warn('⚠️  Server will start in OFFLINE MODE - database features will be limited');
+    console.warn('⚠️  Check your internet connection and restart the server when connectivity improves');
+    return false; // Return false instead of throwing error
   }
 }
 

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { PageLoader } from '@/components/PageLoader';
 import { 
   Bell, 
   CheckCircle2, 
@@ -84,8 +85,8 @@ export default function Notifications() {
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-6 text-center text-muted-foreground">
-              Carregando notificações...
+            <div className="min-h-[400px] flex items-center justify-center">
+              <PageLoader size="lg" message="Carregando notificações..." />
             </div>
           ) : notifications.length === 0 ? (
             <div className="p-6 text-center">

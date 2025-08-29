@@ -2,8 +2,14 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
+import { useResponsive } from "@/hooks/useMediaQuery";
 
 export default function DocumentosUteis() {
+  const { getListVariants, getListItemVariants } = useSmoothtTransitions();
+  const { isMobile } = useResponsive();
+  
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -17,10 +23,16 @@ export default function DocumentosUteis() {
       </div>
 
       {/* Cards de Documentos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <motion.div 
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        variants={getListVariants()}
+        initial="hidden"
+        animate="visible"
+      >
         
         {/* Contratos */}
-        <Card className="hover:shadow-lg transition-shadow duration-200">
+        <motion.div variants={getListItemVariants()}>
+          <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader>
             <CardTitle className="flex items-center text-lg">
               <FileText className="h-5 w-5 mr-2 text-blue-600" />
@@ -46,10 +58,12 @@ export default function DocumentosUteis() {
               </Button>
             </div>
           </CardContent>
-        </Card>
+          </Card>
+        </motion.div>
 
         {/* Certidões */}
-        <Card className="hover:shadow-lg transition-shadow duration-200">
+        <motion.div variants={getListItemVariants()}>
+          <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader>
             <CardTitle className="flex items-center text-lg">
               <FileText className="h-5 w-5 mr-2 text-green-600" />
@@ -75,10 +89,12 @@ export default function DocumentosUteis() {
               </Button>
             </div>
           </CardContent>
-        </Card>
+          </Card>
+        </motion.div>
 
         {/* Formulários ITBI */}
-        <Card className="hover:shadow-lg transition-shadow duration-200">
+        <motion.div variants={getListItemVariants()}>
+          <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader>
             <CardTitle className="flex items-center text-lg">
               <FileText className="h-5 w-5 mr-2 text-orange-600" />
@@ -104,10 +120,12 @@ export default function DocumentosUteis() {
               </Button>
             </div>
           </CardContent>
-        </Card>
+          </Card>
+        </motion.div>
 
         {/* Laudos */}
-        <Card className="hover:shadow-lg transition-shadow duration-200">
+        <motion.div variants={getListItemVariants()}>
+          <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader>
             <CardTitle className="flex items-center text-lg">
               <FileText className="h-5 w-5 mr-2 text-purple-600" />
@@ -133,10 +151,12 @@ export default function DocumentosUteis() {
               </Button>
             </div>
           </CardContent>
-        </Card>
+          </Card>
+        </motion.div>
 
         {/* Legislação */}
-        <Card className="hover:shadow-lg transition-shadow duration-200">
+        <motion.div variants={getListItemVariants()}>
+          <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader>
             <CardTitle className="flex items-center text-lg">
               <ExternalLink className="h-5 w-5 mr-2 text-red-600" />
@@ -162,10 +182,12 @@ export default function DocumentosUteis() {
               </Button>
             </div>
           </CardContent>
-        </Card>
+          </Card>
+        </motion.div>
 
         {/* Formulários Diversos */}
-        <Card className="hover:shadow-lg transition-shadow duration-200">
+        <motion.div variants={getListItemVariants()}>
+          <Card className="hover:shadow-lg transition-shadow duration-200">
           <CardHeader>
             <CardTitle className="flex items-center text-lg">
               <FileText className="h-5 w-5 mr-2 text-teal-600" />
@@ -191,12 +213,18 @@ export default function DocumentosUteis() {
               </Button>
             </div>
           </CardContent>
-        </Card>
+          </Card>
+        </motion.div>
 
-      </div>
+      </motion.div>
 
       {/* Nota Informativa */}
-      <Card className="bg-blue-50 border-blue-200">
+      <motion.div 
+        variants={getListItemVariants()}
+        initial="hidden"
+        animate="visible"
+      >
+        <Card className="bg-blue-50 border-blue-200">
         <CardContent className="pt-6">
           <div className="flex items-start space-x-3">
             <FileText className="h-5 w-5 text-blue-600 mt-0.5" />
@@ -210,7 +238,8 @@ export default function DocumentosUteis() {
             </div>
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      </motion.div>
     </div>
   );
 }

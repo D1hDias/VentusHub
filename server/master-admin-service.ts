@@ -14,13 +14,42 @@ import {
   masterAdminLoginSchema 
 } from "../shared/schema.js";
 import bcrypt from "bcryptjs";
-import { randomUUID } from "crypto";
+import { randomUUID, randomBytes } from "crypto";
 import { betterAuth } from "better-auth";
 import { auth } from "./better-auth.js";
+import { sendB2BCredentials } from "./email-service.js";
 
 // ======================================
 // MASTER ADMIN SERVICE
 // ======================================
+
+/**
+ * Generate secure temporary password
+ * Requirements: 12 chars, uppercase, lowercase, numbers, symbols
+ */
+function generateSecurePassword(): string {
+  const length = 12;
+  const lowercase = 'abcdefghjkmnpqrstuvwxyz'; // Excluding confusing chars like 'i', 'l', 'o'
+  const uppercase = 'ABCDEFGHJKMNPQRSTUVWXYZ'; // Excluding confusing chars like 'I', 'L', 'O'
+  const numbers = '23456789'; // Excluding confusing chars like '0', '1'
+  const symbols = '!@#$%&*+=-';
+  
+  // Ensure at least one character from each category
+  let password = '';
+  password += lowercase[Math.floor(Math.random() * lowercase.length)];
+  password += uppercase[Math.floor(Math.random() * uppercase.length)];
+  password += numbers[Math.floor(Math.random() * numbers.length)];
+  password += symbols[Math.floor(Math.random() * symbols.length)];
+  
+  // Fill the rest randomly
+  const allChars = lowercase + uppercase + numbers + symbols;
+  for (let i = 4; i < length; i++) {
+    password += allChars[Math.floor(Math.random() * allChars.length)];
+  }
+  
+  // Shuffle the password to avoid predictable patterns
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+}
 
 export class MasterAdminService {
   
@@ -256,13 +285,13 @@ export class MasterAdminService {
         };
       }
 
-      // Generate temporary password
-      const tempPassword = this.generateTemporaryPassword();
+      // Generate secure temporary password
+      const tempPassword = generateSecurePassword();
       
       // Create user using Better Auth
       const newUser = await auth.api.signUpEmail({
         body: {
-          name: userData.name,
+          name: userData.businessName,
           email: userData.email,
           password: tempPassword,
           callbackURL: process.env.BETTER_AUTH_URL || "http://localhost:5000"
@@ -281,12 +310,24 @@ export class MasterAdminService {
         db.insert(b2bUserProfiles).values({
           userId: newUser.user.id,
           userType: userData.userType,
-          organizationName: userData.organizationName,
+          businessName: userData.businessName,
+          document: userData.document,
           creci: userData.creci,
-          cnpj: userData.cnpj,
-          cpf: userData.cpf,
+          tradeName: userData.tradeName,
           phone: userData.phone,
-          address: userData.address,
+          // Informações Financeiras
+          bank: userData.bank,
+          agency: userData.agency,
+          account: userData.account,
+          pixKey: userData.pixKey,
+          // Campos de endereço modernos
+          cep: userData.cep,
+          street: userData.street,
+          number: userData.number,
+          complement: userData.complement,
+          neighborhood: userData.neighborhood,
+          city: userData.city,
+          state: userData.state,
           createdBy: adminId,
           notes: userData.notes,
           permissions: JSON.stringify([
@@ -307,15 +348,74 @@ export class MasterAdminService {
         status: "SUCCESS",
         targetDetails: {
           email: userData.email,
-          name: userData.name,
+          name: userData.businessName,
           userType: userData.userType,
-          organizationName: userData.organizationName
+          businessName: userData.businessName
         },
         metadata: {
           tempPassword: tempPassword, // For admin reference only
           createdBy: adminId
         }
       });
+
+      // Send B2B credentials email
+      try {
+        const emailResult = await sendB2BCredentials({
+          name: userData.businessName || userData.name,
+          email: userData.email,
+          tempPassword: tempPassword,
+          userType: userData.userType,
+          businessName: userData.businessName
+        });
+
+        if (!emailResult.success) {
+          console.error("⚠️ Email sending failed (but user was created):", emailResult.error);
+          
+          // Log email failure but don't fail the user creation
+          await this.logActivity({
+            adminId,
+            action: "SEND_EMAIL_FAILED",
+            targetType: "USER",
+            targetId: newUser.user.id,
+            status: "FAILED",
+            targetDetails: { email: userData.email },
+            metadata: { 
+              error: emailResult.error || "Email sending failed"
+            }
+          });
+        } else {
+          console.log("✅ B2B credentials email sent successfully");
+          
+          // Log successful email sending
+          await this.logActivity({
+            adminId,
+            action: "SEND_EMAIL_SUCCESS",
+            targetType: "USER",
+            targetId: newUser.user.id,
+            status: "SUCCESS",
+            targetDetails: { email: userData.email },
+            metadata: { 
+              emailSent: true,
+              provider: "Resend"
+            }
+          });
+        }
+      } catch (emailError) {
+        console.error("⚠️ Email service error (but user was created):", emailError);
+        
+        // Log email error but don't fail the user creation
+        await this.logActivity({
+          adminId,
+          action: "SEND_EMAIL_ERROR",
+          targetType: "USER", 
+          targetId: newUser.user.id,
+          status: "FAILED",
+          targetDetails: { email: userData.email },
+          metadata: { 
+            error: emailError instanceof Error ? emailError.message : "Email service error"
+          }
+        });
+      }
 
       return {
         success: true,
@@ -331,6 +431,197 @@ export class MasterAdminService {
         targetType: "USER",
         status: "FAILED",
         targetDetails: { email: userData.email },
+        metadata: { 
+          error: error instanceof Error ? error.message : "Unknown error"
+        }
+      });
+
+      return {
+        success: false,
+        error: "Erro interno do servidor"
+      };
+    }
+  }
+
+  /**
+   * Update B2B user information
+   */
+  async updateB2BUser(userId: string, updateData: any, adminId: string): Promise<{
+    success: boolean;
+    error?: string;
+  }> {
+    try {
+      // Check if user exists
+      const existingUser = await safeQuery(() =>
+        db.select()
+          .from(b2bUserProfiles)
+          .where(eq(b2bUserProfiles.userId, userId))
+          .limit(1)
+      );
+
+      if (!existingUser || existingUser.length === 0) {
+        return {
+          success: false,
+          error: "Usuário não encontrado"
+        };
+      }
+
+      const oldData = existingUser[0];
+
+      // Update B2B profile
+      await safeQuery(() =>
+        db.update(b2bUserProfiles)
+          .set({
+            businessName: updateData.businessName,
+            document: updateData.document,
+            tradeName: updateData.tradeName,
+            creci: updateData.creci,
+            phone: updateData.phone,
+            bank: updateData.bank,
+            agency: updateData.agency,
+            account: updateData.account,
+            pixKey: updateData.pixKey,
+            cep: updateData.cep,
+            street: updateData.street,
+            number: updateData.number,
+            complement: updateData.complement,
+            neighborhood: updateData.neighborhood,
+            city: updateData.city,
+            state: updateData.state,
+            isActive: updateData.isActive,
+            notes: updateData.notes,
+            updatedAt: new Date()
+          })
+          .where(eq(b2bUserProfiles.userId, userId))
+      );
+
+      // Log the update
+      await this.logActivity({
+        adminId,
+        action: "UPDATE_USER_SUCCESS",
+        targetType: "USER",
+        targetId: userId,
+        status: "SUCCESS",
+        targetDetails: {
+          businessName: updateData.businessName,
+          document: updateData.document
+        },
+        metadata: {
+          previousValues: {
+            businessName: oldData.businessName,
+            document: oldData.document,
+            isActive: oldData.isActive
+          },
+          newValues: {
+            businessName: updateData.businessName,
+            document: updateData.document,
+            isActive: updateData.isActive
+          }
+        }
+      });
+
+      return {
+        success: true
+      };
+
+    } catch (error) {
+      console.error("❌ Update B2B user error:", error);
+      
+      await this.logActivity({
+        adminId,
+        action: "UPDATE_USER_FAILED",
+        targetType: "USER",
+        targetId: userId,
+        status: "FAILED",
+        metadata: { 
+          error: error instanceof Error ? error.message : "Unknown error"
+        }
+      });
+
+      return {
+        success: false,
+        error: "Erro interno do servidor"
+      };
+    }
+  }
+
+  /**
+   * Delete B2B user
+   */
+  async deleteB2BUser(userId: string, adminId: string): Promise<{
+    success: boolean;
+    error?: string;
+  }> {
+    try {
+      // Get user info before deletion for logging
+      const existingUser = await safeQuery(() =>
+        db.select({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          businessName: b2bUserProfiles.businessName,
+          document: b2bUserProfiles.document,
+          userType: b2bUserProfiles.userType
+        })
+        .from(b2bUserProfiles)
+        .innerJoin(user, eq(b2bUserProfiles.userId, user.id))
+        .where(eq(b2bUserProfiles.userId, userId))
+        .limit(1)
+      );
+
+      if (!existingUser || existingUser.length === 0) {
+        return {
+          success: false,
+          error: "Usuário não encontrado"
+        };
+      }
+
+      const userData = existingUser[0];
+
+      // Delete B2B profile (CASCADE will handle user table)
+      await safeQuery(() =>
+        db.delete(b2bUserProfiles)
+          .where(eq(b2bUserProfiles.userId, userId))
+      );
+
+      // Delete user from Better Auth
+      await safeQuery(() =>
+        db.delete(user)
+          .where(eq(user.id, userId))
+      );
+
+      // Log the deletion
+      await this.logActivity({
+        adminId,
+        action: "DELETE_USER_SUCCESS",
+        targetType: "USER",
+        targetId: userId,
+        status: "SUCCESS",
+        targetDetails: {
+          name: userData.name,
+          email: userData.email,
+          businessName: userData.businessName,
+          document: userData.document,
+          userType: userData.userType
+        },
+        metadata: {
+          deletedBy: adminId
+        }
+      });
+
+      return {
+        success: true
+      };
+
+    } catch (error) {
+      console.error("❌ Delete B2B user error:", error);
+      
+      await this.logActivity({
+        adminId,
+        action: "DELETE_USER_FAILED",
+        targetType: "USER",
+        targetId: userId,
+        status: "FAILED",
         metadata: { 
           error: error instanceof Error ? error.message : "Unknown error"
         }
@@ -362,13 +653,25 @@ export class MasterAdminService {
           email: user.email,
           createdAt: user.createdAt,
           userType: b2bUserProfiles.userType,
-          organizationName: b2bUserProfiles.organizationName,
+          businessName: b2bUserProfiles.businessName,
+          document: b2bUserProfiles.document,
+          tradeName: b2bUserProfiles.tradeName,
           creci: b2bUserProfiles.creci,
-          cnpj: b2bUserProfiles.cnpj,
-          cpf: b2bUserProfiles.cpf,
           phone: b2bUserProfiles.phone,
+          bank: b2bUserProfiles.bank,
+          agency: b2bUserProfiles.agency,
+          account: b2bUserProfiles.account,
+          pixKey: b2bUserProfiles.pixKey,
+          cep: b2bUserProfiles.cep,
+          street: b2bUserProfiles.street,
+          number: b2bUserProfiles.number,
+          complement: b2bUserProfiles.complement,
+          neighborhood: b2bUserProfiles.neighborhood,
+          city: b2bUserProfiles.city,
+          state: b2bUserProfiles.state,
           isActive: b2bUserProfiles.isActive,
-          createdBy: b2bUserProfiles.createdBy
+          createdBy: b2bUserProfiles.createdBy,
+          notes: b2bUserProfiles.notes
         })
         .from(b2bUserProfiles)
         .innerJoin(user, eq(b2bUserProfiles.userId, user.id))

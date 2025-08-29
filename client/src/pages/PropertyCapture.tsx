@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PropertyModal } from "@/components/PropertyModal";
 import { DocumentsPendingModal } from "@/components/DocumentsPendingModal";
+import { PageLoader } from "@/components/PageLoader";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -850,16 +851,8 @@ export default function PropertyCapture() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="space-y-4 p-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center space-x-4">
-                  <Skeleton className="h-12 w-12 rounded" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-[200px]" />
-                    <Skeleton className="h-4 w-[150px]" />
-                  </div>
-                </div>
-              ))}
+            <div className="min-h-[400px] flex items-center justify-center">
+              <PageLoader size="lg" message="Carregando propriedades..." />
             </div>
           ) : (
             <div className="overflow-x-auto">

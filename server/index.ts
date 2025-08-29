@@ -3,6 +3,7 @@ dotenv.config();
 
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 // Legacy auth removed - using Better Auth only
 import { setupBetterAuthRoutes } from "./better-auth-routes.js";
 import { registerApiRoutes } from "./routes.js"; // Renomeado para maior clareza
@@ -34,12 +35,11 @@ log(`
     log("✅ Express criado");
     
     // 0. Inicializar banco de dados
-    try {
-      await initializeDB();
+    const dbConnected = await initializeDB();
+    if (dbConnected) {
       log("✅ Banco de dados inicializado");
-    } catch (error: any) {
-      log(`❌ Erro fatal na inicialização do banco: ${error.message}`);
-      process.exit(1);
+    } else {
+      log("⚠️  Servidor iniciado em modo offline - funcionalidades de banco limitadas");
     }
 
     // 1. Confiar no proxy reverso (essencial para o secure cookie em produção)
@@ -70,6 +70,7 @@ log(`
   // 3. Note: Session/Auth now handled by Better Auth
 
   // 4. Parsers de corpo de requisição
+  app.use(cookieParser());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   

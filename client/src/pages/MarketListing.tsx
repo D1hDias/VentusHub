@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageLoader } from "@/components/PageLoader";
 import { motion } from "framer-motion";
 import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
 import { useResponsive } from "@/hooks/useMediaQuery";
@@ -251,10 +252,8 @@ export default function MarketListing() {
         </CardHeader>
         <CardContent>
             {isLoading ? (
-              <div className="space-y-4 p-4">
-                {[...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-48 w-full" />
-                ))}
+              <div className="min-h-[400px] flex items-center justify-center">
+                <PageLoader size="lg" message="Carregando mercado..." />
               </div>
             ) : (
             <div className="space-y-4">

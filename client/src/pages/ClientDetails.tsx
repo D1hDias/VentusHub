@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { useSmoothtTransitions } from "@/hooks/useSmoothtTransitions";
+import { useResponsive } from "@/hooks/useMediaQuery";
 import {
   ArrowLeft,
   User,
@@ -114,6 +117,9 @@ export default function ClientDetails() {
   const [currentDocumentIndex, setCurrentDocumentIndex] = useState(0);
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const [documents, setDocuments] = useState<ClientDocument[]>([]);
+  
+  const { getListVariants, getListItemVariants } = useSmoothtTransitions();
+  const { isMobile } = useResponsive();
 
   const { data: clientDetails, isLoading, error } = useQuery({
     queryKey: [`/api/clients/${clientId}/details`, refreshKey],
@@ -438,11 +444,17 @@ export default function ClientDetails() {
         </div>
 
         {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <motion.div 
+          className="grid grid-cols-1 lg:grid-cols-4 gap-8"
+          variants={getListVariants()}
+          initial="hidden"
+          animate="visible"
+        >
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
             {/* Client Information */}
-            <Card>
+            <motion.div variants={getListItemVariants()}>
+              <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <User className="h-5 w-5 mr-2" />
@@ -546,10 +558,12 @@ export default function ClientDetails() {
                   </>
                 )}
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
 
             {/* Notes & Interactions */}
-            <Card>
+            <motion.div variants={getListItemVariants()}>
+              <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center">
@@ -622,10 +636,12 @@ export default function ClientDetails() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
 
             {/* Documents Section */}
-            <Card>
+            <motion.div variants={getListItemVariants()}>
+              <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center">
@@ -714,13 +730,15 @@ export default function ClientDetails() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Quick Actions */}
-            <Card>
+            <motion.div variants={getListItemVariants()}>
+              <Card>
               <CardHeader>
                 <CardTitle>Ações Rápidas</CardTitle>
               </CardHeader>
@@ -757,10 +775,12 @@ export default function ClientDetails() {
                   Agendar Reunião
                 </Button>
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
 
             {/* Statistics */}
-            <Card>
+            <motion.div variants={getListItemVariants()}>
+              <Card>
               <CardHeader>
                 <CardTitle>Estatísticas CRM</CardTitle>
               </CardHeader>
@@ -795,10 +815,12 @@ export default function ClientDetails() {
                   <span className="font-medium">{stats.calls}</span>
                 </div>
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
 
             {/* Timeline */}
-            <Card>
+            <motion.div variants={getListItemVariants()}>
+              <Card>
               <CardHeader>
                 <CardTitle>Timeline</CardTitle>
               </CardHeader>
@@ -837,9 +859,10 @@ export default function ClientDetails() {
                   )}
                 </div>
               </CardContent>
-            </Card>
+              </Card>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Client Edit Modal */}
