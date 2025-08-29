@@ -23,7 +23,7 @@ import {
   forcarAtualizacaoStatus,
   consultarTaxasCartorio,
   generateProtocolo
-} from "./registro-mock";
+} from "./registro-mock.js";
 
 export function registerApiRoutes(app: Express): void {
   // Market indicators routes (não requer autenticação) 
