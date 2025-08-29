@@ -126,12 +126,12 @@ export function setupNotifications(app: Express) {
       const [notification] = await db
         .insert(notifications)
         .values({
-          userId,
-          type,
+          userId: String(userId), // Required field
+          type, // Required field
           title,
           message,
           category,
-          relatedId,
+          // relatedEntityId: relatedId ? String(relatedId) : undefined, // Commented out due to schema mismatch
           actionUrl
         })
         .returning();
@@ -147,7 +147,7 @@ export function setupNotifications(app: Express) {
 
 // Helper function to create notifications
 export async function createNotification(data: {
-  userId: number;
+  userId: number | string;
   type: 'info' | 'warning' | 'error' | 'success';
   title: string;
   message: string;
@@ -158,7 +158,11 @@ export async function createNotification(data: {
   try {
     const [notification] = await db
       .insert(notifications)
-      .values(data)
+      .values({
+        ...data,
+        userId: String(data.userId), // Required field
+        // relatedEntityId: data.relatedId ? String(data.relatedId) : undefined // Commented out due to schema mismatch
+      })
       .returning();
     
     return notification;

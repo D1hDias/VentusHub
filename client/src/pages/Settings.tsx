@@ -102,6 +102,22 @@ export default function Settings() {
     enabled: activeTab === 'security',
   });
 
+  // Temporary mock functions
+  const updateProfile = async (data: ProfileFormData) => {
+    // TODO: Implement with Better Auth API
+    console.log('Update profile:', data);
+  };
+  
+  const uploadAvatar = async (file: File) => {
+    // TODO: Implement with Supabase Storage
+    console.log('Upload avatar:', file);
+  };
+  
+  const updateSettings = async (settings: any) => {
+    // TODO: Implement with Better Auth API
+    console.log('Update settings:', settings);
+  };
+
   const onSubmitProfile = async (data: ProfileFormData) => {
     try {
       await updateProfile(data);

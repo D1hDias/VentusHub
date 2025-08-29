@@ -413,7 +413,9 @@ export const storage = {
           ilike(clients.cpf, searchTerm),
           ilike(clients.phonePrimary, searchTerm)
         );
-        conditions.push(searchCondition);
+        if (searchCondition) {
+          conditions.push(searchCondition);
+        }
       }
       
       if (options?.maritalStatus) {

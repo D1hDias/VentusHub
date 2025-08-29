@@ -154,12 +154,12 @@ export class NotificationService {
         try {
           // Criar notificação in-app
           await db.insert(notifications).values({
-            userId: notification.userId,
-            type: 'info',
+            userId: String(notification.userId), // Fixed: convert to string
+            type: 'info', // Required field
             title: notification.title,
             message: notification.message,
             category: 'crm',
-            relatedEntityId: notification.relatedId?.toString(),
+            // relatedEntityId: notification.relatedId?.toString(), // Commented out due to schema mismatch
             relatedEntityType: notification.relatedType,
             isRead: false,
             createdAt: new Date()
@@ -181,7 +181,7 @@ export class NotificationService {
             .set({
               status: 'failed',
               failureReason: error instanceof Error ? error.message : String(error),
-              retryCount: notification.retryCount + 1,
+              retryCount: (notification.retryCount || 0) + 1,
               updatedAt: new Date()
             })
             .where(eq(scheduledNotifications.id, notification.id));

@@ -47,7 +47,7 @@ export async function isAuthenticated(req: AuthenticatedRequest, res: Response, 
         
         userData = sessionData.session?.user || sessionData.user;
       } catch (e) {
-        console.log('⚠️ Error decoding session_data:', e.message);
+        console.log('⚠️ Error decoding session_data:', e instanceof Error ? e.message : e);
       }
     }
     

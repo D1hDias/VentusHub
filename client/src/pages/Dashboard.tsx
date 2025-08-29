@@ -82,7 +82,7 @@ export default function Dashboard() {
   // Temporary mock values
   const currentOrganization = { id: 'temp-org', nome: 'Dias Consultor Imobiliário' };
   const canManageProperties = () => true;
-  const hasPermission = () => true;
+  const hasPermission = (permission: string) => true;
   const isOrgAdmin = true;
   const isManager = true;
   const { getListVariants, getListItemVariants, classes } = useSmoothtTransitions();

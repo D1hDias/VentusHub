@@ -361,7 +361,7 @@ export class MasterAdminService {
       // Send B2B credentials email
       try {
         const emailResult = await sendB2BCredentials({
-          name: userData.businessName || userData.name,
+          name: userData.businessName,
           email: userData.email,
           tempPassword: tempPassword,
           userType: userData.userType,

@@ -280,7 +280,7 @@ export function setupBetterAuthRoutes(app: Express) {
         message: "Better Auth test endpoint",
         authObject: !!auth,
         authHandler: !!auth.handler,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString()
       });
     }
@@ -333,8 +333,8 @@ export function setupBetterAuthRoutes(app: Express) {
       console.error('Debug B2B users error:', error instanceof Error ? error.message : String(error));
       res.status(500).json({
         success: false,
-        error: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        error: error instanceof Error ? error.message : String(error),
+        stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined
       });
     }
   });
@@ -423,8 +423,8 @@ export function setupBetterAuthRoutes(app: Express) {
       console.error('Test login error:', error instanceof Error ? error.message : String(error));
       res.status(500).json({
         success: false,
-        error: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        error: error instanceof Error ? error.message : String(error),
+        stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined
       });
     }
   });
@@ -562,7 +562,7 @@ export function setupBetterAuthRoutes(app: Express) {
         res.json({
           success: false,
           error: 'Erro ao recriar usuário',
-          details: recreateError.message
+          details: recreateError instanceof Error ? recreateError.message : String(recreateError)
         });
       }
 
@@ -570,8 +570,8 @@ export function setupBetterAuthRoutes(app: Express) {
       console.error('Recreate B2B user error:', error instanceof Error ? error.message : String(error));
       res.status(500).json({
         success: false,
-        error: error.message,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        error: error instanceof Error ? error.message : String(error),
+        stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined
       });
     }
   });
@@ -640,7 +640,7 @@ export function setupBetterAuthRoutes(app: Express) {
         debug: {
           url: signUpUrl,
           status: result.status,
-          headers: Array.from(result.headers.entries())
+          headers: Object.fromEntries(result.headers)
         }
       });
       
@@ -649,8 +649,8 @@ export function setupBetterAuthRoutes(app: Express) {
       res.status(500).json({
         success: false,
         message: 'Failed to create Diego user',
-        error: error.message,
-        stack: error.stack
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
       });
     }
   });
@@ -739,7 +739,7 @@ export function setupBetterAuthRoutes(app: Express) {
         method: req.method,
         url: req.originalUrl,
         body: req.body,
-        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        stack: process.env.NODE_ENV === 'development' && error instanceof Error ? error.stack : undefined
       });
       
       res.status(500).json({

@@ -72,7 +72,7 @@ log(`
   log("✅ CORS configurado");
 
   // 2.1. Middleware de detecção de tenant (após CORS, antes das rotas)
-  app.use(tenantMiddleware);
+  app.use(tenantMiddleware as any);
   log("✅ Middleware de tenant configurado");
 
   // 3. Note: Session/Auth now handled by Better Auth

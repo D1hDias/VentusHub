@@ -138,7 +138,7 @@ router.use(async (req, res, next) => {
  */
 router.get('/', async (req, res) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = (req as any).user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -146,10 +146,7 @@ router.get('/', async (req, res) => {
     const filters = notificationFiltersSchema.parse(req.query);
     const userIdString = String(userId);
     
-    let query = db.select().from(notifications)
-      .where(eq(notifications.userId, userIdString));
-
-    // Apply filters
+    // Build conditions
     const conditions = [eq(notifications.userId, userIdString)];
 
     if (filters.category) {
@@ -180,17 +177,13 @@ router.get('/', async (req, res) => {
       conditions.push(lte(notifications.createdAt, new Date(filters.endDate)));
     }
 
-    // Apply all conditions
-    query = query.where(and(...conditions));
-
-    // Apply sorting
+    // Build final query
     const sortColumn = notifications[filters.sortBy as keyof typeof notifications] as any;
-    query = filters.sortOrder === 'desc' 
-      ? query.orderBy(desc(sortColumn))
-      : query.orderBy(asc(sortColumn));
-
-    // Apply pagination
-    query = query.limit(filters.limit).offset(filters.offset);
+    const query = db.select().from(notifications)
+      .where(and(...conditions))
+      .orderBy(filters.sortOrder === 'desc' ? desc(sortColumn) : asc(sortColumn))
+      .limit(filters.limit)
+      .offset(filters.offset);
 
     const results = await query;
 
@@ -223,7 +216,7 @@ router.get('/', async (req, res) => {
  */
 router.get('/debug', async (req, res) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = (req as any).user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -326,7 +319,7 @@ router.get('/summary', dbHealthCheck, async (req: AuthenticatedRequest, res) => 
  */
 router.get('/:id', async (req, res) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = (req as any).user?.id;
     const notificationId = parseInt(req.params.id);
 
     if (!userId || isNaN(notificationId)) {
@@ -361,7 +354,7 @@ router.get('/:id', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = (req as any).user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -403,7 +396,7 @@ router.post('/', async (req, res) => {
  */
 router.patch('/:id', async (req, res) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = (req as any).user?.id;
     const notificationId = parseInt(req.params.id);
 
     if (!userId || isNaN(notificationId)) {
@@ -489,7 +482,7 @@ router.patch('/:id', async (req, res) => {
  */
 router.post('/mark-all-read', async (req, res) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = (req as any).user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -523,7 +516,7 @@ router.post('/mark-all-read', async (req, res) => {
  */
 router.delete('/:id', async (req, res) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = (req as any).user?.id;
     const notificationId = parseInt(req.params.id);
 
     if (!userId || isNaN(notificationId)) {
@@ -572,7 +565,7 @@ router.delete('/:id', async (req, res) => {
  */
 router.get('/subscriptions', async (req, res) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = (req as any).user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -596,7 +589,7 @@ router.get('/subscriptions', async (req, res) => {
  */
 router.post('/subscriptions', async (req, res) => {
   try {
-    const userId = (req.user as any)?.id;
+    const userId = (req as any).user?.id;
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -658,8 +651,6 @@ router.get('/analytics', async (req, res) => {
     
     const { startDate, endDate, category } = req.query;
 
-    let query = db.select().from(notificationAnalytics);
-
     const conditions = [];
 
     if (startDate) {
@@ -674,11 +665,11 @@ router.get('/analytics', async (req, res) => {
       conditions.push(eq(notificationAnalytics.category, category as string));
     }
 
-    if (conditions.length) {
-      query = query.where(and(...conditions));
-    }
+    const query = db.select().from(notificationAnalytics)
+      .where(conditions.length ? and(...conditions) : undefined)
+      .orderBy(desc(notificationAnalytics.date));
 
-    const analytics = await query.orderBy(desc(notificationAnalytics.date));
+    const analytics = await query;
 
     res.json(analytics);
 

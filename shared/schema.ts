@@ -874,7 +874,7 @@ export const embedding = pgTable("embedding", {
   index("idx_embedding_subject").on(table.subjectType, table.subjectId),
   index("idx_embedding_type").on(table.contentType),
   // Índice para busca por similaridade de vetor
-  index("idx_embedding_vector").using("ivfflat", table.embedding),
+  // index("idx_embedding_vector").using("ivfflat", table.embedding), // Comentado: requer pgvector extension
 ]);
 
 // Relations para as novas tabelas

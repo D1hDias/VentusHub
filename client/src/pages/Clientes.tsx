@@ -113,13 +113,13 @@ export default function Clientes() {
   // Mock values for organization functionality
   const currentOrganization = { id: 'temp-org', nome: 'Dias Consultor Imobiliário' };
   const canManageClients = () => true;
-  const hasPermission = () => true;
+  const hasPermission = (permission: string) => true;
   
 
   // Mock data for clients - temporarily disabled API
   const clientsResponse = { clients: [] };
   const isLoading = false;
-  const error = null;
+  const error: { message?: string } | null = null;
 
   // Extrair o array de clientes da resposta da API
   const clients = clientsResponse?.clients || [];
@@ -600,7 +600,7 @@ export default function Clientes() {
           {error ? (
             <div className="text-center py-8">
               <div className="text-red-600 mb-2">Erro ao carregar clientes</div>
-              <div className="text-gray-500 text-sm">{error.message}</div>
+              <div className="text-gray-500 text-sm">{(error as any)?.message || 'Erro desconhecido'}</div>
               <Button
                 variant="outline"
                 onClick={() => window.location.reload()}
