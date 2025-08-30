@@ -33,8 +33,10 @@ WORKDIR /app
 # Definir NODE_ENV como produção
 ENV NODE_ENV production
 
-# Copiar a aplicação construída e as dependências do estágio builder
+# Copiar a aplicação construída, código fonte TypeScript e dependências
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/server ./server
+COPY --from=builder /app/shared ./shared
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
@@ -50,5 +52,5 @@ USER appuser
 # Expor a porta em que a aplicação será executada (definida como 80 no docker-compose)
 EXPOSE 80
 
-# Comando para iniciar a aplicação (usando o script 'start' do package.json)
-CMD ["npm", "start"]
+# Comando para iniciar a aplicação usando TSX (interpretação direta do TypeScript)
+CMD ["npx", "tsx", "server/index.ts"]
