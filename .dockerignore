@@ -1,0 +1,55 @@
+node_modules
+npm-debug.log
+.npm
+.git
+.gitignore
+README.md
+.env
+.nyc_output
+coverage
+.cache
+.parcel-cache
+dist
+build
+*.log
+logs
+.DS_Store
+Thumbs.db
+
+# Development files
+*.test.js
+*.spec.js
+__tests__
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Documentation
+docs/
+*.md
+
+# Assets não essenciais
+attached_assets/
+uploads/
+backups/
+ssl/
+
+# Docker files
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Production files
+ecosystem.config.js
+nginx/
+deploy-*.sh
+rollback.sh
+setup-*.sh
+fix-*.sh
+
+# Temporary files
+tmp/
+temp/
+.tmp

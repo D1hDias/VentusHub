@@ -1,0 +1,38 @@
+services:
+  # Aplicação VentusHub (standalone com banco remoto)
+  ventushub:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: ventushub-app
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=80
+      - DATABASE_URL=${DATABASE_URL}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_REGISTRO_IMOVEIS_API_KEY=${VITE_REGISTRO_IMOVEIS_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL}
+      - RESEND_FROM_NAME=${RESEND_FROM_NAME}
+      - RESEND_REPLY_TO=${RESEND_REPLY_TO}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    ports:
+      - "5000:80"
+    volumes:
+      - ./uploads:/app/uploads:rw
+      - ./logs:/app/logs:rw
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    labels:
+      - "com.docker.compose.service=ventushub"
+      - "com.ventushub.version=1.0"

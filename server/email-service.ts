@@ -7,8 +7,8 @@ import { Resend } from 'resend';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize Resend client only if API key is available
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Email configuration
 const EMAIL_CONFIG = {
@@ -30,7 +30,7 @@ export interface B2BCredentialsEmailData {
  */
 export async function sendB2BCredentials(data: B2BCredentialsEmailData): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!process.env.RESEND_API_KEY) {
+    if (!process.env.RESEND_API_KEY || !resend) {
       console.error('❌ RESEND_API_KEY not configured');
       return { success: false, error: 'Email service not configured' };
     }
@@ -416,7 +416,7 @@ export async function sendB2BCredentials(data: B2BCredentialsEmailData): Promise
  */
 export async function sendPasswordReset(email: string, resetToken: string): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!process.env.RESEND_API_KEY) {
+    if (!process.env.RESEND_API_KEY || !resend) {
       console.error('❌ RESEND_API_KEY not configured');
       return { success: false, error: 'Email service not configured' };
     }
@@ -503,7 +503,7 @@ export async function sendPasswordReset(email: string, resetToken: string): Prom
  */
 export async function testEmailService(): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!process.env.RESEND_API_KEY) {
+    if (!process.env.RESEND_API_KEY || !resend) {
       return { success: false, error: 'RESEND_API_KEY not configured' };
     }
 
@@ -521,7 +521,7 @@ export async function testEmailService(): Promise<{ success: boolean; error?: st
  */
 export async function sendB2BPasswordEmail(email: string, resetToken: string): Promise<{ success: boolean; error?: string }> {
   try {
-    if (!process.env.RESEND_API_KEY) {
+    if (!process.env.RESEND_API_KEY || !resend) {
       console.error('❌ RESEND_API_KEY not configured');
       return { success: false, error: 'Email service not configured' };
     }
